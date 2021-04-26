@@ -1,0 +1,25 @@
+
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+
+# fmr
+
+<!-- badges: start -->
+
+<!-- badges: end -->
+
+  - 26/04/2021 0.0.0.9000 The first commit where I install an array of
+    functions I expect to have to use as well as some example data
+    files.
+
+The goal of fmr is to provide functions and data for use in Fisheries
+Modelling using R
+
+## Installation
+
+You can install development version from [GitHub](https://github.com/)
+with:
+
+``` r
+# install.packages("devtools")
+devtools::install_github("haddonm/fmr")
+```
