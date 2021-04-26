@@ -153,7 +153,7 @@ aspmphaseplot <- function(fishery,prod,ans,Blim=0.2,filename="",resol=200,
    Htarg=ans["Htarg"]
    pickL <- which.closest(Blim,prod[,"Depletion"])
    Hlim <- prod[pickL,"Harvest"]
-   Hmax <- getmaxy(c(fishery[,"FullH"],Hlim))
+   Hmax <- getmax(c(fishery[,"FullH"],Hlim))
    pickyr <- which(fishery[,"FullH"] > 0)
    numval <- dim(fishery)[1]
    par(mai=c(0.45,0.45,0.05,0.05),oma=c(0.0,0,0.0,0.0)) 
@@ -174,7 +174,7 @@ aspmphaseplot <- function(fishery,prod,ans,Blim=0.2,filename="",resol=200,
    catch <- fishery[pickyr,"Catch"]
    harvest <- fishery[pickyr,"FullH"]
    par(mai=c(0.3,0.45,0.05,0.45)) 
-   cmax <- getmaxy(catch)
+   cmax <- getmax(catch)
    plot(yrs,catch,type="l",lwd=2,col=2,ylab="",xlab="",
         ylim=c(0,cmax),yaxs="i",panel.first=grid(ny=0))
    par(new=TRUE)
@@ -803,15 +803,15 @@ plotASPM <- function(infish,CI=NA,defineplot=TRUE, target=0.48,usef=7,png="") {
    }
    yrs <- infish$Year
    # plot catches
-   ymax <- getmaxy(infish$Catch)
+   ymax <- getmax(infish$Catch)
    plot(yrs,infish$Catch,type="l",lwd=2,ylim=c(0,ymax),yaxs="i",xlab="",
         panel.first=grid(),ylab="Catch (t)")
    # plot Spawning Biomass
-   ymax <- getmaxy(infish$SpawnB)
+   ymax <- getmax(infish$SpawnB)
    plot(yrs,infish$SpawnB,type="l",lwd=2,ylim=c(0,ymax),yaxs="i",xlab="",
         panel.first=grid(),ylab="Spawning Biomass (t)")
    # plot CPUE
-   ymax <- getmaxy(c(infish$CPUE,infish$PredCE))
+   ymax <- getmax(c(infish$CPUE,infish$PredCE))
    plot(yrs,infish$CPUE,type="p",pch=16,col=2,cex=1.0,ylim=c(0,ymax),yaxs="i",
         xlab="",panel.first=grid(),ylab="Relative CPUE")
    lines(yrs,infish$PredCE,lwd=2,col=1)
@@ -819,14 +819,14 @@ plotASPM <- function(infish,CI=NA,defineplot=TRUE, target=0.48,usef=7,png="") {
       segments(x0=yrs,y0=CI[,1],x1=yrs,y1=CI[,3],lwd=1,col=4)
    }
    # plot harvest rate
-   ymax <- getmaxy(infish$FullH)
+   ymax <- getmax(infish$FullH)
    plot(yrs,infish$FullH,type="l",lwd=2,ylim=c(0,ymax),yaxs="i",xlab="",
         panel.first=grid(),ylab="Annual Harvest Rate")
    # plot the residuals
    pickCE <- which(infish[,"CPUE"] > 0)
    resid <- infish[pickCE,"CPUE"]/infish[pickCE,"PredCE"]
    nresid <- length(resid)
-   ymax <- getmaxy(resid);    ymin <- getminy(resid,mult=1.1)
+   ymax <- getmax(resid);    ymin <- getmin(resid,mult=1.1)
    plot(yrs[pickCE],resid,"n",ylim=c(ymin,ymax),ylab="LogN Residuals",xlab="")
    grid()
    abline(h=1.0,col=1)
@@ -836,7 +836,7 @@ plotASPM <- function(infish,CI=NA,defineplot=TRUE, target=0.48,usef=7,png="") {
    text(min(yrs[pickCE]),ymin*1.05,paste("rmse = ",round(rmseresid,3),sep=""),
         font=7,cex=1.0,pos=4)
    # plot the depletion level
-   ymax <- getmaxy(infish$Deplete)
+   ymax <- getmax(infish$Deplete)
    plot(yrs,infish$Deplete,type="l",lwd=2,ylim=c(0,ymax),yaxs="i",xlab="",
         panel.first=grid(),ylab="Depletion")
    abline(h=c(0.2,target),col=c(2,3),lwd=1)
@@ -884,7 +884,7 @@ plotceASPM <- function(infish,CI=NA,defineplot=TRUE) { # infish=fisheryPen; CI=c
     } else {   
       confint <- NA  
    }
-   ymax <- getmaxy(c(infish$CPUE,infish$PredCE,confint))
+   ymax <- getmax(c(infish$CPUE,infish$PredCE,confint))
    plot(yrs,infish$CPUE,type="p",ylim=c(0,ymax),yaxs="i",
         xlab="",panel.first=grid(),ylab="Relative CPUE")
    if (class(CI) == "matrix") {
@@ -954,7 +954,7 @@ prodASPM <- function(inprod, target=0.48, console=TRUE, plot=TRUE) {
    if (plot) {
       par(mfrow=c(3,1),mai=c(0.45,0.45,0.05,0.05),oma=c(0.1,0,0.0,0.0))
       par(cex=1.0, mgp=c(1.35,0.35,0), font.axis=7,font=7,font.lab=7)
-      ymax <- getmaxy(inprod[,"Yield"],mult=1.1)
+      ymax <- getmax(inprod[,"Yield"],mult=1.1)
       plot(inprod[,"SpawnB"],inprod[,"Yield"],type="l",lwd=2,col=1,ylim=c(0,ymax),yaxs="i",
            xlab="Spawning Biomass (t)",ylab="Surplus Production (t)")
       grid()
@@ -1046,7 +1046,7 @@ robustASPM <- function(inpar,fish,glb,props,N=10,scaler=15,
       origLL <-  usefun(pars[i,],fish,glb,props)        
       bestSP <- fitASPM(pars[i,],fish,glb,props,callfun=usefun)
       opar <- bestSP$par
-      prod <- getProductionC(exp(opar[1]),fish,glb,props,
+      prod <- getProduction(exp(opar[1]),fish,glb,props,
                              Hrg=Hrange,nyr=numyrs)
       anspen <- prodASPM(prod,console=FALSE,plot=FALSE)
       results[i,] <- c(pars[i,],origLL,bestSP$par,bestSP$value,anspen["MSY"],
