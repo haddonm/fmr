@@ -26,17 +26,20 @@ plaice
 }
 \description{
 plaice data including fish, glb, props, agedata, and lendata
-for North sea plaice dervied from tables and the text of the classical
+for North sea plaice derived from tables and the text of the classical
 Beverton and Holt, 1957, book. Includes age data that is useful for
-illustratung the catch curves. Much of this data has also been included
+illustrating the catch curves. Much of this data has also been included
 in the age-structured model described in Haddon, 2011.
 }
 \examples{
- \dontrun{
  data(plaice)
  str(plaice)
  print(plaice$fish)
  print(plaice$agedata)
 }
+\references{
+Beverton, R.J.H. and S.J. Holt (1957) \emph{On the dynamics of
+exploited fish populations.} U.K. Ministry of Agriculture and Fisheries,
+Fisheries Investigations (Series 2), \emph{19}: 1-533.
 }
 \keyword{datasets}

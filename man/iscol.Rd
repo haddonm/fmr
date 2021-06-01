@@ -4,10 +4,10 @@
 \alias{iscol}
 \title{incol is a utility to determine is a column is present in a matrix}
 \usage{
-iscol(incol = "year", inmat)
+iscol(incol, inmat)
 }
 \arguments{
-\item{incol}{the name of the column; defaults to "year" as an example}
+\item{incol}{the name of the column being looked for.}
 
 \item{inmat}{the matrix or data.frame within which to search for incol}
 }
@@ -16,7 +16,8 @@ TRUE or FALSE
 }
 \description{
 incol is a utility to determine whether a names columns is
-present in a given matrix or data.frame.
+present in a given matrix or data.frame. If the input is neither a
+matrix or a data.frame an error and warning will be thrown.
 }
 \examples{
 \dontrun{

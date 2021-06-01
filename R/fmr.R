@@ -8,6 +8,7 @@
 #' @importFrom stats pnorm cor
 #' @importFrom utils tail head
 #' @importFrom rutilsMH which.closest getmax magnitude
+#' @useDynLib fmr, .registration = TRUE
 NULL
 
 

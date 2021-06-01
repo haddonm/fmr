@@ -18,6 +18,27 @@
 #' }
 "dataspm"
 
+#' @title fish fishery data for the plaice example from Beverton and Holt, 1957
+#'
+#' @description A dataset containing the fish data.frame, for use in fmr
+#'
+#' @format A data.frame with four columns
+#' \describe{
+#'   \item{year}{ 9 fishing years from 1929 to 1937, listed as 29 - 37}
+#'   \item{effort}{ the annual effort}
+#'   \item{catch}{ the annual catch of plaice}
+#'   \item{obsce}{ the cpue calculated by dividing the catch by the effort}
+#' }
+#' 
+#' @references Beverton, R.J.H. and S.J. Holt (1957) \emph{On the dynamics of 
+#'     exploited fish populations.} U.K. Ministry of Agriculture and Fisheries, 
+#'     Fisheries Investigations (Series 2), \emph{19}: 1-533.
+#'     
+#' @examples
+#' data(fish)
+#' fish
+"fish"
+
 #' @title fishdat Three data objects suitable for use with datalowSA.
 #'
 #' @description A dataset containing the fish data.frame, the glb list, and the
@@ -60,6 +81,23 @@
 #' }
 "invert"
 
+#' @title ocaa the observed catch-at-age for plaice. 
+#'
+#' @description Table 13.1 from Beverton & Holt, 1957 containing the relative
+#'     catch-at-age for plaice from the north sea. This is a data.frame of nine 
+#'     years (29/30 - 37/38) by 9 ages (2 - 10). 
+#'
+#' @format A 9 x 9 data.frame
+#' 
+#' @references Beverton, R.J.H. and S.J. Holt (1957) \emph{On the dynamics of 
+#'     exploited fish populations.} U.K. Ministry of Agriculture and Fisheries, 
+#'     Fisheries Investigations (Series 2), \emph{19}: 1-533.
+#'     
+#' @examples
+#' data(ocaa)
+#' ocaa
+"ocaa"
+
 #' @title orhdat1 Three data objects suitable for use with asmreduct.
 #'
 #' @description A dataset containing a fish data.frame, the glb list, and 
@@ -76,12 +114,56 @@
 #' }
 "orhdat1"
 
+#' @title owaa the observed weight-at-age for plaice. 
+#'
+#' @description Table 16.2 from Beverton & Holt, 1957 containing the relative
+#'     weight-at-age for plaice from the north sea. This is a data.frame of nine 
+#'     years (29/30 - 37/38) by 9 ages (2 - 10). Older ages are omitted.
+#'
+#' @format A 9 x 9 data.frame
+#' 
+#' @references Beverton, R.J.H. and S.J. Holt (1957) \emph{On the dynamics of 
+#'     exploited fish populations.} U.K. Ministry of Agriculture and Fisheries, 
+#'     Fisheries Investigations (Series 2), \emph{19}: 1-533.
+#'     
+#' @examples
+#' data(owaa)
+#' owaa
+"owaa"
+
+#' @title param preliminary parameter estimates for a SCAA model of plaice
+#' 
+#' @description Preliminary parameters used when fitting a statistical catch-at-
+#'     age model to the plaice data from Bevertone & Holt, 1957. Much of this 
+#'     data has also been included in the age-structured model described in 
+#'     Haddon, 2011.
+#'
+#' @format A data.frame of two columns
+#' \describe{
+#'   \item{var}{ the name of each parameter }
+#'   \item{value}{ the natural logarithm transformed value of each parameter }
+#' }
+#' 
+#' @references Beverton, R.J.H. and S.J. Holt (1957) \emph{On the dynamics of 
+#'     exploited fish populations.} U.K. Ministry of Agriculture and Fisheries, 
+#'     Fisheries Investigations (Series 2), \emph{19}: 1-533.
+#'     Haddon, M (2011) \emph{Modelling and Quantitative Methods in Fisheries} 
+#'     2ns edition. Chapman & Hall, CRC Press. Boca Raton. 449p.
+#' 
+#' @examples 
+#'  data(plaice)
+#'  str(plaice)
+#'  print(plaice$fish)
+#'  print(plaice$agedata)
+"param"
+
+
 #' @title plaice data derived from Beverton and Holt, 1957 for European Plaice.
 #' 
 #' @description plaice data including fish, glb, props, agedata, and lendata
-#'     for North sea plaice dervied from tables and the text of the classical
+#'     for North sea plaice derived from tables and the text of the classical
 #'     Beverton and Holt, 1957, book. Includes age data that is useful for 
-#'     illustratung the catch curves. Much of this data has also been included
+#'     illustrating the catch curves. Much of this data has also been included
 #'     in the age-structured model described in Haddon, 2011.
 #'
 #' @format A list of five objects with only the first four containing data, the
@@ -99,11 +181,15 @@
 #'   \item{lendata}{ a list of 5 objects akin to the agedata object but for
 #'     length data.}
 #' }
+#' 
+#' @references Beverton, R.J.H. and S.J. Holt (1957) \emph{On the dynamics of 
+#'     exploited fish populations.} U.K. Ministry of Agriculture and Fisheries, 
+#'     Fisheries Investigations (Series 2), \emph{19}: 1-533.
+#' 
+#' 
 #' @examples 
-#'  \dontrun{
 #'  data(plaice)
 #'  str(plaice)
 #'  print(plaice$fish)
 #'  print(plaice$agedata)
-#' }
 "plaice"

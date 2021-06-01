@@ -36,6 +36,74 @@ addnorm <- function(inhist,xdata,inc=0.01) {
   return(ans)
 } # end of addnorm
 
+#' @title calccaa estimates the catch-at-age from teh predicted numbers-at-age
+#' 
+#' @description calccaa uses the Baranov catch equation to calculate the 
+#'     predicted catch-at-age from teh predicted numbers-at-age (such as 
+#'     calculates by calcnaa)
+#'
+#' @param pars the model parameter vector
+#' @param pnaa the predicted numbers-at-age from the parameters
+#' @param M the instantaneous natural mortality rate
+#' @param sel the selectivity-at-age, which can be parameters
+#' @param ages a vector of ages 
+#'
+#' @return a matrix of predicted catch-at-age with yrs as rows and ages as cols
+#' @export
+#'
+#' @examples
+#' print("wait on data-sets")
+calccaa <- function(pars,pnaa,M,sel,ages) {  
+  # pars=pars; pnaa=pnaa; M=M; sel=selec ; age=ages 
+  caa <- pnaa
+  nyr <- nrow(caa)
+  nage <- length(ages)
+  f1 <- nyr + nage - 1
+  for (yr in 1:nyr) {
+    for (age in 1:nage) { # yr=1; age=1
+      sF <- sel[age] * exp(pars[yr + f1])
+      caa[yr,age] <- (sF/(M + sF)) * pnaa[yr,age] * (1 - exp(-(M + sF)))
+    }
+  }
+  return(caa=caa)                     
+} # end of calccaa
+
+
+#' @title calcnaa estimates the predicted numbers-at-age from the parameters
+#' 
+#' @description calcnaa estimates the predicted numbers-at-age from the 
+#'     parameters, along with the estimate of M, and selectivity-at-age
+#'
+#' @param pars the model parameter vector
+#' @param M the instantaneous natural mortality rate
+#' @param sel the selectivity-at-age, which can be parameters
+#' @param yrs a vector of yrs, used to label the rows
+#' @param ages a vector of ages, used to label the columns 
+#'
+#' @return  a matrix of predicted numbers-at-age
+#' @export
+#'
+#' @examples
+#' print("wait on data-sets")
+calcnaa <- function(pars,M,sel,yrs,ages) {  
+  # pars=pars; pnaa=pnaa; M=M; sel=selec ; age=ages 
+  nyr <- length(yrs)
+  nage <- length(ages)
+  pnaa <- matrix(0,nrow=nyrs,ncol=nage,dimnames=list(yrs,ages))  
+  endR <- nyr
+  endN <- endR + nage - 1
+  f1 <- endN - 1
+  pnaa[,1] <- exp(pars[1:endR])
+  pnaa[1,2:nage] <- exp(pars[(endR+1):endN])
+  for (yr in 2:nyr) { 
+    for (age in 2:nage) {  # yr=2; age=2
+      sF <- sel[age - 1] * exp(pars[yr + f1])
+      pnaa[yr,age] <- pnaa[(yr-1),(age-1)] * exp(-(M + sF))
+    }
+  }
+  return(pnaa=pnaa)                     
+} # end of calcnaa
+
 #' @title calcrmse calcuates the root mean square error for two vectors
 #' 
 #' @description given a set of observations and predicted values, calcrmse
@@ -98,13 +166,85 @@ getLNCI <- function(av,se,P=95){  # av=fissp[,"CPUE"]; se=rmse;P=0.95
   return(result)
 } # end of getLNCI   
 
+#' @title getq calculates catchability from cpue and predicted exploitable biomass
+#' 
+#' @description getq uses a closed form version of the catchability that uses 
+#'     the observed cpue and the predicted exploitable biomass to estimate the
+#'     scaling factor between erxploitable biomass and cpue.
+#'
+#' @param cpue the vector of observed cpue
+#' @param exB the output vector of predicted exploitable biomass
+#'
+#' @return the catchability as a scaler
+#' @export
+#'
+#' @examples
+#' cpue <- c(0.369,0.254,0.407,0.357,0.326,0.284,0.403,0.297,0.397)
+#' exB <- c(3712,3251,3810,4499,4500,3977,3972,3220,3386) 
+#' getq(cpue,exB)  # should be 8.964018e-05 
+getq <- function(cpue,exB) {
+  if (length(cpue) != length(exB))
+    stop("Input vectors of different lengths in function: getq \n")
+  nyr <- length(cpue)
+  q <- exp(sum(log(cpue/exB))/nyr)
+  return(q)
+} # end of getq
+
+#' @title getssq2 calculates the sum of squares for the age-structured model
+#' 
+#' @description getssq2 calculates the combined sum of squares residuals for
+#'     both the observed numbers-at-age and the CPUE. This uses an example from
+#'     Fournier and Archibald, 1982; which was also used as an example in 
+#'     Haddon, 2011.
+#'
+#' @param pars a vector of 28 parameters, 1:9 being the log(rec) for yrs 1929:
+#'     1937,10:17 being the log(numbers-at-ages) 10 - 3 for year 1929 (rather
+#'     than estimating recruitments for 8 years prior to 1929), 18-26 are log(F)
+#'     for years 29:37, and 27:28 are the selectivity parameters sel50, sel95.
+#' @param M the natural mortality instantaneous rate
+#' @param yrs a vector of the years of fisheries data, eg 1929:1937
+#' @param ages a vector of the ages, eg 2:10
+#' @param onaa the observed numbers-at-age in the catches
+#' @param owa either the matrix of observed weight-at-age years as rows, 
+#'     weight-at-age as columns. If a vector of average predicted weight-at-age 
+#'     is being used it MUST first be converted into a matrix of length(yrs)
+#'     rows where the vector is duplicated in each row. Assuming 9 years and 10 
+#'     ages one could use matrix(data=rep(owa,9),nrow=9,ncol=10,byrow=TRUE)
+#' @param cpue the vector of cpue for each year
+#'
+#' @return a scalar holding the combined sum of squared residuals
+#' @export
+#'
+#' @examples
+#' data(ocaa)
+#' data(fish)
+#' data(owaa)
+#' data(param)
+#' pars <- param[1:28,2]
+#' yrs <- as.numeric(fish[,"year"])
+#' ages <- as.numeric(2:10)
+#' onaa <- ocaa[,ages]
+#' owa <- as.matrix(owaa[,ages])
+#' nage <- length(ages)
+#' getssq2(pars,M=0.2,yrs,ages,onaa,owa,cpue=fish[,"obsce"]) #should be 332.5389
+getssq2 <- function(pars,M,yrs,ages,onaa,owa,cpue) {
+  out <- calcnaaC(pars,M,yrs,ages,owa)
+  pcaa <- calccaaC(pars,out$pnaa,M,out$sel,ages)
+  ssq1 <- sum((log(onaa/pcaa)^2),na.rm=TRUE)
+  exB <- out$exB
+  q <- exp(sum(log(cpue/exB))/length(yrs))
+  ssq2 <- sum((log(cpue) - log(q * exB))^2)
+  ssq= ssq1 + ssq2
+  return(ssq)
+} # end of getssq2
 
 #' @title incol is a utility to determine is a column is present in a matrix
 #'
 #' @description incol is a utility to determine whether a names columns is
-#'     present in a given matrix or data.frame.
+#'     present in a given matrix or data.frame. If the input is neither a 
+#'     matrix or a data.frame an error and warning will be thrown.
 #'
-#' @param incol the name of the column; defaults to "year" as an example
+#' @param incol the name of the column being looked for.
 #' @param inmat the matrix or data.frame within which to search for incol
 #'
 #' @return TRUE or FALSE
@@ -119,10 +259,41 @@ getLNCI <- function(av,se,P=95){  # av=fissp[,"CPUE"]; se=rmse;P=0.95
 #' iscol("catch",test)
 #' iscol("ages",test)
 #' }
-iscol <- function(incol="year",inmat) { # incol="ages"; inmat=dat
-  if (length(grep(incol,colnames(inmat))) < 1) return(FALSE)
-  else return(TRUE)
-}
+iscol <- function(incol,inmat) { # incol="ages"; inmat=pnaa
+  if (class(inmat)[1] %in% c("matrix","data.frame")) { 
+    if (length(grep(incol,colnames(inmat))) < 1) return(FALSE)
+    else return(TRUE) 
+  } else {
+    stop(cat("input is neither a matrix nor a data.frame \n"))
+  }
+} # end of iscol
+
+#' @title logistic standard selectivity function
+#'
+#' @description logistic calculates a Logistic curve that can be used as a
+#'     selectivity function, or maturity curve, of wherever a logistic is
+#'     required. This version uses the logistic function
+#'     1/(1+exp(-log(19.0)*(lens-inL50)/(inL95-inL50))),
+#'     which explicitly defines the SM50 and uses SM95 as the second parameter.
+#' @param inl50 is the length/age at 50 percent selection/maturity/whatever
+#' @param inl95 is the length/age at 5 percent selection/maturity/whatever
+#' @param depend a vector of lengths/ages for which the logistic value will be
+#'     calculated.
+#' @return A vector of length/age(depend) containing predicted logistic values
+#' @export
+#' 
+#' @examples
+#' in50 <- 3.398
+#' in95 <- 4.386
+#' ages <- seq(2,10,1)
+#' select <- logistic(inl50=in50,inl95=in95,depend=age)
+#' round(cbind(ages,select),5)
+logistic <- function(inl50,inl95,depend) {
+  L50 <- exp(inl50)
+  L95 <- exp(inl95)
+  ans <- 1/(1+exp(-log(19.0)*(depend-L50)/(L95 - L50)))
+  return(ans)
+} # end of logistic
 
 
 #' @title penalty0 enables the adding of a large penalty as one approaches 0.0
