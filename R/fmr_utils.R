@@ -89,7 +89,7 @@ calcnaa <- function(pars,M,sel,yrs,ages) {
   # pars=pars; pnaa=pnaa; M=M; sel=selec ; age=ages 
   nyr <- length(yrs)
   nage <- length(ages)
-  pnaa <- matrix(0,nrow=nyrs,ncol=nage,dimnames=list(yrs,ages))  
+  pnaa <- matrix(0,nrow=nyr,ncol=nage,dimnames=list(yrs,ages))  
   endR <- nyr
   endN <- endR + nage - 1
   f1 <- endN - 1

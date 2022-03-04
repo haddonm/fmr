@@ -7,7 +7,7 @@
 #' @importFrom stats dmultinom anova ccf lm median nlm dchisq qchisq dlnorm
 #' @importFrom stats pnorm cor
 #' @importFrom utils tail head
-#' @importFrom rutilsMH which.closest getmax magnitude
+#' @importFrom hutils which.closest getmax getmin magnitude
 #' @useDynLib fmr, .registration = TRUE
 NULL
 

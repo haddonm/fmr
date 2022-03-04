@@ -36,8 +36,9 @@ altnegLL <- function(inp,indat) {  #inp=pars; indat=fish
 #'     this by saving the original fishery data, estimating the cpue residuals,
 #'     and multiplying the optimum predicted CPUE by a bootstrap sample of the
 #'     log-normal residuals (Haddon, 2011, p311). This bootstrap sample of CPUE
-#'     replaces the original fish[,"cpue"] and the model is re-fitted. This is 
-#'     repeated iter times and the outputs reported ready for the derivation of
+#'     replaces the original fish(,"cpue") (should be square brackets) and 
+#'     the model is re-fitted. This is repeated iter times and the outputs 
+#'     reported ready for the derivation of
 #'     percentile confidence intervals. The optimum solution is used as the 
 #'     first bootstrap replicate (it is standard practice to include the 
 #'     original fit in the bootstrap analysis). If 1000 replicates are run this
@@ -47,11 +48,11 @@ altnegLL <- function(inp,indat) {  #inp=pars; indat=fish
 #'
 #' @param optpar The optimum model parameters from an earlier analysis
 #' @param fishery the fishery data containing the original observed cpue values
-#' @param iter the number of boostrap replicates to be run
+#' @param iter the number of bootstrap replicates to be run
 #' @param schaefer default is TRUE, determines whether a Schaefer or a Fox model
 #'     is run
 #'
-#' @return a list of two matrices. One contining the bootstrap parameters and 
+#' @return a list of two matrices. One containing the bootstrap parameters and 
 #'     the other containing some of the dynamics, including the ModelB, the 
 #'     bootstrap CPUE sample, the Depletion, and the annual harvest rate.
 #' @export
@@ -281,7 +282,7 @@ displayModel <- function(inp,indat,schaefer=TRUE,extern=FALSE,limit=0.2,
       text(min(yrs),ymax*0.2,paste("p = ",p,sep=""),font=7,cex=1.0,pos=4)
       text(min(yrs),ymax*0.1,paste("MSY = ",round(out$msy,3),sep=""),font=7,cex=1.0,pos=4)
       #plot4 Production curve
-      ymax <- getmaxy(y)
+      ymax <- getmax(y)
       plot(x,y,type="l",col=1,ylab="",xlab="",ylim=c(0,ymax),lwd=2,yaxs="i",
            panel.first = grid())
       abline(v=c(Blim,Bmsy,Btarg),col=2)
@@ -294,8 +295,8 @@ displayModel <- function(inp,indat,schaefer=TRUE,extern=FALSE,limit=0.2,
       # plot5 cpue residuals
       resid <- ans[pickCE,"CPUE"]/ans[pickCE,"PredCE"]
       nresid <- length(resid)
-      ymax <- getmaxy(resid)
-      ymin <- getminy(resid,mult=1.1)
+      ymax <- getmax(resid)
+      ymin <- getmin(resid,mult=1.1)
       plot(yrs[pickCE],resid,"n",ylim=c(ymin,ymax),ylab="LN Residuals",xlab="Years")
       grid()
       abline(h=1.0,col=1)
@@ -305,7 +306,7 @@ displayModel <- function(inp,indat,schaefer=TRUE,extern=FALSE,limit=0.2,
       text(min(yrs[pickCE]),ymin*1.05,paste("rmse = ",round(rmseresid,3),sep=""),
            font=7,cex=1.0,pos=4)
       #plot6 depletion production curve from biomass one
-      ymax <- getmaxy(y)   
+      ymax <- getmax(y)   
       plot(xd,y,type="l",col=1,ylab="",xlab="",ylim=c(0,ymax),lwd=2,yaxs="i",
            panel.first = grid())
       abline(v=c(limit,Dmsy,target),col=c(2,4,3))
@@ -917,7 +918,7 @@ spmphaseplot <- function(answer,Blim=0.2,Btarg=0.5,filename="",resol=200,fnt=7) 
    Bmsy <- answer$Bmsy
    fishery <- answer$Dynamics$outmat
    Hmsy <- answer$MSY/answer$Bmsy
-   Hmax <- getmaxy(fishery[,"Harvest"])
+   Hmax <- getmax(fishery[,"Harvest"])
    numval <- length(which(fishery[,"Harvest"] > 0))
    pickD <- which.closest(0.2*B0,prod[,"x"])
    Hlim <- prod[pickD,"y"]/prod[pickD,"x"]
@@ -938,11 +939,11 @@ spmphaseplot <- function(answer,Blim=0.2,Btarg=0.5,filename="",resol=200,fnt=7) 
    # plot the catch and harvets rates
    yrs <- as.numeric(rownames(fishery))
    par(mai=c(0.3,0.45,0.05,0.45)) 
-   cmax <- getmaxy(fishery[,"Catch"])
+   cmax <- getmax(fishery[,"Catch"])
    plot(yrs,fishery[,"Catch"],type="l",lwd=2,col=2,ylab="",xlab="",
         ylim=c(0,cmax),yaxs="i",panel.first=grid(ny=0))
    par(new=TRUE)
-   hmax <- getmaxy(fishery[,"Harvest"])
+   hmax <- getmax(fishery[,"Harvest"])
    plot(yrs,fishery[,"Harvest"],type="l",lwd=2,col=4,ylim=c(0,hmax),yaxt="n",ylab="",
         yaxs="i",xlab="")
    points(yrs[1],fishery[1,"Harvest"],pch=16,cex=1.5,col=3)

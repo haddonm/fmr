@@ -5,6 +5,11 @@
 
 using namespace Rcpp;
 
+#ifdef RCPP_USE_GLOBAL_ROSTREAM
+Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
+Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
+#endif
+
 // calccaaC
 NumericMatrix calccaaC(NumericVector pars, NumericMatrix pnaa, double M, NumericVector sel, NumericVector ages);
 RcppExport SEXP _fmr_calccaaC(SEXP parsSEXP, SEXP pnaaSEXP, SEXP MSEXP, SEXP selSEXP, SEXP agesSEXP) {
