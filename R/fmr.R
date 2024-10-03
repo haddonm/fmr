@@ -6,8 +6,9 @@
 #' @importFrom stats qnorm rnorm dnorm runif sd quantile optim loess
 #' @importFrom stats dmultinom anova ccf lm median nlm dchisq qchisq dlnorm
 #' @importFrom stats pnorm cor
-#' @importFrom utils tail head
-#' @importFrom hutils which.closest getmax getmin magnitude
+#' @importFrom utils tail head str
+#' @importFrom codeutils which.closest getmax getmin magnitude
+#' @importFrom hplot plotprep parset
 #' @useDynLib fmr, .registration = TRUE
 NULL
 
@@ -24,8 +25,9 @@ NULL
 #'     Methods in Fisheries, CRC Press / Chapman & Hall/ Boca Raton 337p.
 #'     ISBN: 9780367469894
 #'
-#' @docType package
 #' @name fmr
+#' @keywords internal
+"_PACKAGE"
 NULL
 
 

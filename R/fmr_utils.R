@@ -295,6 +295,34 @@ logistic <- function(inl50,inl95,depend) {
   return(ans)
 } # end of logistic
 
+#' @title matchC gives difference between predicted catch and observed catch
+#' 
+#' @description matchC for a given instantaneous fishing mortality rate
+#'     calculates the difference between the predicted and observed catches. 
+#'     This is to be used by the optimize function which uses 'a combination of 
+#'     a golden section search and successive parabolic interpolation' to 
+#'     minimize the difference between the absolute difference between the 
+#'     catch and the predicted catch.
+#'
+#' @param f the trial predicted instantaneous fishing mortality
+#' @param M the instantaneous natural mortality value
+#' @param cyr the catch in yr t
+#' @param Byr the exploitable biomass at the start of yr t or end of t-1
+#'
+#' @return the absolute difference between the predicted and observed catches
+#' @export
+#'
+#' @examples
+#' matchC(f=0.04,M=0.05,cyr=15340,Byr=397388.66)
+#' matchC(f=0.04037,M=0.05,cyr=15340,Byr=397388.66)
+#' out <- optimize(matchC,interval=c(0,1),M=0.05,cyr=15340,Byr=397388.66)
+#' out
+#' f <- out$minimum
+#' (397388.66 * (1 - exp(-(0.05 + f))) * f/(0.05 + f))
+matchC <- function(f,M,cyr,Byr) {
+  out <- abs((Byr * (1 - exp(-(M + f))) * f/(M + f)) - cyr)
+  return(out)
+}
 
 #' @title penalty0 enables the adding of a large penalty as one approaches 0.0
 #'
@@ -347,3 +375,24 @@ penalty1 <- function(x){
   ans[pick] <- 100.0*(abs((1-abs(x[pick])-0.5))/0.5)^50
   return(ans)
 } # end of penalty1
+
+
+#' @title vB calculates the predicted von Bertalanffy length at age
+#'
+#' @description vB calculates length at age for the von Bertalanffy curve.
+#'
+#' @param par is a vector the first three cells of which are Linf, K, and t0
+#'    for the VB curve; the fourth parameter will be sigma, the standard
+#'    deviation of the normal likelihoods used with the residuals
+#' @param ages is a vector of ages
+#'
+#' @return a vector of predicted lengths for the vector of ages in 'ages'
+#' @export
+#'
+#' @examples
+#' ages <- seq(0,20,1)
+#' pars <- c(Linf=50,K=0.3,t0=-1.0,sigma=1.0) # Linf, K, t0, sigma
+#' cbind(ages,vB(pars,ages))
+vB <- function(par,ages) {
+  return(par[1] * (1 - exp(-par[2]*(ages-par[3]))))
+}

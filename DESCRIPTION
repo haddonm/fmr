@@ -1,7 +1,7 @@
 Package: fmr
-Title: Functions and Example Data-Sets for Fisheries Modelling using R
-Version: 0.0.0.8800
-Date: 2022-03-04
+Title: Functions and Example Data-Sets for More Fisheries Modelling using R
+Version: 0.0.0.500
+Date: 2024-06-10
 Author: Malcolm Haddon
 Maintainer: Malcolm Haddon <Malcolm.Haddon@gmail.com>
 Description: The new book Fisheries Modelling using R illustrates an array of
@@ -11,14 +11,14 @@ Description: The new book Fisheries Modelling using R illustrates an array of
     used in the illustrations.
 License: MIT + file LICENSE
 Imports: 
-    hutils,
+    codeutils,
     hplot,
     Rcpp
 Depends: R (>= 3.5.0)
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.1.1
+RoxygenNote: 7.3.2
 Suggests:
     knitr,
     rmarkdown

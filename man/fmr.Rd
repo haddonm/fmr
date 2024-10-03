@@ -2,6 +2,7 @@
 % Please edit documentation in R/fmr.R
 \docType{package}
 \name{fmr}
+\alias{fmr-package}
 \alias{fmr}
 \title{fmr R functions for Fisheries Modelling using R}
 \description{
@@ -16,3 +17,4 @@ Haddon, M. (2021) Using R for Modelling and Quantitative
 Methods in Fisheries, CRC Press / Chapman & Hall/ Boca Raton 337p.
 ISBN: 9780367469894
 }
+\keyword{internal}

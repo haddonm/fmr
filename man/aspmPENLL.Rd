@@ -7,7 +7,7 @@
 aspmPENLL(par, infish, inglb, inprops)
 }
 \arguments{
-\item{par}{a vector of two numbers the hypothesized inR0 and the initial
+\item{par}{a vector of two or three numbers the hypothesized inR0, the initial
 depletion in the first year.  (in that order).}
 
 \item{infish}{the fish data.frame from readdata or built in dataset}

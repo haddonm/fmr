@@ -23,4 +23,9 @@ A dataset containing the fish data.frame, the glb list, and the
 props data.frame set up ready for use with datalowSA. In particular it can
 be used with the SPM functions, as well as the ASPM functions.
 }
+\examples{
+data(dataspm)
+dataspm
+
+}
 \keyword{datasets}

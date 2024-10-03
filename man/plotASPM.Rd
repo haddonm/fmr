@@ -46,5 +46,5 @@ fishery <- dynamics(bestspm$par,fish,glb,props)
 plotASPM(fishery,defineplot=TRUE)
 ceCI <- getLNCI(fishery[,"PredCE"],bestspm$par[2])
 plotASPM(fishery,CI=ceCI)
-}  # infish=fishery; CI=NA; defineplot=TRUE; target=0.48; usef=7;png="test.png"
+}  # infish=fisheryPen; CI=ceCI; defineplot=TRUE; target=0.48; usef=7;png=""
 }

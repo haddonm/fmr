@@ -12,8 +12,9 @@ environment in particular ages, nages, maxage, M, maa, waa, sela, fish,
 and nyrs. 'pars' can contain either two or three parameters. 1) is
 the log-transformed average unfished recruitment, inR0. 2) is the
 variability around the index of relative abundance (cpue) during the
-fitting process, and if is present 3) is the initial depletion level
-initdepl, which if present will be fitted as well.}
+fitting process so not used inside this function, and if is present 3)
+is the initial depletion level initdepl, which if present will be fitted
+as well.}
 
 \item{infish}{the fish data.frame from readdata or built in dataset}
 

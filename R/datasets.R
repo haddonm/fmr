@@ -16,6 +16,11 @@
 #'       resilience, number of ages, and the ages themselves. }
 #'   \item{props}{ a data.frame of age, laa, waa, maa, sela, and feca}
 #' }
+#' 
+#' @examples
+#' data(dataspm)
+#' dataspm
+#' 
 "dataspm"
 
 #' @title fish fishery data for the plaice example from Beverton and Holt, 1957
@@ -39,11 +44,13 @@
 #' fish
 "fish"
 
-#' @title fishdat Three data objects suitable for use with datalowSA.
+#' @title westroughy Three data objects describing western Tasmanian Orange Roughy.
 #'
-#' @description A dataset containing the fish data.frame, the glb list, and the
-#'     props data.frame set up ready for use with datalowSA. In particular it can
-#'     be used with fitASPM, fitSPM, run_cMSY, and DBSRA.
+#' @description westroughy a dataset containing the fish data.frame, the glb 
+#'     list, and the props data.frame set up ready for analysis using an 
+#'     age-structured production model. The analysis of the CPUE, not typically 
+#'     available for orange roughy fisheries is described in the reference 
+#'     below.
 #'
 #' @format A list of three objects
 #' \describe{
@@ -54,7 +61,20 @@
 #'       resilience, number of ages, and the ages themselves. }
 #'   \item{props}{ a data.frame of age, laa, waa, maa, sela, and feca}
 #' }
-"fishdat"
+#' 
+#' @references Haddon, M. (2018) Western Orange Roughy. pp806-821 \emph{in} 
+#'     Tuck, G.N. (ed.) \emph{Stock Assessment for the Southern and Eastern 
+#'     Scalefish and Shark Fishery 2016 and 2017. Part 2, 2017}. Australian 
+#'     Fisheries Management Authority and CSIRO Oceans and Atmosphere, Hobart.
+#'     837p.
+#'     
+#' @examples
+#' data(westroughy)
+#' fish <- westroughy$fish
+#' glb <- westroughy$glb
+#' props <- westroughy$props
+#' str(glb)
+"westroughy"
 
 #' @title invert data derived from a trawl caught invertebrate fishery.
 #'
@@ -81,6 +101,22 @@
 #' }
 "invert"
 
+#' @title orhdat1 Three data objects suitable for use with asmreduct.
+#'
+#' @description A dataset containing a fish data.frame, the glb list, and 
+#'     the props data.frame set up ready for use with asmreduct. 
+#'
+#' @format A list of three objects
+#' \describe{
+#'   \item{fish}{ a data.frame containing year, catch}
+#'   \item{glb}{ a list of global variables including maxage, M, parameters 
+#'       for growth, weight-at-age, maturity-at-age, steepness, R0, 
+#'       selectivity, resilience, number of ages, the ages themselves, the
+#'       number of years of catch data, and the species name}
+#'   \item{props}{ a data.frame of age, laa, waa, maa, sela, and feca}
+#' }
+"orhdat1"
+
 #' @title ocaa the observed catch-at-age for plaice. 
 #'
 #' @description Table 13.1 from Beverton & Holt, 1957 containing the relative
@@ -97,22 +133,6 @@
 #' data(ocaa)
 #' ocaa
 "ocaa"
-
-#' @title orhdat1 Three data objects suitable for use with asmreduct.
-#'
-#' @description A dataset containing a fish data.frame, the glb list, and 
-#'     the props data.frame set up ready for use with asmreduct. 
-#'
-#' @format A list of three objects
-#' \describe{
-#'   \item{fish}{ a data.frame containing year, catch}
-#'   \item{glb}{ a list of global variables including maxage, M, parameters 
-#'       for growth, weight-at-age, maturity-at-age, steepness, R0, 
-#'       selectivity, resilience, number of ages, the ages themselves, the
-#'       number of years of catch data, and the species name}
-#'   \item{props}{ a data.frame of age, laa, waa, maa, sela, and feca}
-#' }
-"orhdat1"
 
 #' @title owaa the observed weight-at-age for plaice. 
 #'
@@ -157,7 +177,6 @@
 #'  print(plaice$agedata)
 "param"
 
-
 #' @title plaice data derived from Beverton and Holt, 1957 for European Plaice.
 #' 
 #' @description plaice data including fish, glb, props, agedata, and lendata
@@ -186,10 +205,41 @@
 #'     exploited fish populations.} U.K. Ministry of Agriculture and Fisheries, 
 #'     Fisheries Investigations (Series 2), \emph{19}: 1-533.
 #' 
-#' 
 #' @examples 
 #'  data(plaice)
 #'  str(plaice)
 #'  print(plaice$fish)
 #'  print(plaice$agedata)
 "plaice"
+
+
+#' @title francis92 Three data objects suitable for use with an ASPM.
+#'
+#' @description A dataset containing the fish data.frame, the glb list, and the
+#'     props data.frame set up ready for use with an ASPM. These are data 
+#'     obtained from Francis 1992 concerning orange roughy from New Zealand's
+#'     Chatham Rise.
+#'
+#' @format A list of three objects
+#' \describe{
+#'   \item{fish}{ a data.frame containing year, catch (tonnes), index (trawl
+#'       survey index), and Coefficient of Variation.}
+#'   \item{glb}{ a list of global variables including maxage, M, parameters for
+#'       growth, weight-at-age, maturity-at-age, steepness, R0, selectivity,
+#'       resilience, number of ages, ages, number of years of catch data,
+#'       and the name of the species. }
+#'   \item{props}{ a data.frame of age, laa, waa, maa, and sela, that is the
+#'       length-, weight, maturity, and selectivity-at-age}
+#' }
+#' 
+#' @references Francis, R.I.C.C. (1992) Use of Risk Analysis to Assess Fishery 
+#'     Management Strategies: A Case Study using Orange Roughy 
+#'     (\emph{Hoplostethus atlanticus}) on the Chatham Rise, New Zealand.
+#'     \emph{Canadian Journal of Fisheries and Aquatic Sciences} \emph{49}:
+#'     922-930.
+#' 
+#' @examples
+#' data(francis92)
+#' str(francis92)
+#' 
+"francis92"
