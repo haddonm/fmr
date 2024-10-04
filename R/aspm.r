@@ -165,6 +165,52 @@ aspmFLL <- function(par,infish,inglb,inprops) {  # par=pars;infish=fish1; inprop
   return(LL)
 } # end of aspmFLL
 
+#' @title aspmindexfit plots an aspm fit to CPUE or Index data
+#' 
+#' @description aspmindexfit plots an aspm fit to CPUE or Index data with the
+#'     option of including 95% Log-Normal CI around the model fit.
+#'
+#' @param infish the matrix of fishery dynamics from the aspmdynamics or 
+#'     aspmdynamicsF functions
+#' @param glb the globals object for the aspm analysis used
+#' @param CI the output of the getLNCI function that defines Log-Normal CI
+#' @param rundir default = "", give a full path if saving a png file
+#' @param console should the plot be sent to the console, default = TRUE. If
+#'     set = FALSE, then rundir can be set to identify where the png of the 
+#'     plot will be saved
+#'     
+#' @seealso{
+#'    \link{getLNCI}, \link{aspmdynamics}, \link{aspmdynamicsF}
+#' }     
+#'
+#' @return nothing but it does generate a plot
+#' @export
+#'
+#' @examples
+#' data("westroughy")
+#' fish <- westroughy$fish; glb <- westroughy$glb
+#' props <- westroughy$props
+#' pars <- c(14,0.3)
+#' ans <- fitASPM(pars,infish=fish,inglb=glb,inprops =props)
+#' fishery <- dynamics(ans$par,infish=fish,inglb=glb,inprops = props)
+#' ceCI <- getLNCI(fishery[,"PredCE"],ans$par[2])
+#' aspmindexfit(infish=fishery,glb=glb,CI=ceCI)
+aspmindexfit <- function(infish,glb,CI=NULL,rundir="",console=TRUE) {
+  yrs <- infish$Year
+  ymax <- getmax(c(infish$CPUE,infish$PredCE))
+  if (inherits(CI,"matrix")) ymax <- getmax(CI[,"upper"]) 
+  filen=""
+  if (!console) filen <- pathtopath(rundir,paste0(glb$spsname,"_aspm.png"))
+  plotprep(width=6,height=3.5,cex=1.0,filename=filen)
+  parset()
+  plot(yrs,infish$CPUE,type="p",pch=16,col=2,cex=1.0,ylim=c(0,ymax),
+       yaxs="i",xlab="",panel.first=grid(),ylab="Relative Abundance Index")
+  lines(yrs,infish$PredCE,lwd=2,col=1)
+  if (inherits(CI,"matrix"))  {
+    segments(x0=yrs,y0=CI[,1],x1=yrs,y1=CI[,3],lwd=1,col=4)
+  }
+  if (!console) dev.off()
+} # end of aspmindexfit
 
 #' @title aspmLL negative log-likelihood for the ASPM
 #'
@@ -596,6 +642,8 @@ doDepletion <- function(inR0,indepl,inprops,inglb,inc=0.02,Numyrs=50) {
 #' @param infish the fish data.frame from readdata or built in dataset
 #' @param inglb the glb data.frame from readdata or built in dataset
 #' @param inprops the props data.frame from readdata or built in dataset
+#' @param full should all outputs from dynamics be given. When fitting the 
+#'     model, set this to FALSE. 
 #' 
 #' @return a data.frame containing the fishery dynamics according to the input
 #'     parameter inR0. In particular it includes teh Catch and PredC, and the
@@ -609,10 +657,10 @@ doDepletion <- function(inR0,indepl,inprops,inglb,inc=0.02,Numyrs=50) {
 #' glb <- dataspm$glb
 #' props <- dataspm$props
 #' par <- c(glb$R0,0.20)  # not fitted to the data, this is just an initial guess
-#' fishery <- dynamics(par,infish=fish,inglb=glb,inprops=props)
+#' fishery <- dynamics(par,infish=fish,inglb=glb,inprops=props,full=FALSE)
 #' print(fishery)
 #' }
-dynamics <- function(pars,infish,inglb,inprops) {  # pars=pars;infish=fish1;inglb=glb;inprops=props
+dynamics <- function(pars,infish,inglb,inprops,full=FALSE) {  # pars=pars;infish=fish1;inglb=glb;inprops=props
    waa <- inprops$waa
    maa <- inprops$maa
    sela <- inprops$sela
@@ -665,7 +713,12 @@ dynamics <- function(pars,infish,inglb,inprops) {  # pars=pars;infish=fish1;ingl
    ExpB <- fishery[1:nyrs,"ExploitB"]
    avq <- exp(mean(log(infish$cpue/fishery[1:nyrs,"ExploitB"]),na.rm=TRUE))
    fishery[2:(nyrs+1),"PredCE"] <- ExpB * avq
-   return(as.data.frame(fishery))
+   if (full) {
+     out <- list(fishery=as.data.frame(fishery),Nt=Nt)
+     return(out)
+   } else {
+     return(as.data.frame(fishery))
+   }
 } # end of dynamics
 
 #' @title ExB calculate exploitable biomass from numbers-at-age
@@ -1304,22 +1357,20 @@ SpB <- function(invect, MatureA, WeightA) {
 #'     unfished exploitable biomass, which is from the numbers-at-age after 
 #'     half of natural mortality, ExN0.
 #' @param glob the global constants object containing biology and structure
-#' @param propert the data.frame containing laa, maa, waa, maa, and sela
-#' @param inR0 the unfished recruitment from B0
+#' @param props the data.frame containing laa, maa, waa, maa, and sela
+#' @param inR0 the log of unfished recruitment from B0
 #' 
 #' @return a list containing N0, ExNO, R0, A0, B0, and ExB0
 #' @export
 #' 
 #' @examples
-#' \dontrun{
-#' data(fishdat)
-#' glb <- fishdat$glb
-#' fish <- fishdat$fish
-#' props <- fishdat$props
+#' data(westroughy)
+#' glb <- westroughy$glb  # contains a guess at log(R0)
+#' fish <- westroughy$fish
+#' props <- westroughy$props
 #' unfish <- unfished(glb,props,glb$R0)
 #' print(unfish)
-#' }
-unfished <- function(glob,propert,inR0) {
+unfished <- function(glob,props,inR0) {
    # setup for calculations
    R0 <- exp(inR0)
    maxage <- glob$maxage
@@ -1332,7 +1383,7 @@ unfished <- function(glob,propert,inR0) {
    for (age in 1:(maxage-1)) Nt[age+1] <- Nt[age] * surv
    Nt[maxage+1] <- (Nt[maxage] * surv)/(1-surv)
    # Estimate the biomass A0 generated by a recruitment of 1.0
-   A0 <- SpB(Nt,propert$maa,propert$waa) # to get tonnes
+   A0 <- SpB(Nt,props$maa,props$waa) # to get tonnes
    B0 <- R0 * A0
    # Now Generate the initial age distribution using R0
    Nages <- length(glob$ages)
@@ -1342,7 +1393,7 @@ unfished <- function(glob,propert,inR0) {
    Nt2[2:(Nages-1)] <- N0[1:(Nages-2)] * hsurv
    Nt2[Nages] <- (N0[(Nages-1)]*hsurv) + (N0[(Nages)]*hsurv)
    Nt2[1] <- Nt2[1] * hsurv
-   expB0 <- ExB(Nt2,propert$sela,propert$waa)
+   expB0 <- ExB(Nt2,props$sela,props$waa)
    res <- list(N0=N0, B0=B0, ExN0=Nt2, ExB0=expB0, R0=R0, A0=A0)
    return(res)
 }  # end of unfished

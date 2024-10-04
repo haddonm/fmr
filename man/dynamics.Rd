@@ -4,7 +4,7 @@
 \alias{dynamics}
 \title{dynamics describe the ASPM dynamics}
 \usage{
-dynamics(pars, infish, inglb, inprops)
+dynamics(pars, infish, inglb, inprops, full = FALSE)
 }
 \arguments{
 \item{pars}{the dynamics relies on many parameters sitting in the global
@@ -21,6 +21,9 @@ as well.}
 \item{inglb}{the glb data.frame from readdata or built in dataset}
 
 \item{inprops}{the props data.frame from readdata or built in dataset}
+
+\item{full}{should all outputs from dynamics be given. When fitting the
+model, set this to FALSE.}
 }
 \value{
 a data.frame containing the fishery dynamics according to the input
@@ -39,7 +42,7 @@ fish <- dataspm$fish
 glb <- dataspm$glb
 props <- dataspm$props
 par <- c(glb$R0,0.20)  # not fitted to the data, this is just an initial guess
-fishery <- dynamics(par,infish=fish,inglb=glb,inprops=props)
+fishery <- dynamics(par,infish=fish,inglb=glb,inprops=props,full=FALSE)
 print(fishery)
 }
 }

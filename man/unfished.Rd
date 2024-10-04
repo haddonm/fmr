@@ -4,14 +4,14 @@
 \alias{unfished}
 \title{unfished generates the numbers at age for an unfished population}
 \usage{
-unfished(glob, propert, inR0)
+unfished(glob, props, inR0)
 }
 \arguments{
 \item{glob}{the global constants object containing biology and structure}
 
-\item{propert}{the data.frame containing laa, maa, waa, maa, and sela}
+\item{props}{the data.frame containing laa, maa, waa, maa, and sela}
 
-\item{inR0}{the unfished recruitment from B0}
+\item{inR0}{the log of unfished recruitment from B0}
 }
 \value{
 a list containing N0, ExNO, R0, A0, B0, and ExB0
@@ -24,12 +24,10 @@ unfished exploitable biomass, which is from the numbers-at-age after
 half of natural mortality, ExN0.
 }
 \examples{
-\dontrun{
-data(fishdat)
-glb <- fishdat$glb
-fish <- fishdat$fish
-props <- fishdat$props
+data(westroughy)
+glb <- westroughy$glb  # contains a guess at log(R0)
+fish <- westroughy$fish
+props <- westroughy$props
 unfish <- unfished(glb,props,glb$R0)
 print(unfish)
-}
 }

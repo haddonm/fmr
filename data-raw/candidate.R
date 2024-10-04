@@ -362,16 +362,18 @@ yr <- 2
 
 Fyr <- 0.4
 
-
+library(microbenchmark)
 
 ans2 <- microbenchmark(
-  out <- optimize(matchC,interval=c(0,1.0),M=M,cyr=catch[2],Byr=expB[2],
-                  maximum=FALSE,tol = 1e-08),
-  out2 <- grsearch(matchC,interval=c(0,1.0),M=M,cyr=catch[2],Byr=expB[2],
-                   tol = 1e-08),
-  out3 <- optimize(matchCC,interval=c(0,1.0),M=M,cyr=catch[2],Byr=expB[2],
-                   tol = 1e-08),
-  times=1000
+  out <- datalowSA::getProduction(inR0=exp(ans$par[1]),infish=fish,
+                                  inglb=glb,inprops=props,
+                                  Hrg=c(0.02,0.15,0.0025),maxiter=3),
+  # out2 <- grsearch(matchC,interval=c(0,1.0),M=M,cyr=catch[2],Byr=expB[2],
+  #                  tol = 1e-08),
+  out3 <- datalowSA::getProductionC(inR0=exp(ans$par[1]),infish=fish,
+                                    inglb=glb,inprops=props,
+                                    Hrg=c(0.02,0.15,0.0025)),
+  times=10
 )
 ans2
 
@@ -401,6 +403,14 @@ ans2 <- microbenchmark(
 ans2
 
 
+
+
+out <- datalowSA::getProduction(inR0=exp(ans$par[1]),infish=fish,
+                                inglb=glb,inprops=props,
+                                Hrg=c(0.03,0.05,0.0001),maxiter=5)
+
+plot(as.numeric(rownames(out)),out$Yield,type="l",lwd=2,xlim=c(0.03,0.05),
+     ylim=c(200,235))
 
 
 

@@ -23,7 +23,6 @@ plotprops generates a 2 x 2 plot of the fishery properties of
 the length-at-age, maturity-at-age, weight-at-age, and selectivity-at-age
 }
 \examples{
-require(hplot)
 data("westroughy")
 plotprops(rundir="",westroughy$props,console=TRUE)
 }

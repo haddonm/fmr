@@ -228,8 +228,8 @@ getq <- function(cpue,exB) {
 #' nage <- length(ages)
 #' getssq2(pars,M=0.2,yrs,ages,onaa,owa,cpue=fish[,"obsce"]) #should be 332.5389
 getssq2 <- function(pars,M,yrs,ages,onaa,owa,cpue) {
-  out <- calcnaaC(pars,M,yrs,ages,owa)
-  pcaa <- calccaaC(pars,out$pnaa,M,out$sel,ages)
+  out <- calcnaa(pars,M,yrs,ages,owa)   #calcnaaC(pars,M,yrs,ages,owa)
+  pcaa <- calccaa(pars,out$pnaa,M,out$sel,ages)  #calccaaC(pars,out$pnaa,M,out$sel,ages)
   ssq1 <- sum((log(onaa/pcaa)^2),na.rm=TRUE)
   exB <- out$exB
   q <- exp(sum(log(cpue/exB))/length(yrs))

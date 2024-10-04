@@ -10,7 +10,8 @@ The fmr package provides R functions and example data sets for
 use with the new book: (\emph{Fisheries Modelling Using R}), that will
 only be available as a GitBook at (\emph{haddonm.github.io/fmr}). This
 new book is designed to provide chapters on somewhat more advanced topics
-than those in Haddon (2021).
+than those in Haddon (2021).  The scr files will be added later
+# #' need an 'at' here useDynLib fmr, .registration = TRUE
 }
 \references{
 Haddon, M. (2021) Using R for Modelling and Quantitative

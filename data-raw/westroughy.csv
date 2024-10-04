@@ -42,7 +42,7 @@ YEARS,catch,cpue,SE
 ,,,
 ,,,
 BIOLOGY  ,,,
-80, maxage  the maximum age, usually a plus group ,
+100, maxage  the maximum age, usually a plus group ,
 0.036, M  natural mortality  ,,
 39.6, Linf vB asymptotic maximum length ,,
 0.06, K vB Brody growth coefficient ,,

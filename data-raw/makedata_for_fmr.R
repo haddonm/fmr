@@ -38,7 +38,7 @@ save(param,file=pathtopath(datadir,"param.RData"))
 save(ocaa,file=pathtopath(datadir,"ocaa.RData"))
 save(owaa,file=pathtopath(datadir,"owaa.RData"))
 save(fish,file=pathtopath(datadir,"fish.RData"))
-save(westroughy,file=pathtopath(datadir,"westroughy.RData"))
+
 
 # check and transfer -------------------------------------------------------
 
@@ -79,6 +79,48 @@ halibut <- list(years=years,nyrs=nyrs,ages=ages,nages=nages,caa=caa,natM=natM,
 datadir <- pathtopath(dbdir,"/A_Code/fmr/data/")
 
 save(halibut,file=pathtopath(datadir,"halibut.RData"))
+
+
+# western roughy 2018  make data------------------------------------
+library(fmr)
+library(codeutils)
+
+dbdir <- getDBdir()
+datadir <- pathtopath(dbdir,"A_Code/fmr/data-raw")
+source(pathtopath(datadir,"util_functions.R"))
+
+westroughy <- readdata(pathtopath(datadir,"westroughy.csv"),verbose=FALSE)
+glb <- westroughy$glb
+fish <- westroughy$fish
+
+glb$R0 <-  8.0
+
+columns <- c("age","laa","waa","maa","sela")
+props <- as.data.frame(matrix(0,nrow=glb$nages,ncol=length(columns),
+                              dimnames=list(glb$ages,columns)))
+props[,"age"] <- glb$ages
+vbpars <- c(glb$Linf,glb$K,glb$t0)
+props[,"laa"] <- vB(vbpars,glb$ages)
+
+wtatage <- function(wtpar,laa) {
+  wtaa <- wtpar[1] * (laa ^ wtpar[2])
+  return(wtaa)
+} # end of wtatage
+
+wtpar <- c(glb$Waa,glb$Wab)
+props[,"waa"] <- wtatage(wtpar=wtpar,laa=props[,"laa"]) 
+props[,"maa"] <- logist(inL50=glb$M50a,delta=glb$deltaM,depend=glb$ages)
+props[,"sela"] <- logist(inL50=glb$sela50,delta=glb$deltaS,depend=glb$ages)
+
+westroughy <- list(fish=fish,glb=glb,props=props)
+
+save(westroughy,file=pathtopath(datadir,"westroughy.RData"))
+
+# check and transfer -------------------------------------------------------
+
+tools::checkRdaFiles(paths=datadir)
+tools::resaveRdaFiles(paths=datadir,compress="auto")
+tools::checkRdaFiles(paths=datadir)
 
 
 # make data for Francis 1992-----------------------------
