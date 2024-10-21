@@ -4,7 +4,7 @@
 \alias{aspmLL}
 \title{aspmLL negative log-likelihood for the ASPM}
 \usage{
-aspmLL(par, infish, inglb, inprops)
+aspmLL(par, dynfun, infish, inglb, inprops)
 }
 \arguments{
 \item{par}{the dynamics relies on many parameters sitting in the global
@@ -14,6 +14,8 @@ the log-transformed average unfished recruitment, inR0. 2) is the
 variability around the index of relative abundance (cpue) during the
 fitting process, and if is present 3) is the initial depletion level
 initdepl, which if present will be fitted as well.}
+
+\item{dynfun}{the dynamics function to be used to estimate the dynamics}
 
 \item{infish}{the fish data.frame from readdata or built in dataset}
 
@@ -40,16 +42,17 @@ fish <- fishdat$fish
 glb <- fishdat$glb
 props <- fishdat$props
 pars <- c(14,0.3)
-dynamics(pars,fish,glb,props)
-aspmLL(pars,fish,glb,props)      # should be 5.171
+dynamicsH(pars,fish,glb,props)
+aspmLL(pars,dynfun=dynamicsH,fish,glb,props)      # should be 5.171
 pars <- c(14.0,0.3,0.95) # logR0, sigCE, depletion
-dynamics(pars,fish,glb,props)    # note the harvest rates of 85\% exploitable biomass
-aspmLL(pars,fish,glb,props)      # should be 114.9547
+dynamicsH(pars,fish,glb,props)    # note the harvest rates of 85\% exploitable biomass
+aspmLL(pars,dynamicsH,fish,glb,props)      # should be 114.9547
 pars <- c(14,0.3)
-bestL <- optim(pars,aspmLL,method="Nelder-Mead",infish=fish,inglb=glb,inprops=props,
+bestL <- optim(pars,aspmLL,method="Nelder-Mead",dynfun=dynamicsH,infish=fish,
+               inglb=glb,inprops=props,
                control=list(maxit = 1000, parscale = c(10,0.1)))
 outoptim(bestL)
-fishery <- dynamics(bestL$par,fish,glb,props)
+fishery <- dynamicsH(bestL$par,fish,glb,props)
 print(round(fishery,4)) 
 }
 }

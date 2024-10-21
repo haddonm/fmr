@@ -2,7 +2,7 @@
 % Please edit documentation in R/aspm.r
 \name{getProduction}
 \alias{getProduction}
-\title{getProduction estimates MSY from output of ASPM}
+\title{getProduction estimates MSY for ASPM using annual harvest rates}
 \usage{
 getProduction(
   inR0,
@@ -49,16 +49,17 @@ rates for however many iterations of nyr required.
 }
 \examples{
 \dontrun{
-data(fishdat)
-fish <- fishdat$fish
-glb <- fishdat$glb
-props <- fishdat$props
-pars <- c(14,0.3)
-bestL <- optim(pars,aspmLL,method="Nelder-Mead",infish=fish,inglb=glb,
-               inprops=props,control=list(maxit=1000,parscale=c(10,0.1)))
-prod <- getProduction(exp(bestL$par[1]),infish=fish,inglb=glb,inprops=props,
-                      Hrg=c(0.0005,0.07,0.0005),nyr=50)
-head(prod,20)
-tail(prod,20)
+  data("westroughy")
+  fish <- westroughy$fish
+  glb <- westroughy$glb
+  props <- westroughy$props
+  pars <- c(7.0,0.3)
+  bestL <- nlminb(start=pars,aspmLL,dynfun=dynamicsH,infish=fish,inglb=glb,
+                  inprops = props,
+               control=list(eval.max=500,iter.max=300,trace=0,rel.tol=1e-08))
+  prod <- getProduction(exp(bestL$par[1]),infish=fish,inglb=glb,
+                        inprops=props,Hrg=c(0.0005,0.07,0.0005),nyr=100)
+  prod[78:100,]
+  prod[84:89,]  # check out H = 0.0425 giving the MSY.
 }
 }

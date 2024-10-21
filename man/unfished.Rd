@@ -14,20 +14,18 @@ unfished(glob, props, inR0)
 \item{inR0}{the log of unfished recruitment from B0}
 }
 \value{
-a list containing N0, ExNO, R0, A0, B0, and ExB0
+a list containing N0, R0, A0, and B0
 }
 \description{
 unfished generates the numbers at age for an unfished
 population, and determines the recruitment dynamics. It requires the
-input of R0. The output includes the unfished numbers-at-age N0, and the
-unfished exploitable biomass, which is from the numbers-at-age after
-half of natural mortality, ExN0.
+input of R0. The output includes the unfished numbers-at-age N0 plus
+B0, A0, and R0.
 }
 \examples{
-data(westroughy)
+data("westroughy")
 glb <- westroughy$glb  # contains a guess at log(R0)
-fish <- westroughy$fish
 props <- westroughy$props
-unfish <- unfished(glb,props,glb$R0)
+unfish <- unfished(glob=glb,props=props,inR0=glb$R0)
 print(unfish)
 }

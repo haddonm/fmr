@@ -39,9 +39,10 @@ plotASPM(fishery)
 
 
 pars <- c(13.8,0.4)
-ans <- fitASPM(pars,infish=fish,inglb=glb,inprops=props)
+ans <- fitASPM(pars,minfun=aspmLL,dynfun=dynamicsH,infish=fish,
+               inglb=glb,inprops=props)
 outfit(ans) # a tidier way of printing the list output from optim
-fishery <- dynamics(ans$par,infish=fish,inglb=glb,inprops = props)
+fishery <- dynamicsH(ans$par,infish=fish,inglb=glb,inprops = props)
 
 kable(fishery,digits=c(0,3,3,3,3,3,4,4,3))
 
@@ -60,15 +61,16 @@ props <- fishdat$props # length-, weight-, maturity- and selectivity-at-age
 plotprep(width=9, height=6)
 pars <- c(13.9,0.25)
 aspmLL(pars,infish=fish,inglb=glb,inprops=props)
-fishery <- dynamics(pars,infish=fish,inglb=glb,inprops = props)
+fishery <- dynamicsH(pars,infish=fish,inglb=glb,inprops = props)
 plotASPM(fishery)
 
 
 
 pars <- c(13.7,0.25)
-ans <- fitASPM(pars,infish=fish,inglb=glb,inprops=props)
+ans <- fitASPM(pars,minfun=aspmLL,dynfun=dynamicsH,infish=fish,
+               inglb=glb,inprops=props)
 outfit(ans) # a tidier way of printing the list output from optim
-fishery <- dynamics(ans$par,infish=fish,inglb=glb,inprops = props)
+fishery <- dynamicsH(ans$par,infish=fish,inglb=glb,inprops = props)
 
 kable(fishery,digits=c(0,3,3,3,3,3,4,4,3))
 
@@ -165,7 +167,7 @@ fish <- dataspm$fish
 glb <- dataspm$glb
 props <- dataspm$props
 pars <- c(13.5,0.18,0.5)
-bestL <- fitASPM(pars,fish,glb,props,callfun=aspmPENLL)
+bestL <- fitASPM(pars,minfun=aspmLL,dynfun=dynamicsH,fish,glb,props)
 fishery <- dynamics(bestL$par,fish,glb,props)
 kable(fishery,digits=c(0,1,1,3,3,3,3,3,3))
 
@@ -415,7 +417,7 @@ plot(as.numeric(rownames(out)),out$Yield,type="l",lwd=2,xlim=c(0.03,0.05),
 
 
 pars <- c(10.25,0.25)
-fishery <- aspmdynamicsF(pars,infish=fish,inglb=glb,inprops = props)
+fishery <- dynamicsF(pars,infish=fish,inglb=glb,inprops = props)
 fishery
 
 ceCI <- getLNCI(fishery[,"PredCE"],pars[2])
@@ -426,7 +428,7 @@ bestL <- optim(pars,aspmFLL,method="Nelder-Mead",
                infish=fish,inglb=glb,inprops=props,
                control=list(maxit = 1000, parscale = c(10,0.1)))
 bestL
-fisheryF <- aspmdynamicsF(bestL$par,infish=fish,inglb=glb,inprops=props)
+fisheryF <- dynamicsF(bestL$par,infish=fish,inglb=glb,inprops=props)
 fisheryF
 ceCI <- getLNCI(fisheryF[,"PredCE"],bestL$par[2])
 plotASPM(fisheryF,CI=ceCI)
@@ -452,17 +454,81 @@ data(westroughy)
 fish <- westroughy$fish
 glb <- westroughy$glb
 props <- westroughy$props
-pars <- c(14,0.3)
-dynamics(pars,fish,glb,props)
-aspmFLL(pars,fish,glb,props)      # should be 5.171
-pars <- c(14.0,0.3,0.95) # logR0, sigCE, depletion
-aspmdynamicsF(pars,fish,glb,props)    # note the harvest rates of 85% exploitable biomass
-aspmFLL(pars,fish,glb,props)      # should be 114.9547
-pars <- c(14,0.3)
-bestL <- optim(pars,aspmLL,method="Nelder-Mead",infish=fish,inglb=glb,inprops=props,
-               control=list(maxit = 1000, parscale = c(10,0.1)))
-outoptim(bestL)
-fishery <- aspmdynamicsF(bestL$par,fish,glb,props)
+pars <- c(7,0.3)
+scalepar <- magnitude(pars)
+bestL <- optim(pars,aspmLL,method="Nelder-Mead",dynfun=dynamicsH,infish=fish,
+               inglb=glb,inprops=props,
+               control=list(maxit = 1000, parscale = scalepar))
+outfit(bestL)
+fishery <- dynamicsH(bestL$par,fish,glb,props)
+fishery
+
+pars <- c(7,0.3)
+scalepar <- magnitude(pars)
+bestL <- optim(pars,aspmLL,method="Nelder-Mead",dynfun=dynamicsF,infish=fish,
+               inglb=glb,inprops=props,
+               control=list(maxit = 1000, parscale = scalepar))
+outfit(bestL)
+fishery <- dynamicsF(bestL$par,fish,glb,props)
+fishery
+
+
+pars <- c(7.0,0.3,-7.7) # logR0, sigCE, depletion
+scalepar <- magnitude(pars)
+bestL <- optim(pars,aspmLL,method="Nelder-Mead",dynfun=dynamicsH,infish=fish,
+               inglb=glb,inprops=props,
+               control=list(maxit = 1000, parscale = scalepar))
+outfit(bestL)
+fishery <- dynamicsH(bestL$par,fish,glb,props)
 print(round(fishery,4)) 
 
 
+pars <- c(7.0,0.3,-7.7) # logR0, sigCE, depletion
+scalepar <- magnitude(pars)
+bestL <- optim(pars,aspmLL,method="Nelder-Mead",dynfun=dynamicsF,infish=fish,
+               inglb=glb,inprops=props,
+               control=list(maxit = 1000, parscale = scalepar))
+outfit(bestL)
+fishery <- dynamicsF(bestL$par,fish,glb,props)
+print(round(fishery,4)) 
+
+pars <- c(7.0,0.3,-7.7) # logR0, sigCE, depletion
+bestL <- fitASPM(initpar=pars,minfun=aspmLL,dynfun=dynamicsF,infish=fish,
+               inglb=glb,inprops=props)
+outfit(bestL)
+fishery <- dynamicsF(bestL$par,fish,glb,props)
+print(round(fishery,4)) 
+
+
+
+
+
+data("westroughy")
+fish <- westroughy$fish
+glb <- westroughy$glb
+props <- westroughy$props
+pars <- c(7,0.3,-7.7)
+aspmLL(pars,dynamicsH,fish,glb,props)      # should be -2.277029
+bestL <- fitASPM(pars,aspmLL,dynamicsH,infish=fish,inglb=glb,inprops=props)
+bestL
+fishery <- dynamicsH(bestL$par,fish,glb,props)
+round(fishery,4)
+
+
+# getProduction-------------------------------------
+
+grsearch(f=matchC, c(0.2,0.45), M=0.036, cyr=5117.988, Byr=15760.748, tol = 1e-09)
+
+
+data("westroughy")
+fish <- westroughy$fish
+glb <- westroughy$glb
+props <- westroughy$props
+pars <- c(7.0,0.3)
+bestL <- nlminb(start=pars,aspmLL,dynfun=dynamicsH,infish=fish,inglb=glb,
+                inprops = props,
+              control=list(eval.max=500,iter.max=300,trace=0,rel.tol=1e-08))
+prod <- getProduction(exp(bestL$par[1]),infish=fish,inglb=glb,inprops=props,
+                      Hrg=c(0.0005,0.07,0.0005),nyr=100)
+prod[78:100,]
+prod[84:89,]

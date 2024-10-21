@@ -2,7 +2,7 @@
 % Please edit documentation in R/aspm.r
 \name{logist}
 \alias{logist}
-\title{logist Logistic selectivity function}
+\title{logist Logistic selectivity function with knifeedge option}
 \usage{
 logist(inL50, delta, depend, knifeedge = 0)
 }
@@ -23,7 +23,7 @@ zero, which is essentially knife-edge. Allows for knife-edge selectivity}
 A vector of length(depend) containing the predicted logistic values
 }
 \description{
-logist calcualtes a Logistic curve that can be used as a
+logist calculates a Logistic curve that can be used as a
 selectivity function, or maturity curve, of wherever a logistic is
 required. This version uses the logistic function
 1/(1+exp(-log(19.0)*(lens-inL50)/(inL95-inL50))),

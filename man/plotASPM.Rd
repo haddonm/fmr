@@ -40,9 +40,10 @@ fish <- dataspm$fish
 glb <- dataspm$glb
 props <- dataspm$props
 pars <- c(14,0.3)
-aspmLL(pars,fish,glb,props)      # should be -2.277029
-bestspm <- fitASPM(pars,infish=fish,inglb=glb,inprops=props)
-fishery <- dynamics(bestspm$par,fish,glb,props)
+aspmLL(pars,dynfun=dynamicsH,fish,glb,props)      # should be -2.277029
+bestspm <- fitASPM(pars,minfun=aspmLL,dynfun=dynamicsH,infish=fish,
+                   inglb=glb,inprops=props)
+fishery <- dynamicsH(bestspm$par,fish,glb,props)
 plotASPM(fishery,defineplot=TRUE)
 ceCI <- getLNCI(fishery[,"PredCE"],bestspm$par[2])
 plotASPM(fishery,CI=ceCI)

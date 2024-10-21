@@ -7,9 +7,9 @@
 doDepletion(inR0, indepl, inprops, inglb, inc = 0.02, Numyrs = 50)
 }
 \arguments{
-\item{inR0}{the estimated log transformed unfished recruitment}
+\item{inR0}{the nominal scale unfished recruitment}
 
-\item{indepl}{the initial depletion level to be searched for}
+\item{indepl}{the nominal scale initial depletion level to be searched for}
 
 \item{inprops}{the props object from the data object}
 

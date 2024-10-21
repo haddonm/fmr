@@ -4,7 +4,7 @@
 \alias{bootASPM}
 \title{bootASPM boostraps on the results of fitting an ASPM}
 \usage{
-bootASPM(infish, inglb, inprops, optpar, iter = 10, callfun = aspmLL)
+bootASPM(infish, inglb, inprops, optpar, iter = 10, callfun, dynfun)
 }
 \arguments{
 \item{infish}{the fish object from the fisheries data set}
@@ -21,6 +21,8 @@ that the bootstraps can be tested before running for, say, 1000 runs.}
 \item{callfun}{the function that is called to fit the model. Could be aspmLL,
 which is the default, or aspmPENLL, for three parameter models, or even
 aspmSSQ.}
+
+\item{dynfun}{the dynamics function to be used to estimate the dynamics}
 }
 \value{
 a matrix of bootstrap replicate predicted CPUE vectors

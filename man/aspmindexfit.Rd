@@ -32,7 +32,7 @@ data("westroughy")
 fish <- westroughy$fish; glb <- westroughy$glb
 props <- westroughy$props
 pars <- c(14,0.3)
-ans <- fitASPM(pars,infish=fish,inglb=glb,inprops =props)
+ans <- fitASPM(pars,aspmLL,dynamicsH,infish=fish,inglb=glb,inprops =props)
 fishery <- dynamics(ans$par,infish=fish,inglb=glb,inprops = props)
 ceCI <- getLNCI(fishery[,"PredCE"],ans$par[2])
 aspmindexfit(infish=fishery,glb=glb,CI=ceCI)

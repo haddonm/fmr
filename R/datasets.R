@@ -54,8 +54,8 @@
 #'
 #' @format A list of three objects
 #' \describe{
-#'   \item{fish}{ a data.frame containing Year, Catch, CPUE, and SE, the standard
-#'       error of the CPUE estimates, if present}
+#'   \item{fish}{ a data.frame containing Year, Catch, standardized CPUE, and 
+#'       SE, the standard error of the CPUE estimates, if present}
 #'   \item{glb}{ a list of global variables including maxage, M, parameters for
 #'       growth, weight-at-age, maturity-at-age, steepness, R0, selectivity,
 #'       resilience, number of ages, and the ages themselves. }

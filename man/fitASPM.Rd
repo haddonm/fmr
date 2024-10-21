@@ -4,40 +4,41 @@
 \alias{fitASPM}
 \title{fitASPM fits an age-structured production model}
 \usage{
-fitASPM(initpar, infish, inglb, inprops, callfun = aspmLL)
+fitASPM(initpar, minfun, dynfun, infish, inglb, inprops)
 }
 \arguments{
 \item{initpar}{a vector of 2 or 3 numbers that are the initial parameter
 values given to the estimate of logR0, and the estimate of the variation
 around the CPUE data that the model is to be fitted to, and finally, the
-initial depletion.}
+catchability coefficient.}
+
+\item{minfun}{the negative log-likelihoood used; either aspmLL or aspmPENLL}
+
+\item{dynfun}{the dynamics function to be used to estimate the dynamics}
 
 \item{infish}{the fish data.frame from readdata or built in dataset}
 
 \item{inglb}{the glb data.frame from readdata or built in dataset}
 
 \item{inprops}{the props data.frame from readdata or built in dataset}
-
-\item{callfun}{the negative log-likelihoood used; either aspmLL or aspmPENLL}
 }
 \value{
-a list containing the optim output
+a list containing the optimal output
 }
 \description{
-fitASPM fits an age-structured produciton model that only has
-a single parameter - the unfished recruitment level R0.
+fitASPM fits an age-structured production model that can have
+up to three parameters, R0 the unfished recruitment level, se the variation
+around the estimated CPUE, and avq the catchabaility coefficient.
 }
 \examples{
-\dontrun{
-data(dataspm)
-fish <- dataspm$fish
-glb <- dataspm$glb
-props <- dataspm$props
-pars <- c(14,0.3)
-aspmLL(pars,fish,glb,props)      # should be -2.277029
-bestspm <- fitASPM(pars,infish=fish,inglb=glb,inprops=props)
-bestspm
-fishery <- dynamics(bestspm$par,fish,glb,props)
+data("westroughy")
+fish <- westroughy$fish
+glb <- westroughy$glb
+props <- westroughy$props
+pars <- c(7,0.3,-7.7)
+aspmLL(pars,dynamicsH,fish,glb,props)      # should be -2.277029
+bestL <- fitASPM(pars,aspmLL,dynamicsH,infish=fish,inglb=glb,inprops=props)
+bestL
+fishery <- dynamicsH(bestL$par,fish,glb,props)
 round(fishery,4)
-}
 }
