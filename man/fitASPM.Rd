@@ -4,7 +4,7 @@
 \alias{fitASPM}
 \title{fitASPM fits an age-structured production model}
 \usage{
-fitASPM(initpar, minfun, dynfun, infish, inglb, inprops)
+fitASPM(initpar, minfun, dynfun, infish, inglb, inprops, hessian = FALSE)
 }
 \arguments{
 \item{initpar}{a vector of 2 or 3 numbers that are the initial parameter
@@ -21,14 +21,21 @@ catchability coefficient.}
 \item{inglb}{the glb data.frame from readdata or built in dataset}
 
 \item{inprops}{the props data.frame from readdata or built in dataset}
+
+\item{hessian}{should the hessian be estimated, default = FALSE}
 }
 \value{
 a list containing the optimal output
 }
 \description{
 fitASPM fits an age-structured production model that can have
-up to three parameters, R0 the unfished recruitment level, se the variation
-around the estimated CPUE, and avq the catchabaility coefficient.
+up to three parameters, R0 the unfished recruitment level, se the
+variation around the estimated CPUE, and avq the catchability
+coefficient. The inverse Hessian, when using log-likelihoods, provides
+access to the variance-covariance matrix, which in turn can be used
+to generate standard errors on the model parameters. This is used when
+using asypmtotic errors to caharacterize uncertainty. See section 6.5
+in Haddon (2021).
 }
 \examples{
 data("westroughy")
@@ -41,4 +48,9 @@ bestL <- fitASPM(pars,aspmLL,dynamicsH,infish=fish,inglb=glb,inprops=props)
 bestL
 fishery <- dynamicsH(bestL$par,fish,glb,props)
 round(fishery,4)
+}
+\references{
+Haddon, M. (2021) Using R for Modelling and Quantitative
+Methods in Fisheries, CRC Press / Chapman & Hall/ Boca Raton 337p.
+ISBN: 9780367469894
 }

@@ -781,8 +781,17 @@ ExB <- function(invect, SelA, WeightA) {
 #' @title fitASPM fits an age-structured production model
 #'
 #' @description fitASPM fits an age-structured production model that can have 
-#'     up to three parameters, R0 the unfished recruitment level, se the variation 
-#'     around the estimated CPUE, and avq the catchabaility coefficient.
+#'     up to three parameters, R0 the unfished recruitment level, se the 
+#'     variation around the estimated CPUE, and avq the catchability 
+#'     coefficient. The inverse Hessian, when using log-likelihoods, provides
+#'     access to the variance-covariance matrix, which in turn can be used
+#'     to generate standard errors on the model parameters. This is used when
+#'     using asypmtotic errors to caharacterize uncertainty. See section 6.5
+#'     in Haddon (2021).
+#'     
+#' @references Haddon, M. (2021) Using R for Modelling and Quantitative 
+#'     Methods in Fisheries, CRC Press / Chapman & Hall/ Boca Raton 337p.
+#'     ISBN: 9780367469894
 #'
 #' @param initpar a vector of 2 or 3 numbers that are the initial parameter
 #'     values given to the estimate of logR0, and the estimate of the variation
@@ -793,6 +802,7 @@ ExB <- function(invect, SelA, WeightA) {
 #' @param infish the fish data.frame from readdata or built in dataset
 #' @param inglb the glb data.frame from readdata or built in dataset
 #' @param inprops the props data.frame from readdata or built in dataset
+#' @param hessian should the hessian be estimated, default = FALSE
 #' 
 #' @return a list containing the optimal output
 #' @export
@@ -808,17 +818,27 @@ ExB <- function(invect, SelA, WeightA) {
 #' bestL
 #' fishery <- dynamicsH(bestL$par,fish,glb,props)
 #' round(fishery,4)
-fitASPM <- function(initpar,minfun,dynfun,infish,inglb,inprops) { 
+fitASPM <- function(initpar,minfun,dynfun,infish,inglb,inprops,
+                    hessian=FALSE) { 
    paramscale = magnitude(initpar)
    bestL <- optim(initpar,minfun,method="Nelder-Mead",dynfun=dynfun,
                   infish=infish,inglb=inglb,inprops=inprops,
                   control=list(maxit = 1000, parscale = paramscale))
    paramscale = magnitude(bestL$par) 
-   bestL <- nlminb(start=bestL$par,minfun,dynfun=dynfun,infish=fish,
-                    inglb=glb,inprops = props,
-                    control=list(eval.max=500,iter.max=300,trace=0,rel.tol=1e-08))   
+   if (hessian) {
+     bestL <- nlminb(start=bestL$par,minfun,dynfun=dynfun,infish=fish,
+                     inglb=glb,inprops = props,
+                     control=list(eval.max=500,iter.max=300,trace=0,
+                                  rel.tol=1e-08),hessian=TRUE) 
+   } else {
+     bestL <- nlminb(start=bestL$par,minfun,dynfun=dynfun,infish=fish,
+                     inglb=glb,inprops = props,
+                     control=list(eval.max=500,iter.max=300,trace=0,
+                                  rel.tol=1e-08))
+   }
    return(bestL)
 }
+
 
 #' @title getB0 calculates the B0 from biological properties and R0
 #'
@@ -1280,6 +1300,8 @@ prodASPM <- function(inprod, target=0.48, console=TRUE, plot=TRUE) {
 #'     so that the random variation covers the parameter space reasonably well.
 #'
 #' @param inpar the parameter set to begin the trials with
+#' @param minfun the negative log-likelihoood used; either aspmLL or aspmPENLL
+#' @param dynfun the dynamics function to be used to estimate the dynamics
 #' @param fish the fisheries data: at least year, catch, and cpue
 #' @param glb the global variables containing the biological information
 #' @param props the properties calculated from the globals
@@ -1309,7 +1331,7 @@ prodASPM <- function(inprod, target=0.48, console=TRUE, plot=TRUE) {
 #'   str(out)
 #'   print(out$results)
 #' }
-robustASPM <- function(inpar,fish,glb,props,N=10,scaler=15,
+robustASPM <- function(inpar,minfun,dynfun,fish,glb,props,N=10,scaler=15,
                        Hrange=c(0.01,0.45,0.005),numyrs=50,console=TRUE) {
    origpar <- inpar
    origpar[1] <- exp(origpar[1]) # return Ln(R0) to nominal sale
@@ -1318,20 +1340,20 @@ robustASPM <- function(inpar,fish,glb,props,N=10,scaler=15,
                     rnorm(N,mean=origpar[2],sd=origpar[2]/scaler))  
       columns <- c("iLnR0","isigmaCE","iLike","LnR0","sigmaCE",
                    "-veLL","MSY","B0","Iters")  # prefix i implies input
-      usefun=aspmLL
+    #  usefun=aspmLL
    } else {
       pars <- cbind(rnorm(N,mean=origpar[1],sd=origpar[1]/scaler),
                     rnorm(N,mean=origpar[2],sd=origpar[2]/scaler),
                     rnorm(N,mean=origpar[3],sd=origpar[3]/scaler))
-      usefun=aspmPENLL
+    #  usefun=aspmPENLL
       columns <- c("iLnR0","isigmaCE","iDepl","iLike","LnR0","sigmaCE","Depl",
                    "-veLL","MSY","B0","Iters")  # prefix i implies input
    }
    pars[,1] <- log(pars[,1])  # return R0 to log(R0)
    results <- matrix(0,nrow=N,ncol=length(columns),dimnames=list(1:N,columns))
    for (i in 1:N) {    # use aspmPENLL just in case   i=1
-      origLL <-  usefun(pars[i,],fish,glb,props)        
-      bestSP <- fitASPM(pars[i,],fish,glb,props,callfun=usefun)
+     # origLL <-  usefun(pars[i,],fish,glb,props)        
+      bestSP <- fitASPM(pars[i,],aspmLL,dynfun=dynfun,fish,glb,props)
       opar <- bestSP$par
       prod <- getProduction(exp(opar[1]),fish,glb,props,
                              Hrg=Hrange,nyr=numyrs)

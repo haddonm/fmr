@@ -6,6 +6,8 @@
 \usage{
 robustASPM(
   inpar,
+  minfun,
+  dynfun,
   fish,
   glb,
   props,
@@ -18,6 +20,10 @@ robustASPM(
 }
 \arguments{
 \item{inpar}{the parameter set to begin the trials with}
+
+\item{minfun}{the negative log-likelihoood used; either aspmLL or aspmPENLL}
+
+\item{dynfun}{the dynamics function to be used to estimate the dynamics}
 
 \item{fish}{the fisheries data: at least year, catch, and cpue}
 
