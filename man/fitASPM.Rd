@@ -44,7 +44,8 @@ glb <- westroughy$glb
 props <- westroughy$props
 pars <- c(7,0.3,-7.7)
 aspmLL(pars,dynamicsH,fish,glb,props)      # should be -2.277029
-bestL <- fitASPM(pars,aspmLL,dynamicsH,infish=fish,inglb=glb,inprops=props)
+bestL <- fitASPM(pars,aspmLL,dynamicsH,
+                 infish=fish,inglb=glb,inprops=props,hessian=TRUE)
 bestL
 fishery <- dynamicsH(bestL$par,fish,glb,props)
 round(fishery,4)

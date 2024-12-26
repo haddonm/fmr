@@ -814,31 +814,22 @@ ExB <- function(invect, SelA, WeightA) {
 #' props <- westroughy$props
 #' pars <- c(7,0.3,-7.7)
 #' aspmLL(pars,dynamicsH,fish,glb,props)      # should be -2.277029
-#' bestL <- fitASPM(pars,aspmLL,dynamicsH,infish=fish,inglb=glb,inprops=props)
+#' bestL <- fitASPM(pars,aspmLL,dynamicsH,
+#'                  infish=fish,inglb=glb,inprops=props,hessian=TRUE)
 #' bestL
 #' fishery <- dynamicsH(bestL$par,fish,glb,props)
 #' round(fishery,4)
 fitASPM <- function(initpar,minfun,dynfun,infish,inglb,inprops,
                     hessian=FALSE) { 
-   paramscale = magnitude(initpar)
-   bestL <- optim(initpar,minfun,method="Nelder-Mead",dynfun=dynfun,
-                  infish=infish,inglb=inglb,inprops=inprops,
-                  control=list(maxit = 1000, parscale = paramscale))
-   paramscale = magnitude(bestL$par) 
-   if (hessian) {
-     bestL <- nlminb(start=bestL$par,minfun,dynfun=dynfun,infish=fish,
-                     inglb=glb,inprops = props,
-                     control=list(eval.max=500,iter.max=300,trace=0,
-                                  rel.tol=1e-08),hessian=TRUE) 
-   } else {
-     bestL <- nlminb(start=bestL$par,minfun,dynfun=dynfun,infish=fish,
-                     inglb=glb,inprops = props,
-                     control=list(eval.max=500,iter.max=300,trace=0,
-                                  rel.tol=1e-08))
-   }
-   return(bestL)
-}
-
+  paramscale = magnitude(initpar)
+  bestL <- optim(par=initpar,fn=minfun,method="Nelder-Mead",dynfun=dynfun,
+                 infish=infish,inglb=inglb,inprops=inprops,
+                 control=list(maxit = 1000, parscale = paramscale))
+  bestL <- nlm(f=minfun,p=bestL$par,dynfun=dynfun,hessian=hessian,
+               infish=fish,inglb=glb,inprops=props,steptol=1e-08,
+               iterlim=300)
+  return(bestL)
+} # end of fitASPM
 
 #' @title getB0 calculates the B0 from biological properties and R0
 #'
