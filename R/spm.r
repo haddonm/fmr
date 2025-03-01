@@ -1176,7 +1176,7 @@ ssq <- function(inp,indat,callfun) {  # indep=age; dep=length
 #' @title summspm extracts critical statistics from output of displayModel
 #' 
 #' @description summspm extracts critical statistics from output of displayModel.
-#'     In particular it pulls out the catchability q, teh MSY, Bmsy, Dmsy, Blim, 
+#'     In particular it pulls out the catchability q, the MSY, Bmsy, Dmsy, Blim, 
 #'     Btarg, Ctarg. and Dcurr.
 #'
 #' @param ans the object output from the function displayModel used to plot
