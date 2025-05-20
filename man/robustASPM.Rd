@@ -6,7 +6,6 @@
 \usage{
 robustASPM(
   inpar,
-  minfun,
   dynfun,
   fish,
   glb,
@@ -21,9 +20,8 @@ robustASPM(
 \arguments{
 \item{inpar}{the parameter set to begin the trials with}
 
-\item{minfun}{the negative log-likelihoood used; either aspmLL or aspmPENLL}
-
-\item{dynfun}{the dynamics function to be used to estimate the dynamics}
+\item{dynfun}{the dynamics function giving rise to -veLL, usually dynF, or
+dynamicsF, or dynamicsH}
 
 \item{fish}{the fisheries data: at least year, catch, and cpue}
 
@@ -61,14 +59,5 @@ initial guesses are used you may need to select different starting points
 so that the random variation covers the parameter space reasonably well.
 }
 \examples{
-\dontrun{
-  data(dataspm)
-  fish <- dataspm$fish
-  glb <- dataspm$glb
-  props <- dataspm$props
-  pars <- c(14,0.19,0.6)
-  out <- robustASPM(pars,fish,glb,props)
-  str(out)
-  print(out$results)
-}
+print("wait on data sets")
 }

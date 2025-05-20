@@ -35,10 +35,10 @@ constant harvest rate that leads to the required depletion.
 }
 \examples{
 \dontrun{
-data(dataspm)
-fish <- dataspm$fish
-glb <- dataspm$glb
-props <- dataspm$props
+data(westroughy)
+fish <- westroughy$fish
+glb <- westroughy$glb
+props <- westroughy$props
 dep <- doDepletion(glb$R0,indepl=0.4,props,glb,inc=0.02)
 print(dep)
 }  

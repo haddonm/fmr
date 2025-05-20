@@ -5,9 +5,10 @@
 #' @importFrom graphics contour hist
 #' @importFrom stats qnorm rnorm dnorm runif sd quantile optim loess
 #' @importFrom stats dmultinom anova ccf lm median nlm dchisq qchisq dlnorm
-#' @importFrom stats pnorm cor
+#' @importFrom stats pnorm cor optimize
 #' @importFrom utils tail head str
-#' @importFrom codeutils which.closest getmax getmin magnitude
+#' @importFrom codeutils which.closest getmax getmin magnitude pathtopath
+#' @importFrom codeutils removeEmpty
 #' @importFrom hplot plotprep parset
 NULL
 

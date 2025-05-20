@@ -28,6 +28,6 @@ which explicitly defines the SM50 and uses SM95 as the second parameter.
 in50 <- 3.398
 in95 <- 4.386
 ages <- seq(2,10,1)
-select <- logistic(inl50=in50,inl95=in95,depend=age)
+select <- logistic(inl50=in50,inl95=in95,depend=ages)
 round(cbind(ages,select),5)
 }

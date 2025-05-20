@@ -4,7 +4,7 @@
 \alias{fitASPM}
 \title{fitASPM fits an age-structured production model}
 \usage{
-fitASPM(initpar, minfun, dynfun, infish, inglb, inprops, hessian = FALSE)
+fitASPM(initpar, minfun, infish, inglb, inprops, hessian = FALSE)
 }
 \arguments{
 \item{initpar}{a vector of 2 or 3 numbers that are the initial parameter
@@ -12,9 +12,7 @@ values given to the estimate of logR0, and the estimate of the variation
 around the CPUE data that the model is to be fitted to, and finally, the
 catchability coefficient.}
 
-\item{minfun}{the negative log-likelihoood used; either aspmLL or aspmPENLL}
-
-\item{dynfun}{the dynamics function to be used to estimate the dynamics}
+\item{minfun}{the dynamics function outputning a -ve log-likelihood}
 
 \item{infish}{the fish data.frame from readdata or built in dataset}
 
@@ -43,12 +41,11 @@ fish <- westroughy$fish
 glb <- westroughy$glb
 props <- westroughy$props
 pars <- c(7,0.3,-7.7)
-aspmLL(pars,dynamicsH,fish,glb,props)      # should be -2.277029
-bestL <- fitASPM(pars,aspmLL,dynamicsH,
-                 infish=fish,inglb=glb,inprops=props,hessian=TRUE)
+bestL <- fitASPM(pars,dynamicsH,infish=fish,inglb=glb,inprops=props,
+                 hessian=TRUE)
 bestL
-fishery <- dynamicsH(bestL$par,fish,glb,props)
-round(fishery,4)
+out <- dynamicsH(bestL$estimate,fish,glb,props,full=TRUE)
+round(out$fishery,4)
 }
 \references{
 Haddon, M. (2021) Using R for Modelling and Quantitative

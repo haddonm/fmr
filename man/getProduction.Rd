@@ -54,7 +54,7 @@ rates for however many iterations of nyr required.
   glb <- westroughy$glb
   props <- westroughy$props
   pars <- c(7.0,0.3)
-  bestL <- nlminb(start=pars,aspmLL,dynfun=dynamicsH,infish=fish,inglb=glb,
+  bestL <- nlminb(start=pars,objective=dynamicsH,infish=fish,inglb=glb,
                   inprops = props,
                control=list(eval.max=500,iter.max=300,trace=0,rel.tol=1e-08))
   prod <- getProduction(exp(bestL$par[1]),infish=fish,inglb=glb,

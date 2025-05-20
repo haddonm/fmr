@@ -1,63 +1,12 @@
 
 
-#' @title aspmFLL negative log-likelihood for the ASPM
-#'
-#' @description aspmFLL is the negative log-likelihood for Log-Normally 
-#'     distributed data, set-up for use with the ASPM model fitting. 
-#'     This uses the aspmdynamicsF function to calculate the dynamics, including
-#'     the predicted index valuess for calculating the negative log-likelihood.
-#'
-#' @param par the dynamics relies on many parameters sitting in the global
-#'     environment in particular ages, nages, maxage, M, maa, waa, sela, fish,
-#'     and nyrs. 'pars' can contain either two or three parameters. 1) is
-#'     the log-transformed average unfished recruitment, inR0. 2) is the 
-#'     variability around the index of relative abundance (cpue) during the 
-#'     fitting process, and if is present 3) is the initial depletion level 
-#'     initdepl, which if present will be fitted as well.
-#' @param infish the fish data.frame from readdata or built in dataset
-#' @param inglb the glb data.frame from readdata or built in dataset
-#' @param inprops the props data.frame from readdata or built in dataset
-#'
-#' @return a scalar that is the negative log-likelihood using Log-Normal
-#'     random errors  designed for use with an ASPM using instantaneous 
-#'     mortality rates rather than harvest rates for the fishing mortality.
-#' @export
-#'
-#' @examples
-#' \dontrun{
-#' data(westroughy)
-#' fish <- westroughy$fish
-#' glb <- westroughy$glb
-#' props <- westroughy$props
-#' pars <- c(14,0.3)
-#' dynamics(pars,fish,glb,props)
-#' aspmFLL(pars,fish,glb,props)      # should be 5.171
-#' pars <- c(14.0,0.3,0.95) # logR0, sigCE, depletion
-#' aspmdynamicsF(pars,fish,glb,props)    # note the harvest rates of 85% exploitable biomass
-#' aspmFLL(pars,fish,glb,props)      # should be 114.9547
-#' pars <- c(14,0.3)
-#' bestL <- optim(pars,aspmLL,method="Nelder-Mead",infish=fish,inglb=glb,inprops=props,
-#'                control=list(maxit = 1000, parscale = c(10,0.1)))
-#' outoptim(bestL)
-#' fishery <- aspmdynamicsF(bestL$par,fish,glb,props)
-#' print(round(fishery,4)) 
-#' }
-aspmFLL <- function(par,infish,inglb,inprops) {  # par=pars;infish=fish1; inprops=props; inglb=glb;
-  fishery <- dynamicsF(par,infish,inglb,inprops)
-  #penalty <- sum((fishery[,"Catch"] - fishery[,"PredC"])^2,na.rm=TRUE)/1000.0
-  pick <- which(fishery$CPUE > 0)
-  LL <- -sum(dnorm(log(fishery[pick,"CPUE"]),
-                   log(fishery[pick,"PredCE"]),par[2],log=TRUE))
-  return(LL)
-} # end of aspmFLL
-
 #' @title aspmindexfit plots an aspm fit to CPUE or Index data
 #' 
 #' @description aspmindexfit plots an aspm fit to CPUE or Index data with the
 #'     option of including 95% Log-Normal CI around the model fit.
 #'
-#' @param infish the matrix of fishery dynamics from the aspmdynamics or 
-#'     aspmdynamicsF functions
+#' @param infish the matrix of fishery dynamics from the dynamicsH, dynamicsF,
+#'     of dynF functions
 #' @param glb the globals object for the aspm analysis used
 #' @param CI the output of the getLNCI function that defines Log-Normal CI
 #' @param rundir default = "", give a full path if saving a png file
@@ -66,7 +15,7 @@ aspmFLL <- function(par,infish,inglb,inprops) {  # par=pars;infish=fish1; inprop
 #'     plot will be saved
 #'     
 #' @seealso{
-#'    \link{getLNCI}, \link{aspmdynamics}, \link{aspmdynamicsF}
+#'    \link{getLNCI}, \link{dynamicsH}, \link{dynamicsF}, \link{dynF}
 #' }     
 #'
 #' @return nothing but it does generate a plot
@@ -76,20 +25,22 @@ aspmFLL <- function(par,infish,inglb,inprops) {  # par=pars;infish=fish1; inprop
 #' data("westroughy")
 #' fish <- westroughy$fish; glb <- westroughy$glb
 #' props <- westroughy$props
-#' pars <- c(14,0.3)
-#' ans <- fitASPM(pars,aspmLL,dynamicsH,infish=fish,inglb=glb,inprops =props)
-#' fishery <- dynamics(ans$par,infish=fish,inglb=glb,inprops = props)
-#' ceCI <- getLNCI(fishery[,"PredCE"],ans$par[2])
-#' aspmindexfit(infish=fishery,glb=glb,CI=ceCI)
+#' pars <- c(7.1,-1,-7.7)
+#' ans <- fitASPM(pars,dynamicsH,infish=fish,inglb=glb,inprops =props)
+#' out <- dynamicsH(ans$estimate,infish=fish,inglb=glb,inprops=props,
+#'                  full=TRUE)
+#' ceCI <- getLNCI(out$fishery[,"predCE"],exp(ans$estimate[2]))
+#' aspmindexfit(infish=out$fishery,glb=glb,CI=ceCI,console=TRUE)
 aspmindexfit <- function(infish,glb,CI=NULL,rundir="",console=TRUE) {
-  yrs <- infish[,"Year"]
-  cpue <- infish[,"CPUE"]
-  predce <- infish[,"PredCE"]
+  colnames(infish) <- tolower(colnames(infish))
+  yrs <- infish[,"year"]
+  cpue <- infish[,"cpue"]
+  predce <- infish[,"predce"]
   ymax <- getmax(c(cpue,predce))
   if (inherits(CI,"matrix")) ymax <- getmax(CI[,"upper"]) 
   filen=""
   if (!console) filen <- pathtopath(rundir,paste0(glb$spsname,"_aspm.png"))
-  plotprep(width=6,height=3.5,cex=1.0,filename=filen)
+  plotprep(width=9,height=5,cex=1.0,filename=filen)
   parset()
   plot(yrs,cpue,type="p",pch=16,col=2,cex=1.0,ylim=c(0,ymax),
        yaxs="i",xlab="",panel.first=grid(),ylab="Relative Abundance Index")
@@ -99,100 +50,6 @@ aspmindexfit <- function(infish,glb,CI=NULL,rundir="",console=TRUE) {
   }
   if (!console) dev.off()
 } # end of aspmindexfit
-
-#' @title aspmLL negative log-likelihood for the ASPM
-#'
-#' @description aspmLL is the negative log-likelihood for normally distributed
-#'     data, set-up for use with the ASPM model fitting. It would be necessary
-#'     to log-transform the original data to convert log-normal data to normal.
-#'     This includes a penalty function that is the SSQ of the catch vs 
-#'     predicted catch, which should invariably be ~0 when the fully selected
-#'     harvest rates are plausible; meaning are below 75% of exploitable biomass.
-#'
-#' @param par the dynamics relies on many parameters sitting in the global
-#'     environment in particular ages, nages, maxage, M, maa, waa, sela, fish,
-#'     and nyrs. 'pars' can contain either two or three parameters. 1) is
-#'     the log-transformed average unfished recruitment, inR0. 2) is the 
-#'     variability around the index of relative abundance (cpue) during the 
-#'     fitting process, and if is present 3) is the initial depletion level 
-#'     initdepl, which if present will be fitted as well.
-#' @param dynfun the dynamics function to be used to estimate the dynamics
-#' @param infish the fish data.frame from readdata or built in dataset
-#' @param inglb the glb data.frame from readdata or built in dataset
-#' @param inprops the props data.frame from readdata or built in dataset
-#'
-#' @return a scalar that is the negative log-likelihood using normal
-#'     random errors
-#' @export
-#'
-#' @examples
-#' \dontrun{
-#' data(fishdat)
-#' fish <- fishdat$fish
-#' glb <- fishdat$glb
-#' props <- fishdat$props
-#' pars <- c(14,0.3)
-#' dynamicsH(pars,fish,glb,props)
-#' aspmLL(pars,dynfun=dynamicsH,fish,glb,props)      # should be 5.171
-#' pars <- c(14.0,0.3,0.95) # logR0, sigCE, depletion
-#' dynamicsH(pars,fish,glb,props)    # note the harvest rates of 85% exploitable biomass
-#' aspmLL(pars,dynamicsH,fish,glb,props)      # should be 114.9547
-#' pars <- c(14,0.3)
-#' bestL <- optim(pars,aspmLL,method="Nelder-Mead",dynfun=dynamicsH,infish=fish,
-#'                inglb=glb,inprops=props,
-#'                control=list(maxit = 1000, parscale = c(10,0.1)))
-#' outoptim(bestL)
-#' fishery <- dynamicsH(bestL$par,fish,glb,props)
-#' print(round(fishery,4)) 
-#' }
-aspmLL <- function(par,dynfun,infish,inglb,inprops) {  # par=pars;infish=fish1; inprops=props; inglb=glb;
-   fishery <- dynfun(par,infish,inglb,inprops)
-   penalty <- sum((fishery[,"Catch"] - fishery[,"PredC"])^2,na.rm=TRUE)/1000.0
-   pick <- which(fishery$CPUE > 0)
-   LL <- -sum(dnorm(log(fishery[pick,"CPUE"]),log(fishery[pick,"PredCE"]),par[2],log=TRUE))
-   return((LL + penalty))
-} # end of aspmLL
-
-#' @title aspmPENLL penalized negative log-likelihood for the ASPM
-#'
-#' @description aspmPENLL is a penalized negative log-likelihood for normally
-#'     distributed data, set-up for use with the ASPM model fitting. It would
-#'     be necessary to log-transform the original data to convert log-normal
-#'     data to normal. The assumption is made that there will be three
-#'     parameters, the unfished R0, the initial depletion in the first year. 
-#'     For use with initially depleted stocks
-#'
-#' @param par a vector of two or three numbers the hypothesized inR0, the initial 
-#'     depletion in the first year.  (in that order).
-#' @param infish the fish data.frame from readdata or built in dataset
-#' @param inglb the glb data.frame from readdata or built in dataset
-#' @param inprops the props data.frame from readdata or built in dataset
-#'
-#' @return a scalar that is the negative log-likelihood using normal
-#'     random errors
-#' @export
-#'
-#' @examples
-#' \dontrun{
-#' data(dataspm)
-#' fish <- dataspm$fish
-#' glb <- dataspm$glb
-#' props <- dataspm$props
-#' pars <- c(13.53,0.190667,0.95) # assume the stock is known to have been 
-#' aspmLL(pars,infish=fish,inglb=glb,inprops=props)   # initially depleted
-#' aspmPENLL(pars,infish=fish,inglb=glb,inprops=props) # penalty approaching 1 
-#' pars <- c(13.53,0.190667,0.85) # depletion away from 1.0 has almost no effect 
-#' aspmLL(pars,infish=fish,inglb=glb,inprops=props) 
-#' aspmPENLL(pars,infish=fish,inglb=glb,inprops=props)
-#' }
-aspmPENLL <- function(par,infish,inglb,inprops) {
-   fishery <- dynamics(par,infish,inglb,inprops)
-   penalty <- sum((fishery[,"Catch"] - fishery[,"PredC"])^2,na.rm=TRUE)/1000.0
-   pick <- which(fishery$CPUE > 0)
-   LL <- -sum(dnorm(log(fishery[pick,"CPUE"]),log(fishery[pick,"PredCE"]),par[2],log=TRUE))
-   LL <- LL + penalty + penalty1(par[3])
-   return(LL)
-} # end of aspmpenLL
 
 #' @title aspmphaseplot - plots the phase plot of harvest rate vs biomass
 #' 
@@ -220,27 +77,7 @@ aspmPENLL <- function(par,infish,inglb,inprops) {
 #' @export
 #'
 #' @examples
-#' \dontrun{
-#'  # library(datalowSA)
-#'   data(dataspm)
-#'   fish <- dataspm$fish
-#'   glb <- dataspm$glb
-#'   props <- dataspm$props
-#'   # Fit 3 par ASPM with penalty
-#'   pars <- c(13.75,0.189667,0.6)
-#'   bestL <- optim(pars,aspmPENLL,method="Nelder-Mead",
-#'                  infish=fish,inglb=glb,inprops=props,
-#'                  control=list(maxit = 1000, parscale = c(10,1,0.1)))
-#'   outoptim(bestL)
-#'   fisheryPen <- dynamics(bestL$par,infish=fish,inglb=glb,inprops=props)
-#'   par <- bestL$par
-#'   prod <- getProductionC(exp(par[1]),fish,glb,props,
-#'                          Hrg=c(0.01,0.45,0.005),nyr=50)
-#'   anspen <- prodASPM(prod,console=TRUE,plot=TRUE)
-#'   plotprep(width=7,height=5.5)
-#'   outs <- aspmphaseplot(fisheryPen,prod,anspen,Blim=0.2,fnt=7)
-#'   str(outs)
-#' }       
+#' print("wait on a better example")
 aspmphaseplot <- function(fishery,prod,ans,Blim=0.2,filename="",resol=200,
                           fnt=7) {
    lenfile <- nchar(filename)
@@ -299,46 +136,6 @@ aspmphaseplot <- function(fishery,prod,ans,Blim=0.2,filename="",resol=200,
    return(invisible(result))
 } # end of aspmphaseplot
 
-#' @title aspmSSQ sum-of-squared residuals for the ASPM.
-#'
-#' @description aspmLL calculates the sum-of-squared residuals, set-up for use
-#'     with the ASPM model fitting. It requires the use of functions from
-#'     datalowSA for fitting of ASPM (see example below). It first identifies
-#'     which of the CPUE column in 'fishery' are numeric (not NA) and then
-#'     calculates the sum-of-squared residuals after log-transforming both
-#'     the CPUE and PredCE columns.
-#'
-#' @param par a single number that is the hypothesized inR0, which is the only
-#'     parameter.
-#' @param infish the fish data.frame from readdata or built in dataset
-#' @param inglb the glb data.frame from readdata or built in dataset
-#' @param inprops the props data.frame from readdata or built in dataset
-#'
-#' @return a single value that is the sum-of-squared residuals.
-#' @export
-#'
-#' @examples
-#' \dontrun{
-#' data(fishdat)
-#' fish <- fishdat$fish
-#' glb <- fishdat$glb
-#' props <- fishdat$props
-#' pars <- c(14)
-#' aspmSSQ(pars,infish=fish,inglb=glb,inprops=props)
-#' pars <- c(13.75)  # note the presence of the maximum harvest rate of 0.85
-#' dynamics(pars,infish=fish,inglb=glb,inprops=props) # leads to a large increase 
-#' aspmSSQ(pars,infish=fish,inglb=glb,inprops=props) #because of penalty incurred 
-#' }
-aspmSSQ <- function(par,infish,inglb,inprops) {
-   fishery <- dynamics(par,infish,inglb,inprops)
-   penalty <- sum((fishery[,"Catch"] - fishery[,"PredC"])^2,na.rm=TRUE)/1000.0
-   pick <- which(fishery$CPUE > 0)
-   ssq <- sum((log(fishery[pick,"CPUE"]) - log(fishery[pick,"PredCE"]))^2)
-   return((ssq + penalty))
-} # end of aspmSSQ
-
-
-
 #' @title bh calculates the expected Beverton-Holt recruitment
 #'
 #' @description bh calculate the expected Beverton-Holt stock recruitment level
@@ -364,86 +161,6 @@ bh <- function(spb,h,R0,B0) {
    return((a * spb)/(b + spb))
 } # end of bh
 
-#' @title bootASPM boostraps on the results of fitting an ASPM
-#' 
-#' @description bootASPM uses the optimum parameters from fitting an ASPM to 
-#'     a set of data in a bootstrap process so as to provide 'iter' bootstrap
-#'     replicate predicted CPUE trajectories. These can be used to generate 
-#'     estimates of the uncertainty around the predicted outcomes from the ASPM.
-#'     The very first row of the results is the original predicted CPUE. The 
-#'     bootstraps are of the residuds between the observed and the predicted.
-#'     The new bootstrap indices in each case are the combination of the 
-#'     original cpue series times the boostrapped residuals. 1000 bootstraps
-#'     can take about 2 minutes.
-#'
-#' @param infish the fish object from the fisheries data set
-#' @param inglb the globals 'glb' object from the fisheries data set
-#' @param inprops the properties 'props' object from the fisheries data set. 
-#' @param optpar the optimum parameters obtained from fitting the ASPM 
-#' @param iter how many bootstrap replicates are required? Defaults to 10 so
-#'     that the bootstraps can be tested before running for, say, 1000 runs.
-#' @param callfun the function that is called to fit the model. Could be aspmLL,
-#'     which is the default, or aspmPENLL, for three parameter models, or even
-#'     aspmSSQ.
-#' @param dynfun the dynamics function to be used to estimate the dynamics
-#'
-#' @return a matrix of bootstrap replicate predicted CPUE vectors 
-#' @export
-#'
-#' @examples
-#' \dontrun{
-#' data(fishdat)
-#' fish <- fishdat$fish
-#' glb <- fishdat$glb
-#' props <- fishdat$props
-#' pars <- c(14,0.3)
-#' bestL <- optim(pars,aspmLL,method="Nelder-Mead",infish=fish,inglb=glb,
-#'                inprops=props,control=list(maxit = 1000, parscale = c(10,0.1)))
-#' answer <- bootASPM(fish,glb,props,bestL$par,iter=10)
-#' str(answer,max.level=1)
-#' round(answer$result[,,"PredCE"],4) 
-#' }  # infish=fish; inglb=glb; inprops=props; optpar=bestL$par;iter=10; callfun=aspmLL
-bootASPM <- function(infish,inglb,inprops,optpar,iter=10,callfun,dynfun) { 
-   fish <- infish
-   fisheryO <- dynamics(optpar,fish,inglb,inprops)
-   pick <- which(fisheryO[,"CPUE"] > 0)
-   predCE <- fisheryO[pick,"PredCE"]
-   resids <- fisheryO[pick,"CPUE"]/predCE
-   yrs <- fisheryO[,"Year"]
-   varib <- c("SpawnB","FullH","CPUE","PredCE","Deplete")
-   result <- array(0,dim=c(iter,length(fisheryO[,"Year"]),length(varib)),
-                   dimnames=list(1:iter,yrs,varib))
-   Bzero <- numeric(iter)
-   pickcol <- c(4,6,7,8,9)
-   for (vout in 1:5) result[1,,vout] <- fisheryO[,pickcol[vout]]
-   if (length(optpar) < 3) {
-      Bzero[1] <- fisheryO[1,"SpawnB"]
-      parname <- c("R0","sigCE")
-   } else {
-      Bzero[1] <- getB0(exp(optpar[1]),inglb,inprops)
-      parname <- c("R0","sigCE","Depl")
-   }
-   param <- matrix(0,nrow=iter,ncol=length(optpar),dimnames=list(1:iter,parname))
-   param[1,] <- optpar
-   pickF <- which(fish[,"cpue"] > 0)
-   for (i in 2:iter) { # i = 2
-      boot <- sample(resids,replace=TRUE)
-      fish[pickF,"cpue"] <- predCE * boot  # replace the original observed cpue
-      bestB <- fitASPM(optpar,minfun=callfun,dynfun=dynfin,fish,inglb,inprops)
-      fisheryB <- dynamics(bestB$par,fish,inglb,inprops)
-      for (vout in 1:5) result[i,,vout] <- fisheryB[,pickcol[vout]]
-      if (length(optpar) < 3) {
-         Bzero[i] <- fisheryB[1,"SpawnB"]
-      } else {
-         Bzero[i] <- getB0(exp(bestB$par[1]),inglb,inprops)
-      }
-      param[i,] <- bestB$par
-      
-      if ((i/20) - (i %/% 20) == 0) cat(i," ")
-   }
-   answer <- list(result=result,B0=Bzero,param=param)
-   return(answer)
-}
 
 #' @title doDepletion - depletes the stock to the declared initdep level
 #'
@@ -468,14 +185,15 @@ bootASPM <- function(infish,inglb,inprops,optpar,iter=10,callfun,dynfun) {
 #' @export
 #' @examples
 #' \dontrun{
-#' data(dataspm)
-#' fish <- dataspm$fish
-#' glb <- dataspm$glb
-#' props <- dataspm$props
+#' data(westroughy)
+#' fish <- westroughy$fish
+#' glb <- westroughy$glb
+#' props <- westroughy$props
 #' dep <- doDepletion(glb$R0,indepl=0.4,props,glb,inc=0.02)
 #' print(dep)
 #' }  
 doDepletion <- function(inR0,indepl,inprops,inglb,inc=0.02,Numyrs=50) {
+#  inR0=glb$R0;indepl=0.4;inprops=props;inglb=glb;inc=0.02;Numyrs=50
    maxage <- inglb$maxage
    Nages <- inglb$nages
    M <- inglb$M
@@ -487,7 +205,7 @@ doDepletion <- function(inR0,indepl,inprops,inglb,inc=0.02,Numyrs=50) {
                 dimnames=list(seq(0,maxage,1),seq(0,(Numyrs-1),1)))
    Frange <- seq(0.02,2*M,inc)
    NF <- length(Frange)
-   unfish <- unfished(inglb,inprops,log(inR0))
+   unfish <- unfished(inglb,inprops,inR0)
    B0 <- unfish$B0
    naa <- unfish$N0
    for (hr in 1:NF) {  # hr=1
@@ -513,14 +231,13 @@ doDepletion <- function(inR0,indepl,inprops,inglb,inc=0.02,Numyrs=50) {
    return(ans)
 } # End of DoDepletion
 
-
-#' @title dynamicsF describe the ASPM dynamics
+#' @title dynF describe the ASPM dynamics
 #'
-#' @description dynamicsF summarizes the dynamics of an Age-Structured
+#' @description dynF summarizes the dynamics of an Age-Structured
 #'     Production Model (ASPM). Fitting the ASPM entails estimating the unfished
 #'     recruitment level (R0), which is input as a parameter. In this case 
 #'     fishing mortality is implemented as instantaneous rates rather that
-#'     as annual harvest rates.
+#'     as annual harvest rates. The maximize F = 4.0 
 #'
 #' @param pars the dynamics relies on many parameters sitting in the global
 #'     environment in particular ages, nages, maxage, M, fish, nyrs, and
@@ -534,8 +251,130 @@ doDepletion <- function(inR0,indepl,inprops,inglb,inc=0.02,Numyrs=50) {
 #' @param infish the fish data.frame from readdata or built in dataset
 #' @param inglb the glb data.frame from readdata or built in dataset
 #' @param inprops the props data.frame from readdata or built in dataset
-#' @param maxF the maximum instantaneous F to be used in the search for each
-#'     instantaneous F rate
+#' @param waa the character name of the weight-at-age
+#' @param maa the character name of the maturity-at-age
+#' @param sela the character name of the selectivity-at-age
+#' @param full should all outputs from dynamics be given. When fitting the 
+#'     model, set this to FALSE. Once fitted, change this to TRUE to get all
+#'     the required outputs.
+#' @param reps how many loops within the findF function to find each F
+#' 
+#' @seealso{
+#'  \link{dynamicsF}, \link{dynamicsF}, \link{findF}
+#' } 
+#' 
+#' @return a data.frame containing the fishery dynamics according to the input
+#'     parameter inR0. Includes Year, Catch, PredC, SpawnB, ExploitB, FullH,
+#'     CPUE, PredCE, Deplete, Recruit, FullF.
+#' @export
+#'
+#' @examples
+#' \dontrun{
+#' data(westroughy)
+#' fish <- westroughy$fish
+#' glb <- westroughy$glb
+#' props <- westroughy$props
+#' pars <- c(7.0,0.3)  # use closed form of avq
+#' dynamicsF(pars,fish,glb,props)    # 
+#' pars <- c(7.1,-1,-7.7) # logR0, sigCE, estimate avq
+#' fishery <- dynF(pars,fish,glb,props) 
+#' pars <- c(7.1,-1,-7.7)
+#' bestL <- optim(pars,dynF,method="Nelder-Mead",infish=fish,inglb=glb,
+#'                inprops=props,control=list(maxit = 1000,parscale = c(10,0.1)))
+#' str(bestL)
+#' fishery <- dynamicsF(bestL$par,fish,glb,props)
+#' print(round(fishery,4)) 
+#' }
+#' # pars=bestL$par;infish=fish;inglb=glb;inprops=props
+#' # waa="waa";maa="maa";sela="sela"
+dynF <- function(pars,infish,inglb,inprops,
+                 waa="waa",maa="maa",sela="sela",full=FALSE,reps=6) { 
+  aaw <- inprops[,waa]
+  aam <- inprops[,maa]
+  sel <- inprops[,sela]
+  epars <- exp(pars)
+  R0 <- epars[1]
+  sigCE <- epars[2]
+  avq <- epars[3]
+  B0 <- getB0(R0,inglb,inprops)   
+  nyrs <- length(infish[,"year"])
+  nyrs1 <- nyrs + 1
+  nages <- inglb$nages
+  maxage <- inglb$maxage
+  Nt <- matrix(0,nrow=nages,ncol=nyrs1,dimnames=list(0:(nages-1),0:nyrs))
+  columns <- c("year","catch","predC","spawnB","exploitB","cpue",
+               "predCE","deplete","recruit","fullF","fullH")
+  fishery <- matrix(NA,nrow=nyrs1,ncol=length(columns),
+                    dimnames=list(0:nyrs,columns))
+  fishery[,"year"] <- c((infish$year[1]-1),infish$year)
+  fishery[,"catch"] <- c(NA,infish$catch)
+  fishery[,"cpue"] <- c(NA,infish$cpue)
+  fishery[1,"recruit"] <- R0  
+  catch <- fishery[,"catch"]
+  M <- inglb$M
+  surv <- exp(-M)
+  Nt[,1] <- R0   # get unfished (yr=1) Numbers-at-age
+  for (age in 1:(maxage-1)) Nt[age+1,1] <- Nt[age,1] * surv
+  Nt[maxage+1,1] <- (Nt[maxage,1] * surv)/(1-surv)
+  for (yr in 2:nyrs1) {  # yr=2
+    spb <- SpB(Nt[,(yr-1)],aam,aaw)
+    exb <- ExB(Nt[,(yr-1)],sel,aaw)
+    Nt[1,yr] <- bh(spb,inglb$steep,R0,B0)
+    fishery[yr,"recruit"] <- Nt[1,yr]
+    yrF <- findF(catch[yr],Nt[,yr-1],sel,aaw,M,reps=reps)
+    # yrF <- optimize(matchC,interval=c(0,4.0),M=M,cyr=catch[yr],
+    #                 Nyr=Nt[,yr-1],sel=sel,waa=aaw,maximum=FALSE,
+    #                 tol = 1e-09)$minimum
+    sF <- sel * yrF
+    psF <- sF[2:nages]
+    msF <- sF[nages]
+    catchN <- (sF/(M + sF)) * (Nt[,yr-1] * (1 - exp(-(M + sF))))  
+    fishery[yr,"predC"] <- sum(catchN * aaw)/1000.0
+    fishery[yr,"fullF"] <- yrF
+    Nt[2:nages,yr] <- (Nt[1:(nages-1),(yr-1)] * exp(-(M + psF)))
+    Nt[nages,yr] <- Nt[nages,yr] + (Nt[nages,yr-1] * exp(-(M + msF)))
+    fishery[(yr-1),c("spawnB","exploitB")] <- c(spb,exb)
+    fishery[yr,"fullH"] <- 1-exp(-yrF)
+  }
+  spb <- SpB(Nt[,yr],aam,aaw)   # to complete final year
+  exb <- ExB(Nt[,yr],sel,aaw)
+  fishery[yr,c("spawnB","exploitB")] <- c(spb,exb)
+  fishery[,"deplete"] <- fishery[,"spawnB"]/B0
+  ExpB <- fishery[1:nyrs,"exploitB"]
+  fishery[2:nyrs1,"predCE"] <- ExpB * avq
+  pick <- which(fishery[,"cpue"] > 0)
+  f <- -sum(dnorm(log(fishery[pick,"cpue"]),log(fishery[pick,"predCE"]),
+                  sigCE,log=TRUE),na.rm=TRUE)
+  if (full) {
+    absdiffC <- sum(abs(fishery[,"catch"] - fishery[,"predC"]),na.rm=TRUE)
+    out <- list(fishery=as.data.frame(fishery),Nt=Nt,B0=B0,R0=R0,avq=avq,
+                LL=f,diffC=absdiffC)
+    return(out)
+  } else {
+    return(f)
+  }
+} # end of dynF
+
+#' @title dynamicsF describe the ASPM dynamics
+#'
+#' @description dynamicsF summarizes the dynamics of an Age-Structured
+#'     Production Model (ASPM). Fitting the ASPM entails estimating the unfished
+#'     recruitment level (R0), which is input as a parameter. In this case 
+#'     fishing mortality is implemented as instantaneous rates rather that
+#'     as annual harvest rates. The maximize F = 4.0 
+#'
+#' @param pars the dynamics relies on many parameters sitting in the global
+#'     environment in particular ages, nages, maxage, M, fish, nyrs, and
+#'     maa, waa, sela, which are contained in props. 'pars' can contain either 
+#'     two or three parameters. 1) is the log-transformed average unfished 
+#'     recruitment, inR0. 2) is the variability around the index of relative 
+#'     abundance (cpue or survey index) during the fitting process, and if is 
+#'     present 3) if is present, is the catchability 'q',
+#'     which alternatively can be estimated using the closed form. 4) If 
+#'     present this would be the log of the initail depletion.
+#' @param infish the fish data.frame from readdata or built in dataset
+#' @param inglb the glb data.frame from readdata or built in dataset
+#' @param inprops the props data.frame from readdata or built in dataset
 #' @param waa the character name of the weight-at-age
 #' @param maa the character name of the maturity-at-age
 #' @param sela the character name of the selectivity-at-age
@@ -558,85 +397,78 @@ doDepletion <- function(inR0,indepl,inprops,inglb,inc=0.02,Numyrs=50) {
 #' fish <- westroughy$fish
 #' glb <- westroughy$glb
 #' props <- westroughy$props
-#' pars <- c(7.0,0.3)  # use closed form of avq
-#' dynamicsF(pars,fish,glb,props)
-#' aspmLL(pars,dynamicsF,fish,glb,props)      # 
 #' pars <- c(7.0,0.3,-7.7) # logR0, sigCE, estimate avq
-#' fishery <- dynamicsF(pars,fish,glb,props) 
-#' aspmLL(pars,dynamicsF,fish,glb,props)      # 
-#' pars <- c(14,0.3)
-#' bestL <- optim(pars,aspmLL,method="Nelder-Mead",infish=fish,inglb=glb,
+#' fishery <- dynamicsF(pars,fish,glb,props,full=TRUE) 
+#' bestL <- optim(pars,dynamicsF,method="Nelder-Mead",infish=fish,inglb=glb,
 #'                inprops=props,control=list(maxit = 1000,parscale = c(10,0.1)))
 #' str(bestL)
 #' fishery <- dynamicsF(bestL$par,fish,glb,props)
 #' print(round(fishery,4)) 
 #' }
-dynamicsF <- function(pars,infish,inglb,inprops,maxF=1.0,
+dynamicsF <- function(pars,infish,inglb,inprops,
                       waa="waa",maa="maa",sela="sela",full=FALSE) { 
-  # pars=pars;infish=fish;inglb=glb;inprops=props;waa="waa";maa="maa";sela="sela"
+  # pars=pars;infish=fish;inglb=glb;inprops=props;waa="waa";maa="maa";sela="sela";maxF=1.0
   aaw <- inprops[,waa]
   aam <- inprops[,maa]
   sel <- inprops[,sela]
   epars <- exp(pars)
   R0 <- epars[1]
+  sigCE <- epars[2]
+  avq <- epars[3]
   B0 <- getB0(R0,inglb,inprops)   
-  if (length(epars) == 4) {
-    dep <- doDepletion(epars[1],indepl=epars[4],inprops,inglb,inc=0.02)
-    spb <- SpB(dep$Ndepl,aam,aaw)
-    Rinit <- bh(spb,inglb$steep,R0,B0)
-  } else {
-    Rinit <- R0
-  }
   nyrs <- length(infish[,"year"])
   nages <- inglb$nages
   maxage <- inglb$maxage
   Nt <- matrix(0,nrow=nages,ncol=(nyrs+1),dimnames=list(0:(nages-1),0:nyrs))
-  columns <- c("Year","Catch","PredC","SpawnB","ExploitB","FullH","CPUE",
-               "PredCE","Deplete","Recruit","FullF")
+  columns <- c("year","catch","predC","spawnB","exploitB","cpue",
+               "predCE","deplete","recruit","fullF","fullH")
   fishery <- matrix(NA,nrow=(nyrs+1),ncol=length(columns),
                     dimnames=list(0:nyrs,columns))
-  fishery[,"Year"] <- c((infish$year[1]-1),infish$year)
-  fishery[,"Catch"] <- c(NA,infish$catch)
-  fishery[,"CPUE"] <- c(NA,infish$cpue)
-  hS <- exp(-inglb$M/2)
-  surv <- exp(-inglb$M)
-  # now calculate unfished numbers-at-age given inR0
-  if (length(pars) == 4) {
-    Nt[,1] <- dep$Ndepl
-  } else {
-    Nt[,1] <- Rinit
-    for (age in 1:(maxage-1)) Nt[age+1,1] <- Nt[age,1] * surv
-    Nt[maxage+1,1] <- (Nt[maxage,1] * surv)/(1-surv)
-  }
+  fishery[,"year"] <- c((infish$year[1]-1),infish$year)
+  fishery[,"catch"] <- c(NA,infish$catch)
+  fishery[,"cpue"] <- c(NA,infish$cpue)
+  fishery[1,"recruit"] <- R0  
+  catch <- fishery[,"catch"]
   M <- inglb$M
-  catch <- fishery[,"Catch"]
+  surv <- exp(-M)
+  Nt[,1] <- R0   # get unfished (yr=1) Numbers-at-age
+  for (age in 1:(maxage-1)) Nt[age+1,1] <- Nt[age,1] * surv
+  Nt[maxage+1,1] <- (Nt[maxage,1] * surv)/(1-surv)
   for (yr in 2:(nyrs+1)) {  # yr=2
     spb <- SpB(Nt[,(yr-1)],aam,aaw)
-    exb <- ExB(Nt[,(yr-1)]*hS,sel,aaw)
+    exb <- ExB(Nt[,(yr-1)],sel,aaw)
     Nt[1,yr] <- bh(spb,inglb$steep,R0,B0)
-    fishery[yr,"Recruit"] <- Nt[1,yr]
-    yrF <- optimize(matchC,interval=c(0,maxF),M=M,cyr=catch[yr],
-                    Byr=exb,maximum=FALSE,tol = 1e-09)$minimum
-    fishery[yr,"PredC"] <- (exb * (1 - exp(-(M + yrF))) * yrF/(M + yrF))
-    fishery[yr,"FullF"] <- yrF
-    Nt[2:nages,yr] <- (Nt[1:(nages-1),(yr-1)] * exp(-(M + sel[2:nages]*yrF)))
-    Nt[nages,yr] <- Nt[nages,yr] + (Nt[nages,yr-1] * exp(-(M + sel[nages]*yrF)))
-    fishery[(yr-1),4:5] <- c(spb,exb)
-    fishery[yr,"FullH"] <- fishery[yr,"PredC"]/exb
+    fishery[yr,"recruit"] <- Nt[1,yr]
+    yrF <- optimize(matchC,interval=c(0,4.0),M=M,cyr=catch[yr],
+                    Nyr=Nt[,yr-1],sel=sel,waa=aaw,maximum=FALSE,
+                    tol = 1e-09)$minimum
+    sF <- sel * yrF
+    psF <- sF[2:nages]
+    msF <- sF[nages]
+    catchN <- (sF/(M + sF)) * (Nt[,yr-1] * (1 - exp(-(M + sF))))  
+    fishery[yr,"predC"] <- sum(catchN * aaw)/1000.0
+    fishery[yr,"fullF"] <- yrF
+    Nt[2:nages,yr] <- (Nt[1:(nages-1),(yr-1)] * exp(-(M + psF)))
+    Nt[nages,yr] <- Nt[nages,yr] + (Nt[nages,yr-1] * exp(-(M + msF)))
+    fishery[(yr-1),c("spawnB","exploitB")] <- c(spb,exb)
+    fishery[yr,"fullH"] <- 1-exp(-yrF)
   }
   spb <- SpB(Nt[,yr],aam,aaw)   # to complete final year
-  exb <- ExB(Nt[,yr]*hS,sel,aaw)
-  fishery[yr,4:5] <- c(spb,exb)
-  fishery[,"Deplete"] <- fishery[,"SpawnB"]/B0
-  ExpB <- fishery[1:nyrs,"ExploitB"]
-  avq <- ifelse(length(epars) > 2, epars[3], 
-              exp(mean(log(infish$cpue/fishery[1:nyrs,"ExploitB"]),na.rm=TRUE)))
-  fishery[2:(nyrs+1),"PredCE"] <- ExpB * avq
+  exb <- ExB(Nt[,yr],sel,aaw)
+  fishery[yr,c("spawnB","exploitB")] <- c(spb,exb)
+  fishery[,"deplete"] <- fishery[,"spawnB"]/B0
+  ExpB <- fishery[1:nyrs,"exploitB"]
+  fishery[2:(nyrs+1),"predCE"] <- ExpB * avq
+  pick <- which(fishery[,"cpue"] > 0)
+  f <- -sum(dnorm(log(fishery[pick,"cpue"]),log(fishery[pick,"predCE"]),
+                  sigCE,log=TRUE),na.rm=TRUE)
   if (full) {
-    out <- list(fishery=as.data.frame(fishery),Nt=Nt,B0=B0,R0=R0,avq=avq)
+    absdiffC <- sum(abs(fishery[,"catch"] - fishery[,"predC"]),na.rm=TRUE)
+    out <- list(fishery=as.data.frame(fishery),Nt=Nt,B0=B0,R0=R0,avq=avq,
+                LL=f,diffC=absdiffC)
     return(out)
   } else {
-    return(as.data.frame(fishery))
+    return(f)
   }
 } # end of dynamicsF
 
@@ -678,75 +510,75 @@ dynamicsF <- function(pars,infish,inglb,inprops,maxF=1.0,
 #' @export
 #'
 #' @examples
-#' data(dataspm)
-#' fish <- dataspm$fish
-#' glb <- dataspm$glb
-#' props <- dataspm$props
-#' par <- c(glb$R0,0.20)  # not fitted to the data, this is just an initial guess
-#' fishery <- dynamicsH(par,infish=fish,inglb=glb,inprops=props,full=FALSE)
-#' print(fishery)
-#' # pars=bestL$pars;infish=fish;inglb=glb;inprops=props; full=TRUE
+#' data(westroughy)
+#' fish <- westroughy$fish
+#' glb <- westroughy$glb
+#' props <- westroughy$props
+#' pars=c(7.064324,-1.257487,-7.694248) 
+#' out <- dynamicsH(pars,infish=fish,inglb=glb,inprops=props,full=TRUE)
+#' print(round(out$fishery,4))
+#' # pars=c(7.064324,-1.257487,-7.694248);infish=fish;inglb=glb;
+#' # inprops=props;full=TRUE; waa="waa";maa="maa";sela="sela"
 dynamicsH <- function(pars,infish,inglb,inprops,
                       waa="waa",maa="maa",sela="sela",full=FALSE) {  
-  waa <- inprops$waa
-  maa <- inprops$maa
-  sela <- inprops$sela
+  aaw <- inprops[,waa]
+  aam <- inprops[,maa]
+  sel <- inprops[,sela]
   epars <- exp(pars)
   R0 <- epars[1]
+  sigCE <- epars[2] # not used in this function
+  avq <- epars[3]
   B0 <- getB0(R0,inglb,inprops)  
-  if (length(epars) == 4) {
-    dep <- doDepletion(epars[1],indepl=epars[4],inprops,inglb,inc=0.02)
-    spb <- SpB(dep$Ndepl,aam,aaw)
-    Rinit <- bh(spb,inglb$steep,R0,B0)
-  } else {
-    Rinit <- R0
-  }
   nyrs <- length(infish[,"year"])
   nages <- inglb$nages
   maxage <- inglb$maxage
   Nt <- matrix(0,nrow=nages,ncol=(nyrs+1),dimnames=list(0:(nages-1),0:nyrs))
-  columns <- c("Year","Catch","PredC","SpawnB","ExploitB","FullH","CPUE",
-               "PredCE","Deplete")
+  columns <- c("year","catch","predC","spawnB","exploitB","cpue",
+               "predCE","deplete","recruit","fullF","fullH")
   fishery <- matrix(NA,nrow=(nyrs+1),ncol=length(columns),
                     dimnames=list(0:nyrs,columns))
-  fishery[,"Year"] <- c((infish$year[1]-1),infish$year)
-  fishery[,"Catch"] <- c(NA,infish$catch)
-  fishery[,"CPUE"] <- c(NA,infish$cpue)
+  fishery[,"year"] <- c((infish$year[1]-1),infish$year)
+  fishery[,"catch"] <- c(NA,infish$catch)
+  fishery[,"cpue"] <- c(NA,infish$cpue)
   hS <- exp(-inglb$M/2)  # half natural mortality
   surv <- exp(-inglb$M)
   # now calculate unfished numbers-at-age given inR0
-  if (length(epars) == 4) {
-    Nt[,1] <- dep$Ndepl
-  } else {
-    Nt[,1] <- Rinit
-    for (age in 1:(maxage-1)) Nt[age+1,1] <- Nt[age,1] * surv
-    Nt[maxage+1,1] <- (Nt[maxage,1] * surv)/(1-surv)
-  }
-  for (yr in 2:(nyrs+1)) {  # yr=2  do the dynamics given the parameters
-    spb <- SpB(Nt[,(yr-1)],maa,waa)
-    exb <- ExB(Nt[,(yr-1)]*hS,sela,waa)
+  Nt[,1] <- R0
+  for (age in 1:(maxage-1)) Nt[age+1,1] <- Nt[age,1] * surv
+  Nt[maxage+1,1] <- (Nt[maxage,1] * surv)/(1-surv)
+  for (yr in 2:(nyrs+1)) {  # yr=12# do the dynamics given the parameters
+    spb <- SpB(Nt[,(yr-1)],aam,aaw)
+    exb <- ExB(Nt[,(yr-1)]*hS,sel,aaw)
     Nt[1,yr] <- bh(spb,inglb$steep,R0,B0)
-    harvest <- min((fishery[yr,"Catch"]/exb),0.85)
-    hrate <- sela * harvest
+    fishery[yr,"recruit"] <- Nt[1,yr]
+    harvest <- min((fishery[yr,"catch"]/exb),0.975)
+    hrate <- sel * harvest
+    fishery[yr,"fullH"] <- harvest
     Ct <- (Nt[,(yr-1)] * hS) * hrate
     Nt[2:nages,yr] <- ((Nt[1:(nages-1),(yr-1)] * hS) - Ct[1:(nages-1)]) * hS
     Nt[nages,yr] <- Nt[nages,yr] + ((Nt[nages,yr-1] * hS) - Ct[nages]) * hS
-    fishery[(yr-1),4:5] <- c(spb,exb)  # save results in 'fishery'
-    fishery[yr,c(3,6)] <- c(sum(Ct * waa)/1000,hrate[nages])
+    fishery[(yr-1),c("spawnB","exploitB")] <- c(spb,exb)  # save results in 'fishery'
+    fishery[yr,"predC"] <- sum(Ct * aaw)/1000
   }
-  spb <- SpB(Nt[,yr],maa,waa)   # to complete final year
-  exb <- ExB(Nt[,yr]*hS,sela,waa)
-  fishery[yr,4:5] <- c(spb,exb)
-  fishery[,"Deplete"] <- fishery[,"SpawnB"]/B0
-  ExpB <- fishery[1:nyrs,"ExploitB"]  # calculate predicted CPUE
+  fishery[,"fullF"] <- -log(1 - fishery[,"fullH"])
+  spb <- SpB(Nt[,yr],aam,aaw)   # to complete final year
+  exb <- ExB(Nt[,yr]*hS,sel,aaw)
+  fishery[yr,c("spawnB","exploitB")] <- c(spb,exb)
+  fishery[,"deplete"] <- fishery[,"spawnB"]/B0
+  ExpB <- fishery[1:nyrs,"exploitB"]  # calculate predicted CPUE
   avq <- ifelse(length(epars) > 2, epars[3], 
-              exp(mean(log(infish$cpue/fishery[1:nyrs,"ExploitB"]),na.rm=TRUE)))
-  fishery[2:(nyrs+1),"PredCE"] <- ExpB * avq
+              exp(mean(log(infish$cpue/fishery[1:nyrs,"exploitB"]),na.rm=TRUE)))
+  fishery[2:(nyrs+1),"predCE"] <- ExpB * avq
+  pick <- which(fishery[,"cpue"] > 0)
+  f <- -sum(dnorm(log(fishery[pick,"cpue"]),log(fishery[pick,"predCE"]),
+                  sigCE,log=TRUE),na.rm=TRUE)
   if (full) {
-    out <- list(fishery=as.data.frame(fishery),Nt=Nt,B0=B0,R0=R0,avq=avq)
+    absdiffC <- sum(abs(fishery[,"catch"] - fishery[,"predC"]),na.rm=TRUE)
+    out <- list(fishery=as.data.frame(fishery),Nt=Nt,B0=B0,R0=R0,avq=avq,
+                LL=f,diffC=absdiffC)
     return(out)
   } else {
-    return(as.data.frame(fishery))
+    return(f)
   }
 } # end of dynamicsH
 
@@ -778,6 +610,46 @@ ExB <- function(invect, SelA, WeightA) {
 }
 
 
+#' @title findF uses an iterative strategy for finding each year's F value
+#' 
+#' @description findF is used when searching for the instantaneous F that will
+#'     produce the required catch in a given year in an age-structured model. It
+#'     needs generalizing to operate with multiple gears.
+#'
+#' @param cyr the known catch in a given year
+#' @param Nyr the numbers at size at the start of the given year or end of the 
+#'     year before
+#' @param sel the selectivity of the fishing gear
+#' @param aaw the weight-at-age
+#' @param M the instantaneous natural mortality rate
+#' @param reps how many internal loops to use finding each F, default = 6
+#'
+#' @returns the fully selected fishing mortality rate
+#' @export
+#'
+#' @examples
+#' print("wait on example data sets")
+findF <- function(cyr,Nyr,sel,aaw,M,reps=8) {
+  # cyr=catch[yr]; Nyr <- Nt[,yr-1]; sel=sel; aaw=aaw  
+  wata <- aaw/1000
+  Byr <- sum((Nyr*sel*wata))
+  temp1 <- cyr / Byr
+  join1 <- 1/(1 + exp(30*(temp1 - 0.95)))
+  tempyr <- (join1 * temp1) + (0.95 * (1 - join1))
+  fFyr <- -log(1 - tempyr)
+  sF <- sel * fFyr
+  Zyr <- sF + M
+  predCyr <- sum((sF/Zyr) * (wata * Nyr) * (1 - exp(-Zyr)))
+  for (i in 1:reps) {
+    Zadj <- cyr/(predCyr + 0.0001)
+    fFyr <- Zadj * fFyr
+    sF <- sel * fFyr
+    Zyr <- sF + M
+    predCyr <- sum((sF/Zyr) * (wata * Nyr) * (1 - exp(-Zyr)))
+  }
+  return(fFyr) 
+} # end of findF
+
 #' @title fitASPM fits an age-structured production model
 #'
 #' @description fitASPM fits an age-structured production model that can have 
@@ -797,8 +669,7 @@ ExB <- function(invect, SelA, WeightA) {
 #'     values given to the estimate of logR0, and the estimate of the variation
 #'     around the CPUE data that the model is to be fitted to, and finally, the
 #'     catchability coefficient.
-#' @param minfun the negative log-likelihoood used; either aspmLL or aspmPENLL
-#' @param dynfun the dynamics function to be used to estimate the dynamics
+#' @param minfun the dynamics function outputning a -ve log-likelihood 
 #' @param infish the fish data.frame from readdata or built in dataset
 #' @param inglb the glb data.frame from readdata or built in dataset
 #' @param inprops the props data.frame from readdata or built in dataset
@@ -813,20 +684,19 @@ ExB <- function(invect, SelA, WeightA) {
 #' glb <- westroughy$glb
 #' props <- westroughy$props
 #' pars <- c(7,0.3,-7.7)
-#' aspmLL(pars,dynamicsH,fish,glb,props)      # should be -2.277029
-#' bestL <- fitASPM(pars,aspmLL,dynamicsH,
-#'                  infish=fish,inglb=glb,inprops=props,hessian=TRUE)
+#' bestL <- fitASPM(pars,dynamicsH,infish=fish,inglb=glb,inprops=props,
+#'                  hessian=TRUE)
 #' bestL
-#' fishery <- dynamicsH(bestL$par,fish,glb,props)
-#' round(fishery,4)
-fitASPM <- function(initpar,minfun,dynfun,infish,inglb,inprops,
+#' out <- dynamicsH(bestL$estimate,fish,glb,props,full=TRUE)
+#' round(out$fishery,4)
+fitASPM <- function(initpar,minfun,infish,inglb,inprops,
                     hessian=FALSE) { 
   paramscale = magnitude(initpar)
-  bestL <- optim(par=initpar,fn=minfun,method="Nelder-Mead",dynfun=dynfun,
+  bestL <- optim(par=initpar,fn=minfun,method="Nelder-Mead",
                  infish=infish,inglb=inglb,inprops=inprops,
                  control=list(maxit = 1000, parscale = paramscale))
-  bestL <- nlm(f=minfun,p=bestL$par,dynfun=dynfun,hessian=hessian,
-               infish=fish,inglb=glb,inprops=props,steptol=1e-08,
+  bestL <- nlm(f=minfun,p=bestL$par,hessian=hessian,
+               infish=infish,inglb=inglb,inprops=inprops,steptol=1e-08,
                iterlim=300)
   return(bestL)
 } # end of fitASPM
@@ -899,7 +769,7 @@ getB0 <- function(inR0,inglb,inprops) { # assumes glb inR0 = par["R0"]
 #'   glb <- westroughy$glb
 #'   props <- westroughy$props
 #'   pars <- c(7.0,0.3)
-#'   bestL <- nlminb(start=pars,aspmLL,dynfun=dynamicsH,infish=fish,inglb=glb,
+#'   bestL <- nlminb(start=pars,objective=dynamicsH,infish=fish,inglb=glb,
 #'                   inprops = props,
 #'                control=list(eval.max=500,iter.max=300,trace=0,rel.tol=1e-08))
 #'   prod <- getProduction(exp(bestL$par[1]),infish=fish,inglb=glb,
@@ -910,25 +780,25 @@ getB0 <- function(inR0,inglb,inprops) { # assumes glb inR0 = par["R0"]
 getProduction <- function(inR0,infish,inglb,inprops,Hrg=c(0.025,0.4,0.025),
                           nyr=50,maxiter=3) {
   maxage <- inglb$maxage; M <- inglb$M;  steep <- inglb$steep
-  nages <- inglb$nages; maa <- inprops$maa; waa <- inprops$waa
-  sela <- inprops$sela
+  nages <- inglb$nages; aam <- inprops$maa; aaw <- inprops$waa
+  sel <- inprops$sela
   surv <- exp(-M)
   hS <- exp(-M/2)
   B0 <- getB0(inR0,inglb,inprops)   
-  getyield <- function(NAA,hrate) {
+  getyield <- function(NAA,harvest) {
     for (iter in 1:maxiter) {  # iterate until equilibrium yield reached
       for (yr in 2:nyr) {  # yr=nyrs+1
-        spb <- SpB(NAA[,(yr-1)],maa,waa)
+        spb <- SpB(NAA[,(yr-1)],aam,aaw)
         NAA[1,yr] <- bh(spb,steep,inR0,B0)
-        Ct <- (NAA[,(yr-1)] * hS) * (hrate * sela)
+        Ct <- (NAA[,(yr-1)] * hS) * (harvest * sel)
         NAA[2:nages,yr] <- ((NAA[1:(nages-1),(yr-1)] * hS) - Ct[1:(nages-1)]) * hS
         NAA[nages,yr] <- NAA[nages,yr] + ((NAA[nages,yr-1] * hS) - Ct[nages]) * hS
       }
-      newcatch <- sum(Ct * waa)/1000
+      newcatch <- sum(Ct * aaw)/1000
       NAA[,1] <- NAA[,nyr]
     }
-    spb <- SpB(NAA[,nyr],maa,waa)
-    exb <- ExB(NAA[,nyr]*hS,sela,waa)
+    spb <- SpB(NAA[,nyr],aam,aaw)
+    exb <- ExB(NAA[,nyr]*hS,sel,aaw)
     return(c(spb=spb,exb=exb,yield=newcatch))
   } # end of getyield
   Nt <- matrix(0,nrow=(maxage+1),ncol=nyr,dimnames=list(0:maxage,1:nyr))
@@ -941,8 +811,8 @@ getProduction <- function(inR0,infish,inglb,inprops,Hrg=c(0.025,0.4,0.025),
   Nt[1,1] <- inR0
   for (age in 1:(maxage-1)) Nt[age+1,1] <- Nt[age,1] * surv
   Nt[maxage+1,1] <- (Nt[maxage,1] * surv)/(1-surv)
-  production[1,"SpawnB"] <- SpB(Nt,maa,waa)
-  production[1,"ExploitB"] <- ExB(Nt*hS,sela,waa)
+  production[1,"SpawnB"] <- SpB(Nt,aam,aaw)
+  production[1,"ExploitB"] <- ExB(Nt*hS,sel,aaw)
   for (hnum in 1:nH)
     production[(hnum+1),2:4] <- getyield(Nt,hrange[hnum])
   production[,"Depletion"] <- production[,"SpawnB"]/production[1,"SpawnB"]
@@ -1009,6 +879,54 @@ MaA <- function(ina,inb,depend) {
    return(ans)
 }
 
+#' @title matchC gives difference between predicted catch and observed catch
+#' 
+#' @description matchC for a given instantaneous fishing mortality rate
+#'     calculates the difference between the predicted and observed catches. 
+#'     matchC uses the Baranov catch equation to account, when usung the
+#'     instantaneous rates, for the fish that died due to fishing that would
+#'     have died anyway, due to natural mortality. The equation is:
+#'     Ct = (F/(F + M)) x (1 - exp(-(M + F))) x Bexp. Of course, one needs to
+#'     account for selectivity aby age and F by year, so check the equation
+#'     in the mfmur book. matchC is used by the optimize function which uses 
+#'     'a combination of a golden section search and successive parabolic 
+#'     interpolation' to minimize the difference between the absolute 
+#'     difference between the catch and the predicted catch.
+#'
+#' @param f the trial predicted instantaneous fishing mortality
+#' @param M the instantaneous natural mortality value
+#' @param cyr the catch in yr t
+#' @param Nyr the numbers at age at the end of yr-1
+#' @param sel the selectivity of the fishing gear in the model
+#' @param waa the weight -at- age for the species
+#'
+#' @return the absolute difference between the predicted and observed catches
+#' @export
+#'
+#' @examples
+#' data(westroughy)
+#' fish <- westroughy$fish
+#' glb <- westroughy$glb
+#' props <- westroughy$props
+#' sel <- props$sela
+#' pars <- c(7.15,-1,-7.7) # logR0, sigCE, estimate avq
+#' out <- dynamicsF(pars,fish,glb,props,full=TRUE)  
+#' matchC(f=0.3,M=0.05,cyr=15340,Nyr=out$Nt[,2],sel=sel,props$waa)
+#' matchC(f=0.35,M=0.05,cyr=15340,Nyr=out$Nt[,2],sel=sel,props$waa)
+#' out2 <- optimize(matchC,interval=c(0,1),M=0.05,cyr=3924,Nyr=out$Nt[,2],
+#'                 sel=sel,props$waa)
+#' out2
+#' f <- out2$minimum
+#' (397388.66 * (1 - exp(-(0.05 + f))) * f/(0.05 + f))
+#' # f=0.2679;M=0.0036;cyr=3924;Nyr=Nt[,yr-1];sel=sel;waa=props$waa
+matchC <- function(f,M,cyr,Nyr,sel,waa) {
+  sF <- sel * f 
+  catchN <- (sF/(M + sF)) * (Nyr * (1 - exp(-(M + sF))))
+  out <- abs((sum(catchN * waa)/1000.0) - cyr)
+  return(out)
+} # en do fmatchC
+
+
 #' @title plotASPM plots catch, CPUE, Spawning Biomass and Harvest Rate
 #' 
 #' @description plotASPM after running fitASPM the optimum parameters can be 
@@ -1033,19 +951,19 @@ MaA <- function(ina,inb,depend) {
 #'
 #' @examples
 #' \dontrun{
-#' data(dataspm)
-#' fish <- dataspm$fish
-#' glb <- dataspm$glb
-#' props <- dataspm$props
-#' pars <- c(14,0.3)
-#' aspmLL(pars,dynfun=dynamicsH,fish,glb,props)      # should be -2.277029
-#' bestspm <- fitASPM(pars,minfun=aspmLL,dynfun=dynamicsH,infish=fish,
+#' data(westroughy)
+#' fish <- westroughy$fish
+#' glb <- westroughy$glb
+#' props <- westroughy$props
+#' pars <- c(7.1,-1,-7.7)  # logR0 logceSE logavq
+#' bestaspm <- fitASPM(pars,minfun=dynamicsH,infish=fish,
 #'                    inglb=glb,inprops=props)
-#' fishery <- dynamicsH(bestspm$par,fish,glb,props)
-#' plotASPM(fishery,defineplot=TRUE)
-#' ceCI <- getLNCI(fishery[,"PredCE"],bestspm$par[2])
-#' plotASPM(fishery,CI=ceCI)
+#' out <- dynamicsH(bestaspm$estimate,fish,glb,props,full=TRUE)
+#' plotASPM(out$fishery,defineplot=TRUE)
+#' ceCI <- getLNCI(out$fishery[,"predCE"],exp(bestspm$estimate[2]))
+#' plotASPM(out$fishery,CI=ceCI)
 #' }  # infish=fisheryPen; CI=ceCI; defineplot=TRUE; target=0.48; usef=7;png=""
+#' # infish=outH$fishery; CI=ceCI;defineplot=TRUE; target=0.48; usef=7;png=""
 plotASPM <- function(infish,CI=NA,defineplot=TRUE, target=0.48,usef=7,png="") { 
    if (nchar(png) > 0) defineplot=FALSE
    if (defineplot) { 
@@ -1063,31 +981,32 @@ plotASPM <- function(infish,CI=NA,defineplot=TRUE, target=0.48,usef=7,png="") {
       par(mfrow=c(3,2),mai=c(0.25,0.4,0.1,0.05),oma=c(0.0,0,0.0,0.0),tck=-0.02) 
       par(cex=0.85,mgp=c(1.35,0.35,0),font.axis=usef,font=usef,font.lab=usef)
    }
-   yrs <- infish$Year
+   yrs <- infish$year
+   nyrs <- length(yrs)
    # plot catches
-   ymax <- getmax(infish$Catch)
-   plot(yrs,infish$Catch,type="l",lwd=2,ylim=c(0,ymax),yaxs="i",xlab="",
+   ymax <- getmax(infish$catch)
+   plot(yrs,infish$catch,type="l",lwd=2,ylim=c(0,ymax),yaxs="i",xlab="",
         panel.first=grid(),ylab="Catch (t)")
    # plot Spawning Biomass
-   ymax <- getmax(infish$SpawnB)
-   plot(yrs,infish$SpawnB,type="l",lwd=2,ylim=c(0,ymax),yaxs="i",xlab="",
+   ymax <- getmax(infish$spawnB)
+   plot(yrs,infish$spawnB,type="l",lwd=2,ylim=c(0,ymax),yaxs="i",xlab="",
         panel.first=grid(),ylab="Spawning Biomass (t)")
    # plot CPUE
-   ymax <- getmax(c(infish$CPUE,infish$PredCE))
+   ymax <- getmax(c(infish$cpue,infish$predCE))
    if ("matrix" %in% class(CI)) ymax <- getmax(CI[,"upper"]) 
-   plot(yrs,infish$CPUE,type="p",pch=16,col=2,cex=1.0,ylim=c(0,ymax),yaxs="i",
+   plot(yrs,infish$cpue,type="p",pch=16,col=2,cex=1.0,ylim=c(0,ymax),yaxs="i",
         xlab="",panel.first=grid(),ylab="Relative Abundance Index")
-   lines(yrs,infish$PredCE,lwd=2,col=1)
+   lines(yrs,infish$predCE,lwd=2,col=1)
    if ("matrix" %in% class(CI)) {
       segments(x0=yrs,y0=CI[,1],x1=yrs,y1=CI[,3],lwd=1,col=4)
    }
    # plot harvest rate
-   ymax <- getmax(infish$FullH)
-   plot(yrs,infish$FullH,type="l",lwd=2,ylim=c(0,ymax),yaxs="i",xlab="",
+   ymax <- getmax(infish$fullH)
+   plot(yrs,infish$fullH,type="l",lwd=2,ylim=c(0,ymax),yaxs="i",xlab="",
         panel.first=grid(),ylab="Annual Harvest Rate")
    # plot the residuals
-   pickCE <- which(infish[,"CPUE"] > 0)
-   resid <- infish[pickCE,"CPUE"]/infish[pickCE,"PredCE"]
+   pickCE <- which(infish[,"cpue"] > 0)
+   resid <- infish[pickCE,"cpue"]/infish[pickCE,"predCE"]
    nresid <- length(resid)
    ymax <- getmax(resid);    ymin <- getmin(resid,mult=1.1)
    plot(yrs[pickCE],resid,"n",ylim=c(ymin,ymax),ylab="LogN Residuals",xlab="")
@@ -1099,11 +1018,11 @@ plotASPM <- function(infish,CI=NA,defineplot=TRUE, target=0.48,usef=7,png="") {
    text(min(yrs[pickCE]),ymin*1.05,paste("rmse = ",round(rmseresid,3),sep=""),
         font=7,cex=1.0,pos=4)
    # plot the depletion level
-   ymax <- getmax(infish$Deplete)
-   plot(yrs,infish$Deplete,type="l",lwd=2,ylim=c(0,ymax),yaxs="i",xlab="",
+   ymax <- getmax(infish$deplete)
+   plot(yrs,infish$deplete,type="l",lwd=2,ylim=c(0,ymax),yaxs="i",xlab="",
         panel.first=grid(),ylab="Depletion")
    abline(h=c(0.2,target),col=c(2,3),lwd=1)
-   text(yrs[glb$nyrs-1],0.9,round(infish$Deplete[nrow(infish)],3),cex=1.0)
+   text(yrs[nyrs-1],0.9,round(infish$deplete[nrow(infish)],3),cex=1.0)
    if (nchar(png) > 0) dev.off()
 } # end of plotASPM
 
@@ -1123,39 +1042,39 @@ plotASPM <- function(infish,CI=NA,defineplot=TRUE, target=0.48,usef=7,png="") {
 #' @export
 #'
 #' @examples
-#' data(dataspm)
-#' fish <- dataspm$fish
-#' glb <- dataspm$glb
-#' props <- dataspm$props
-#' pars <- c(14,0.3)
-#' aspmLL(pars,dynfun=dynamicsH,fish,glb,props)      # should be -2.277029
-#' bestspm <- fitASPM(pars,minfun=aspmLL,dynfun=dynamicsH,infish=fish,
-#'                    inglb=glb,inprops=props)
-#' fishery <- dynamics(bestspm$par,fish,glb,props)
-#' ceCI <- getLNCI(fishery[,"PredCE"],bestspm$par[2])
-#' plotceASPM(fishery,CI=ceCI)
-plotceASPM <- function(infish,CI=NA,defineplot=TRUE) { # infish=fisheryPen; CI=ceCI; defineplot=TRUE
+#' data(westroughy)
+#' fish <- westroughy$fish
+#' glb <- westroughy$glb
+#' props <- westroughy$props
+#' pars <- c(7.1,-1,-7.7)
+#' bestaspm <- fitASPM(pars,minfun=dynamicsH,infish=fish,
+#'                     inglb=glb,inprops=props)
+#' out <- dynamicsH(bestaspm$estimate,fish,glb,props,full=TRUE)
+#' ceCI <- getLNCI(out$fishery[,"predCE"],exp(bestaspm$estimate[2]))
+#' plotceASPM(out$fishery,CI=ceCI)
+plotceASPM <- function(infish,CI=NA,defineplot=TRUE) { 
+# infish=out$fishery; CI=ceCI; defineplot=TRUE
    if (defineplot) { 
       if (names(dev.cur()) %in% c("null device", "RStudioGD"))
          dev.new(width = 7, height = 4.5, noRStudioGD = TRUE)
    } 
    par(mfrow=c(1,1),mai=c(0.4,0.5,0.1,0.05),oma=c(0.0,0,0.0,0.0)) 
    par(cex=1.0, mgp=c(1.35,0.35,0), font.axis=7,font=7,font.lab=7,tck=-0.02)  
-   yrs <- infish$Year
-   if (class(CI) == "matrix") { 
+   yrs <- infish$year
+   if (inherits(CI,"matrix")) { 
       confint <- CI[,3]
     } else {   
       confint <- NA  
    }
-   ymax <- getmax(c(infish$CPUE,infish$PredCE,confint))
-   plot(yrs,infish$CPUE,type="p",ylim=c(0,ymax),yaxs="i",
+   ymax <- getmax(c(infish$cpue,infish$predCE,confint))
+   plot(yrs,infish$cpue,type="p",ylim=c(0,ymax),yaxs="i",
         xlab="",panel.first=grid(),ylab="Relative CPUE")
-   if (class(CI) == "matrix") {
+   if (inherits(CI,"matrix")) {
       arrows(x0=yrs,y0=CI[,1],x1=yrs,y1=CI[,3],code=3,length=0.03,angle=90,
              lwd=1,col=4)
    }   
-   points(yrs,infish$CPUE,pch=16,col=2,cex=1.0)     
-   lines(yrs,infish$PredCE,lwd=2,col=1)
+   points(yrs,infish$cpue,pch=16,col=2,cex=1.0)     
+   lines(yrs,infish$predCE,lwd=2,col=1)
 } # end of plotceASPM
 
 #' @title plotprops generates a 2x2 plot of the fishery properties
@@ -1220,8 +1139,8 @@ plotprops <- function(rundir,props,console=TRUE) {
 #' fish <- fishdat$fish
 #' glb <- fishdat$glb
 #' props <- fishdat$props
-#' pars <- c(14,0.3)
-#' bestL <- optim(pars,aspmLL,method="Nelder-Mead",infish=fish,inglb=glb,
+#' pars <- c(14,-1,-5)
+#' bestL <- optim(pars,dynamicsH,method="Nelder-Mead",infish=fish,inglb=glb,
 #'                inprops=props,control=list(maxit=1000,parscale=c(10,0.1)))
 #' prod <- getProduction(exp(bestL$par[1]),infish=fish,inglb=glb,inprops=props,
 #'                       Hrg=c(0.0005,0.07,0.0005),nyr=50)
@@ -1291,8 +1210,8 @@ prodASPM <- function(inprod, target=0.48, console=TRUE, plot=TRUE) {
 #'     so that the random variation covers the parameter space reasonably well.
 #'
 #' @param inpar the parameter set to begin the trials with
-#' @param minfun the negative log-likelihoood used; either aspmLL or aspmPENLL
-#' @param dynfun the dynamics function to be used to estimate the dynamics
+#' @param dynfun the dynamics function giving rise to -veLL, usually dynF, or
+#'     dynamicsF, or dynamicsH
 #' @param fish the fisheries data: at least year, catch, and cpue
 #' @param glb the global variables containing the biological information
 #' @param props the properties calculated from the globals
@@ -1312,17 +1231,8 @@ prodASPM <- function(inprod, target=0.48, console=TRUE, plot=TRUE) {
 #' @export
 #'
 #' @examples
-#' \dontrun{
-#'   data(dataspm)
-#'   fish <- dataspm$fish
-#'   glb <- dataspm$glb
-#'   props <- dataspm$props
-#'   pars <- c(14,0.19,0.6)
-#'   out <- robustASPM(pars,fish,glb,props)
-#'   str(out)
-#'   print(out$results)
-#' }
-robustASPM <- function(inpar,minfun,dynfun,fish,glb,props,N=10,scaler=15,
+#' print("wait on data sets")
+robustASPM <- function(inpar,dynfun,fish,glb,props,N=10,scaler=15,
                        Hrange=c(0.01,0.45,0.005),numyrs=50,console=TRUE) {
    origpar <- inpar
    origpar[1] <- exp(origpar[1]) # return Ln(R0) to nominal sale
@@ -1342,15 +1252,14 @@ robustASPM <- function(inpar,minfun,dynfun,fish,glb,props,N=10,scaler=15,
    }
    pars[,1] <- log(pars[,1])  # return R0 to log(R0)
    results <- matrix(0,nrow=N,ncol=length(columns),dimnames=list(1:N,columns))
-   for (i in 1:N) {    # use aspmPENLL just in case   i=1
-     # origLL <-  usefun(pars[i,],fish,glb,props)        
-      bestSP <- fitASPM(pars[i,],aspmLL,dynfun=dynfun,fish,glb,props)
-      opar <- bestSP$par
+   for (i in 1:N) {    # 
+      bestSP <- fitASPM(pars[i,],dynfun,fish,glb,props)
+      opar <- bestSP$estimate
       prod <- getProduction(exp(opar[1]),fish,glb,props,
                              Hrg=Hrange,nyr=numyrs)
       anspen <- prodASPM(prod,console=FALSE,plot=FALSE)
-      results[i,] <- c(pars[i,],origLL,bestSP$par,bestSP$value,anspen["MSY"],
-                       anspen["B0"],bestSP$counts[1])
+      results[i,] <- c(pars[i,],bestSP$minimum,bestSP$estimate,NA,
+                       anspen["MSY"],anspen["B0"],NA)
       if (console) cat(i,"   ")
    }
    if (console) cat("\n")

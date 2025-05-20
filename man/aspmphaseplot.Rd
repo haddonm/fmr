@@ -46,25 +46,5 @@ plots out the catch time-series and harvest rate time-series to aid in
 interpretation of the phase plot.
 }
 \examples{
-\dontrun{
- # library(datalowSA)
-  data(dataspm)
-  fish <- dataspm$fish
-  glb <- dataspm$glb
-  props <- dataspm$props
-  # Fit 3 par ASPM with penalty
-  pars <- c(13.75,0.189667,0.6)
-  bestL <- optim(pars,aspmPENLL,method="Nelder-Mead",
-                 infish=fish,inglb=glb,inprops=props,
-                 control=list(maxit = 1000, parscale = c(10,1,0.1)))
-  outoptim(bestL)
-  fisheryPen <- dynamics(bestL$par,infish=fish,inglb=glb,inprops=props)
-  par <- bestL$par
-  prod <- getProductionC(exp(par[1]),fish,glb,props,
-                         Hrg=c(0.01,0.45,0.005),nyr=50)
-  anspen <- prodASPM(prod,console=TRUE,plot=TRUE)
-  plotprep(width=7,height=5.5)
-  outs <- aspmphaseplot(fisheryPen,prod,anspen,Blim=0.2,fnt=7)
-  str(outs)
-}       
+print("wait on a better example")
 }

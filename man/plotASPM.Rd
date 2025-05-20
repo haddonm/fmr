@@ -35,17 +35,17 @@ development to include more options.
 }
 \examples{
 \dontrun{
-data(dataspm)
-fish <- dataspm$fish
-glb <- dataspm$glb
-props <- dataspm$props
-pars <- c(14,0.3)
-aspmLL(pars,dynfun=dynamicsH,fish,glb,props)      # should be -2.277029
-bestspm <- fitASPM(pars,minfun=aspmLL,dynfun=dynamicsH,infish=fish,
+data(westroughy)
+fish <- westroughy$fish
+glb <- westroughy$glb
+props <- westroughy$props
+pars <- c(7.1,-1,-7.7)  # logR0 logceSE logavq
+bestaspm <- fitASPM(pars,minfun=dynamicsH,infish=fish,
                    inglb=glb,inprops=props)
-fishery <- dynamicsH(bestspm$par,fish,glb,props)
-plotASPM(fishery,defineplot=TRUE)
-ceCI <- getLNCI(fishery[,"PredCE"],bestspm$par[2])
-plotASPM(fishery,CI=ceCI)
+out <- dynamicsH(bestaspm$estimate,fish,glb,props,full=TRUE)
+plotASPM(out$fishery,defineplot=TRUE)
+ceCI <- getLNCI(out$fishery[,"predCE"],exp(bestspm$estimate[2]))
+plotASPM(out$fishery,CI=ceCI)
 }  # infish=fisheryPen; CI=ceCI; defineplot=TRUE; target=0.48; usef=7;png=""
+# infish=outH$fishery; CI=ceCI;defineplot=TRUE; target=0.48; usef=7;png=""
 }

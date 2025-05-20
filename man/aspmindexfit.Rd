@@ -7,8 +7,8 @@
 aspmindexfit(infish, glb, CI = NULL, rundir = "", console = TRUE)
 }
 \arguments{
-\item{infish}{the matrix of fishery dynamics from the aspmdynamics or
-aspmdynamicsF functions}
+\item{infish}{the matrix of fishery dynamics from the dynamicsH, dynamicsF,
+of dynF functions}
 
 \item{glb}{the globals object for the aspm analysis used}
 
@@ -31,14 +31,15 @@ option of including 95\% Log-Normal CI around the model fit.
 data("westroughy")
 fish <- westroughy$fish; glb <- westroughy$glb
 props <- westroughy$props
-pars <- c(14,0.3)
-ans <- fitASPM(pars,aspmLL,dynamicsH,infish=fish,inglb=glb,inprops =props)
-fishery <- dynamics(ans$par,infish=fish,inglb=glb,inprops = props)
-ceCI <- getLNCI(fishery[,"PredCE"],ans$par[2])
-aspmindexfit(infish=fishery,glb=glb,CI=ceCI)
+pars <- c(7.1,-1,-7.7)
+ans <- fitASPM(pars,dynamicsH,infish=fish,inglb=glb,inprops =props)
+out <- dynamicsH(ans$estimate,infish=fish,inglb=glb,inprops=props,
+                 full=TRUE)
+ceCI <- getLNCI(out$fishery[,"predCE"],exp(ans$estimate[2]))
+aspmindexfit(infish=out$fishery,glb=glb,CI=ceCI,console=TRUE)
 }
 \seealso{
 {
-\link{getLNCI}, \link{aspmdynamics}, \link{aspmdynamicsF}
+\link{getLNCI}, \link{dynamicsH}, \link{dynamicsF}, \link{dynF}
 }
 }

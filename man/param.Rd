@@ -16,7 +16,7 @@ param
 }
 \description{
 Preliminary parameters used when fitting a statistical catch-at-
-age model to the plaice data from Bevertone & Holt, 1957. Much of this
+age model to the plaice data from Beverton & Holt, 1957. Much of this
 data has also been included in the age-structured model described in
 Haddon, 2011.
 }

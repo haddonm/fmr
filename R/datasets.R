@@ -1,28 +1,5 @@
 
 
-
-#' @title dataspm Three data objects suitable for use with datalowSA.
-#'
-#' @description A dataset containing the fish data.frame, the glb list, and the
-#'     props data.frame set up ready for use with datalowSA. In particular it can
-#'     be used with the SPM functions, as well as the ASPM functions.
-#'
-#' @format A list of three objects
-#' \describe{
-#'   \item{fish}{ a data.frame containing Year, Catch, CPUE, SE, Records, and
-#'       GeoM which is the unstandardized geometric mean CPUE }
-#'   \item{glb}{ a list of global variables including maxage, M, parameters for
-#'       growth, weight-at-age, maturity-at-age, steepness, R0, selectivity,
-#'       resilience, number of ages, and the ages themselves. }
-#'   \item{props}{ a data.frame of age, laa, waa, maa, sela, and feca}
-#' }
-#' 
-#' @examples
-#' data(dataspm)
-#' dataspm
-#' 
-"dataspm"
-
 #' @title fish fishery data for the plaice example from Beverton and Holt, 1957
 #'
 #' @description A dataset containing the fish data.frame, for use in fmr
@@ -44,63 +21,38 @@
 #' fish
 "fish"
 
-#' @title westroughy Three data objects describing western Tasmanian Orange Roughy.
+#' @title francis92 Three data objects suitable for use with an ASPM.
 #'
-#' @description westroughy a dataset containing the fish data.frame, the glb 
-#'     list, and the props data.frame set up ready for analysis using an 
-#'     age-structured production model. The analysis of the CPUE, not typically 
-#'     available for orange roughy fisheries is described in the reference 
-#'     below.
+#' @description A dataset containing the fish data.frame, the glb list, and the
+#'     props data.frame set up ready for use with an ASPM. These are data 
+#'     obtained from Francis 1992 concerning orange roughy from New Zealand's
+#'     Chatham Rise.
 #'
 #' @format A list of three objects
 #' \describe{
-#'   \item{fish}{ a data.frame containing Year, Catch, standardized CPUE, and 
-#'       SE, the standard error of the CPUE estimates, if present}
+#'   \item{fish}{ a data.frame containing year, catch (tonnes), index (trawl
+#'       survey index), and Coefficient of Variation.}
 #'   \item{glb}{ a list of global variables including maxage, M, parameters for
 #'       growth, weight-at-age, maturity-at-age, steepness, R0, selectivity,
-#'       resilience, number of ages, and the ages themselves. }
-#'   \item{props}{ a data.frame of age, laa, waa, maa, sela, and feca}
+#'       resilience, number of ages, ages, number of years of catch data,
+#'       and the name of the species. }
+#'   \item{props}{ a data.frame of age, laa, waa, maa, and sela, that is the
+#'       length-, weight, maturity, and selectivity-at-age}
 #' }
 #' 
-#' @references Haddon, M. (2018) Western Orange Roughy. pp806-821 \emph{in} 
-#'     Tuck, G.N. (ed.) \emph{Stock Assessment for the Southern and Eastern 
-#'     Scalefish and Shark Fishery 2016 and 2017. Part 2, 2017}. Australian 
-#'     Fisheries Management Authority and CSIRO Oceans and Atmosphere, Hobart.
-#'     837p.
-#'     
+#' @references Francis, R.I.C.C. (1992) Use of Risk Analysis to Assess Fishery 
+#'     Management Strategies: A Case Study using Orange Roughy 
+#'     (\emph{Hoplostethus atlanticus}) on the Chatham Rise, New Zealand.
+#'     \emph{Canadian Journal of Fisheries and Aquatic Sciences} \emph{49}:
+#'     922-930.
+#' 
 #' @examples
-#' data(westroughy)
-#' fish <- westroughy$fish
-#' glb <- westroughy$glb
-#' props <- westroughy$props
-#' str(glb)
-"westroughy"
+#' data(francis92)
+#' str(francis92)
+#' 
+"francis92"
 
-#' @title invert data derived from a trawl caught invertebrate fishery.
-#'
-#' @description A dataset containing the fish data.frame as a 31 x 7 matrix, 
-#'     the glb and props data.frames are set to NULL. The fish data.frame has
-#'     both the standardized cpue as well as the unstandardized geom, that is
-#'     the geometric mean cpue.  This is particularly set up to
-#'     be used with the SPM functions but also the Catch-MSY routines.
-#'
-#' @format A list of three objects only two of which contains data
-#' \describe{
-#'   \item{fish}{ a data.frame containing year, catch, cpue, SE of the cpue, 
-#'       geom, which is the unstandardized geometric mean CPUE, vessel, which
-#'       is the number of active vessels reporting catches, and records, which is
-#'       the number of cpue records reported each year }
-#'   \item{glb}{ contains the resilience and spsname }
-#'   \item{props}{ set to NULL}
-#' }
-#' @examples 
-#'  \dontrun{
-#'  data(invert)
-#'  str(invert)
-#'  print(invert$fish)
-#' }
-"invert"
-
+#
 #' @title orhdat1 Three data objects suitable for use with asmreduct.
 #'
 #' @description A dataset containing a fish data.frame, the glb list, and 
@@ -154,7 +106,7 @@
 #' @title param preliminary parameter estimates for a SCAA model of plaice
 #' 
 #' @description Preliminary parameters used when fitting a statistical catch-at-
-#'     age model to the plaice data from Bevertone & Holt, 1957. Much of this 
+#'     age model to the plaice data from Beverton & Holt, 1957. Much of this 
 #'     data has also been included in the age-structured model described in 
 #'     Haddon, 2011.
 #'
@@ -212,34 +164,34 @@
 #'  print(plaice$agedata)
 "plaice"
 
-
-#' @title francis92 Three data objects suitable for use with an ASPM.
+#' @title westroughy Three data objects describing western Tasmanian Orange Roughy.
 #'
-#' @description A dataset containing the fish data.frame, the glb list, and the
-#'     props data.frame set up ready for use with an ASPM. These are data 
-#'     obtained from Francis 1992 concerning orange roughy from New Zealand's
-#'     Chatham Rise.
+#' @description westroughy a dataset containing the fish data.frame, the glb 
+#'     list, and the props data.frame set up ready for analysis using an 
+#'     age-structured production model. The analysis of the CPUE, not typically 
+#'     available for orange roughy fisheries is described in the reference 
+#'     below.
 #'
 #' @format A list of three objects
 #' \describe{
-#'   \item{fish}{ a data.frame containing year, catch (tonnes), index (trawl
-#'       survey index), and Coefficient of Variation.}
+#'   \item{fish}{ a data.frame containing Year, Catch, standardized CPUE, and 
+#'       SE, the standard error of the CPUE estimates, if present}
 #'   \item{glb}{ a list of global variables including maxage, M, parameters for
 #'       growth, weight-at-age, maturity-at-age, steepness, R0, selectivity,
-#'       resilience, number of ages, ages, number of years of catch data,
-#'       and the name of the species. }
-#'   \item{props}{ a data.frame of age, laa, waa, maa, and sela, that is the
-#'       length-, weight, maturity, and selectivity-at-age}
+#'       resilience, number of ages, and the ages themselves. }
+#'   \item{props}{ a data.frame of age, laa, waa, maa, sela, and feca}
 #' }
 #' 
-#' @references Francis, R.I.C.C. (1992) Use of Risk Analysis to Assess Fishery 
-#'     Management Strategies: A Case Study using Orange Roughy 
-#'     (\emph{Hoplostethus atlanticus}) on the Chatham Rise, New Zealand.
-#'     \emph{Canadian Journal of Fisheries and Aquatic Sciences} \emph{49}:
-#'     922-930.
-#' 
+#' @references Haddon, M. (2018) Western Orange Roughy. pp806-821 \emph{in} 
+#'     Tuck, G.N. (ed.) \emph{Stock Assessment for the Southern and Eastern 
+#'     Scalefish and Shark Fishery 2016 and 2017. Part 2, 2017}. Australian 
+#'     Fisheries Management Authority and CSIRO Oceans and Atmosphere, Hobart.
+#'     837p.
+#'     
 #' @examples
-#' data(francis92)
-#' str(francis92)
-#' 
-"francis92"
+#' data(westroughy)
+#' fish <- westroughy$fish
+#' glb <- westroughy$glb
+#' props <- westroughy$props
+#' str(glb)
+"westroughy"

@@ -24,15 +24,14 @@ and provides a more detailed visual than plotASPM. It has the option of
 including lognormal confidence intervals around the predcted CPUE.
 }
 \examples{
-data(dataspm)
-fish <- dataspm$fish
-glb <- dataspm$glb
-props <- dataspm$props
-pars <- c(14,0.3)
-aspmLL(pars,dynfun=dynamicsH,fish,glb,props)      # should be -2.277029
-bestspm <- fitASPM(pars,minfun=aspmLL,dynfun=dynamicsH,infish=fish,
-                   inglb=glb,inprops=props)
-fishery <- dynamics(bestspm$par,fish,glb,props)
-ceCI <- getLNCI(fishery[,"PredCE"],bestspm$par[2])
-plotceASPM(fishery,CI=ceCI)
+data(westroughy)
+fish <- westroughy$fish
+glb <- westroughy$glb
+props <- westroughy$props
+pars <- c(7.1,-1,-7.7)
+bestaspm <- fitASPM(pars,minfun=dynamicsH,infish=fish,
+                    inglb=glb,inprops=props)
+out <- dynamicsH(bestaspm$estimate,fish,glb,props,full=TRUE)
+ceCI <- getLNCI(out$fishery[,"predCE"],exp(bestaspm$estimate[2]))
+plotceASPM(out$fishery,CI=ceCI)
 }

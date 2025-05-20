@@ -1,10 +1,10 @@
 Package: fmr
 Title: Functions and Example Data-Sets for More Fisheries Modelling using R
-Version: 0.0.0.500
-Date: 2024-06-10
+Version: 0.0.1
+Date: 2025-05-20
 Author: Malcolm Haddon
 Maintainer: Malcolm Haddon <Malcolm.Haddon@gmail.com>
-Description: The new book Fisheries Modelling using R illustrates an array of
+Description: The new book More Fisheries Modelling using R illustrates an array of
     fisheries methods including age-structured production models, simple 
     statistical catch-at-age assessment models, and more advanced integrated
     age-structured assessment models. fmr provides the functions and data-sets
@@ -12,16 +12,11 @@ Description: The new book Fisheries Modelling using R illustrates an array of
 License: MIT + file LICENSE
 Imports: 
     codeutils,
-    hplot,
-    Rcpp
+    hplot
 Depends: R (>= 3.5.0)
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.2
-Suggests:
-    knitr,
-    rmarkdown
-VignetteBuilder: knitr
-LinkingTo: 
-    Rcpp
+
+

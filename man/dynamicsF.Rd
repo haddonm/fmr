@@ -9,7 +9,6 @@ dynamicsF(
   infish,
   inglb,
   inprops,
-  maxF = 1,
   waa = "waa",
   maa = "maa",
   sela = "sela",
@@ -33,9 +32,6 @@ present this would be the log of the initail depletion.}
 
 \item{inprops}{the props data.frame from readdata or built in dataset}
 
-\item{maxF}{the maximum instantaneous F to be used in the search for each
-instantaneous F rate}
-
 \item{waa}{the character name of the weight-at-age}
 
 \item{maa}{the character name of the maturity-at-age}
@@ -56,7 +52,7 @@ dynamicsF summarizes the dynamics of an Age-Structured
 Production Model (ASPM). Fitting the ASPM entails estimating the unfished
 recruitment level (R0), which is input as a parameter. In this case
 fishing mortality is implemented as instantaneous rates rather that
-as annual harvest rates.
+as annual harvest rates. The maximize F = 4.0
 }
 \examples{
 \dontrun{
@@ -64,14 +60,9 @@ data(westroughy)
 fish <- westroughy$fish
 glb <- westroughy$glb
 props <- westroughy$props
-pars <- c(7.0,0.3)  # use closed form of avq
-dynamicsF(pars,fish,glb,props)
-aspmLL(pars,dynamicsF,fish,glb,props)      # 
 pars <- c(7.0,0.3,-7.7) # logR0, sigCE, estimate avq
-fishery <- dynamicsF(pars,fish,glb,props) 
-aspmLL(pars,dynamicsF,fish,glb,props)      # 
-pars <- c(14,0.3)
-bestL <- optim(pars,aspmLL,method="Nelder-Mead",infish=fish,inglb=glb,
+fishery <- dynamicsF(pars,fish,glb,props,full=TRUE) 
+bestL <- optim(pars,dynamicsF,method="Nelder-Mead",infish=fish,inglb=glb,
                inprops=props,control=list(maxit = 1000,parscale = c(10,0.1)))
 str(bestL)
 fishery <- dynamicsF(bestL$par,fish,glb,props)

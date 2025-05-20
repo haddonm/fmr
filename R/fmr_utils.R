@@ -50,7 +50,7 @@ calccaa <- function(pars,pnaa,M,sel,ages) {
 #' @examples
 #' print("wait on data-sets")
 calcnaa <- function(pars,M,sel,yrs,ages) {  
-  # pars=pars; pnaa=pnaa; M=M; sel=selec ; age=ages 
+  # pars=pars;M=0.2;sel=select;yrs=yrs;agesages=age
   nyr <- length(yrs)
   nage <- length(ages)
   pnaa <- matrix(0,nrow=nyr,ncol=nage,dimnames=list(yrs,ages))  
@@ -217,18 +217,19 @@ getsingle <- function(inline,sep=",") {  # inline=dat[41]
 #' onaa <- ocaa[,ages]
 #' owa <- as.matrix(owaa[,ages])
 #' nage <- length(ages)
-#' getssq2(pars,M=0.2,yrs,ages,onaa,owa,cpue=fish[,"obsce"]) #should be 332.5389
+#' 
+#' getssq2(pars,M=0.2,yrs,ages,onaa,owa,cpue=fish[,"obsce"]) #should be 331.1994
 getssq2 <- function(pars,M,yrs,ages,onaa,owa,cpue) {
-  out <- calcnaa(pars,M,yrs,ages,owa)   #calcnaaC(pars,M,yrs,ages,owa)
-  pcaa <- calccaa(pars,out$pnaa,M,out$sel,ages)  #calccaaC(pars,out$pnaa,M,out$sel,ages)
+  select <- logistic((pars[27]),(pars[28]),ages)
+  pnaa <- calcnaa(pars=pars,M=M,sel=select,yrs=yrs,ages=ages)
+  pcaa <- calccaa(pars,pnaa,M,select,ages)
   ssq1 <- sum((log(onaa/pcaa)^2),na.rm=TRUE)
-  exB <- out$exB
+  exB <- sum(pcaa * owa)/1000
   q <- exp(sum(log(cpue/exB))/length(yrs))
-  ssq2 <- sum((log(cpue) - log(q * exB))^2)
+  ssq2 <- sum(((log(cpue) - log(q * exB))^2),na.rm=TRUE)
   ssq= ssq1 + ssq2
   return(ssq)
 } # end of getssq2
-
 
 #' @title getvector  extracts a vector of numbers from a line of characters
 #' 
@@ -368,7 +369,7 @@ iscol <- function(incol,inmat) { # incol="ages"; inmat=pnaa
 #' in50 <- 3.398
 #' in95 <- 4.386
 #' ages <- seq(2,10,1)
-#' select <- logistic(inl50=in50,inl95=in95,depend=age)
+#' select <- logistic(inl50=in50,inl95=in95,depend=ages)
 #' round(cbind(ages,select),5)
 logistic <- function(inl50,inl95,depend) {
   L50 <- exp(inl50)
@@ -377,34 +378,6 @@ logistic <- function(inl50,inl95,depend) {
   return(ans)
 } # end of logistic
 
-#' @title matchC gives difference between predicted catch and observed catch
-#' 
-#' @description matchC for a given instantaneous fishing mortality rate
-#'     calculates the difference between the predicted and observed catches. 
-#'     This is to be used by the optimize function which uses 'a combination of 
-#'     a golden section search and successive parabolic interpolation' to 
-#'     minimize the difference between the absolute difference between the 
-#'     catch and the predicted catch.
-#'
-#' @param f the trial predicted instantaneous fishing mortality
-#' @param M the instantaneous natural mortality value
-#' @param cyr the catch in yr t
-#' @param Byr the exploitable biomass at the start of yr t or end of t-1
-#'
-#' @return the absolute difference between the predicted and observed catches
-#' @export
-#'
-#' @examples
-#' matchC(f=0.04,M=0.05,cyr=15340,Byr=397388.66)
-#' matchC(f=0.04037,M=0.05,cyr=15340,Byr=397388.66)
-#' out <- optimize(matchC,interval=c(0,1),M=0.05,cyr=15340,Byr=397388.66)
-#' out
-#' f <- out$minimum
-#' (397388.66 * (1 - exp(-(0.05 + f))) * f/(0.05 + f))
-matchC <- function(f,M,cyr,Byr) {
-  out <- abs((Byr * (1 - exp(-(M + f))) * f/(M + f)) - cyr)
-  return(out)
-}
 
 #' @title penalty0 enables the adding of a large penalty as one approaches 0.0
 #'

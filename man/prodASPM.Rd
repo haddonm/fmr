@@ -36,8 +36,8 @@ data(fishdat)
 fish <- fishdat$fish
 glb <- fishdat$glb
 props <- fishdat$props
-pars <- c(14,0.3)
-bestL <- optim(pars,aspmLL,method="Nelder-Mead",infish=fish,inglb=glb,
+pars <- c(14,-1,-5)
+bestL <- optim(pars,dynamicsH,method="Nelder-Mead",infish=fish,inglb=glb,
                inprops=props,control=list(maxit=1000,parscale=c(10,0.1)))
 prod <- getProduction(exp(bestL$par[1]),infish=fish,inglb=glb,inprops=props,
                       Hrg=c(0.0005,0.07,0.0005),nyr=50)

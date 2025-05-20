@@ -86,7 +86,7 @@ library(fmr)
 library(codeutils)
 
 dbdir <- getDBdir()
-datadir <- pathtopath(dbdir,"A_Code/fmr/data-raw")
+datadir <- pathtopath(dbdir,"A_CodeR/fmr/data-raw")
 source(pathtopath(datadir,"util_functions.R"))
 
 westroughy <- readdata(pathtopath(datadir,"westroughy.csv"),verbose=FALSE)

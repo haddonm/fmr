@@ -55,14 +55,15 @@ recruitment level (R0), which is input as a parameter. There may be
 other parameters as described in the pars section.
 }
 \examples{
-data(dataspm)
-fish <- dataspm$fish
-glb <- dataspm$glb
-props <- dataspm$props
-par <- c(glb$R0,0.20)  # not fitted to the data, this is just an initial guess
-fishery <- dynamicsH(par,infish=fish,inglb=glb,inprops=props,full=FALSE)
-print(fishery)
-# pars=bestL$pars;infish=fish;inglb=glb;inprops=props; full=TRUE
+data(westroughy)
+fish <- westroughy$fish
+glb <- westroughy$glb
+props <- westroughy$props
+pars=c(7.064324,-1.257487,-7.694248) 
+out <- dynamicsH(pars,infish=fish,inglb=glb,inprops=props,full=TRUE)
+print(round(out$fishery,4))
+# pars=c(7.064324,-1.257487,-7.694248);infish=fish;inglb=glb;
+# inprops=props;full=TRUE; waa="waa";maa="maa";sela="sela"
 }
 \seealso{
 {
