@@ -11,7 +11,7 @@ A 9 x 9 data.frame
 ocaa
 }
 \description{
-Table 13.1 from Beverton & Holt, 1957 containing the relative
+Table 13.1 from Beverton & Holt, 1957, p451 containing the relative
 catch-at-age for plaice from the north sea. This is a data.frame of nine
 years (29/30 - 37/38) by 9 ages (2 - 10).
 }

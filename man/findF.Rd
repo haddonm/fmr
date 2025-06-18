@@ -4,7 +4,7 @@
 \alias{findF}
 \title{findF uses an iterative strategy for finding each year's F value}
 \usage{
-findF(cyr, Nyr, sel, aaw, M, reps = 8)
+findF(cyr, Nyr, sel, aaw, M, Fmax = 3, reps = 8)
 }
 \arguments{
 \item{cyr}{the known catch in a given year}
@@ -17,6 +17,8 @@ year before}
 \item{aaw}{the weight-at-age}
 
 \item{M}{the instantaneous natural mortality rate}
+
+\item{Fmax}{the limit on themaximum F allowed, default = 3.0 ~H = 0.95}
 
 \item{reps}{how many internal loops to use finding each F, default = 6}
 }

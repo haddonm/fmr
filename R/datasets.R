@@ -1,4 +1,5 @@
 
+# fish --------------------
 
 #' @title fish fishery data for the plaice example from Beverton and Holt, 1957
 #'
@@ -20,6 +21,8 @@
 #' data(fish)
 #' fish
 "fish"
+
+# francis92-----------------------
 
 #' @title francis92 Three data objects suitable for use with an ASPM.
 #'
@@ -52,7 +55,30 @@
 #' 
 "francis92"
 
-#
+
+# fournarch82----------------
+
+#' @title fournarch82 the observed catch-at-age for plaice. 
+#'
+#' @description Table 1 from Fournier and Archibald, 1982, p1200 containing the 
+#'     actual numbers-at-age in a simulated population. 
+#'
+#' @format A 20 row x 10 column  matrix purporting to be the number-at-age in a 
+#'    simulated population across 20 years for 10 ages, 4 - 13.
+#' 
+#' @references Fournier, D. and C.P. Archibald (1982) A general theory for 
+#'    analyzing catch at age data. \emph{Canadian Journal of Fisheries and
+#'    Aquatic Sciences} \emph{39}: 1195-1207.
+#'     
+#' @examples
+#' data(fournarch82)
+#' fournarch82
+#' rowfreqboot(x=fournarch82,n=250)
+"fournarch82"
+
+
+# orhdat1-----------------------------------
+
 #' @title orhdat1 Three data objects suitable for use with asmreduct.
 #'
 #' @description A dataset containing a fish data.frame, the glb list, and 
@@ -69,9 +95,11 @@
 #' }
 "orhdat1"
 
+# ocaa----------------------------------
+
 #' @title ocaa the observed catch-at-age for plaice. 
 #'
-#' @description Table 13.1 from Beverton & Holt, 1957 containing the relative
+#' @description Table 13.1 from Beverton & Holt, 1957, p451 containing the relative
 #'     catch-at-age for plaice from the north sea. This is a data.frame of nine 
 #'     years (29/30 - 37/38) by 9 ages (2 - 10). 
 #'
@@ -85,6 +113,8 @@
 #' data(ocaa)
 #' ocaa
 "ocaa"
+
+# owaa ------------------------------------
 
 #' @title owaa the observed weight-at-age for plaice. 
 #'
@@ -102,6 +132,8 @@
 #' data(owaa)
 #' owaa
 "owaa"
+
+# param ------------------------
 
 #' @title param preliminary parameter estimates for a SCAA model of plaice
 #' 
@@ -128,6 +160,8 @@
 #'  print(plaice$fish)
 #'  print(plaice$agedata)
 "param"
+
+# plaice ----------------------------
 
 #' @title plaice data derived from Beverton and Holt, 1957 for European Plaice.
 #' 
@@ -164,6 +198,8 @@
 #'  print(plaice$agedata)
 "plaice"
 
+# westroughy-------------------
+
 #' @title westroughy Three data objects describing western Tasmanian Orange Roughy.
 #'
 #' @description westroughy a dataset containing the fish data.frame, the glb 
@@ -188,6 +224,8 @@
 #'     Fisheries Management Authority and CSIRO Oceans and Atmosphere, Hobart.
 #'     837p.
 #'     
+#' @export
+#'     
 #' @examples
 #' data(westroughy)
 #' fish <- westroughy$fish
@@ -195,3 +233,4 @@
 #' props <- westroughy$props
 #' str(glb)
 "westroughy"
+

@@ -274,16 +274,15 @@ doDepletion <- function(inR0,indepl,inprops,inglb,inc=0.02,Numyrs=50) {
 #' fish <- westroughy$fish
 #' glb <- westroughy$glb
 #' props <- westroughy$props
-#' pars <- c(7.0,0.3)  # use closed form of avq
-#' dynamicsF(pars,fish,glb,props)    # 
 #' pars <- c(7.1,-1,-7.7) # logR0, sigCE, estimate avq
 #' fishery <- dynF(pars,fish,glb,props) 
 #' pars <- c(7.1,-1,-7.7)
 #' bestL <- optim(pars,dynF,method="Nelder-Mead",infish=fish,inglb=glb,
-#'                inprops=props,control=list(maxit = 1000,parscale = c(10,0.1)))
+#'                inprops=props,control=list(maxit=1000,parscale = c(10,1,10)))
 #' str(bestL)
-#' fishery <- dynamicsF(bestL$par,fish,glb,props)
-#' print(round(fishery,4)) 
+#' outfit(bestL,digits=6)
+#' out <- dynamicsF(bestL$par,fish,glb,props,full=TRUE)
+#' print(round(out$fishery,4)) 
 #' }
 #' # pars=bestL$par;infish=fish;inglb=glb;inprops=props
 #' # waa="waa";maa="maa";sela="sela"
@@ -301,7 +300,7 @@ dynF <- function(pars,infish,inglb,inprops,
   nyrs1 <- nyrs + 1
   nages <- inglb$nages
   maxage <- inglb$maxage
-  Nt <- matrix(0,nrow=nages,ncol=nyrs1,dimnames=list(0:(nages-1),0:nyrs))
+  Nt <- matrix(0,nrow=nages,ncol=nyrs1,dimnames=list(0:maxage,0:nyrs))
   columns <- c("year","catch","predC","spawnB","exploitB","cpue",
                "predCE","deplete","recruit","fullF","fullH")
   fishery <- matrix(NA,nrow=nyrs1,ncol=length(columns),
@@ -313,7 +312,7 @@ dynF <- function(pars,infish,inglb,inprops,
   catch <- fishery[,"catch"]
   M <- inglb$M
   surv <- exp(-M)
-  Nt[,1] <- R0   # get unfished (yr=1) Numbers-at-age
+  Nt[1,1] <- R0   # get unfished (yr=1) Numbers-at-age index 0 - maxage
   for (age in 1:(maxage-1)) Nt[age+1,1] <- Nt[age,1] * surv
   Nt[maxage+1,1] <- (Nt[maxage,1] * surv)/(1-surv)
   for (yr in 2:nyrs1) {  # yr=2
@@ -321,7 +320,7 @@ dynF <- function(pars,infish,inglb,inprops,
     exb <- ExB(Nt[,(yr-1)],sel,aaw)
     Nt[1,yr] <- bh(spb,inglb$steep,R0,B0)
     fishery[yr,"recruit"] <- Nt[1,yr]
-    yrF <- findF(catch[yr],Nt[,yr-1],sel,aaw,M,reps=reps)
+    yrF <- findFs(catch[yr],Nt[,yr-1],sel,aaw,M,reps=reps)
     # yrF <- optimize(matchC,interval=c(0,4.0),M=M,cyr=catch[yr],
     #                 Nyr=Nt[,yr-1],sel=sel,waa=aaw,maximum=FALSE,
     #                 tol = 1e-09)$minimum
@@ -622,6 +621,7 @@ ExB <- function(invect, SelA, WeightA) {
 #' @param sel the selectivity of the fishing gear
 #' @param aaw the weight-at-age
 #' @param M the instantaneous natural mortality rate
+#' @param Fmax the limit on themaximum F allowed, default = 3.0 ~H = 0.95
 #' @param reps how many internal loops to use finding each F, default = 6
 #'
 #' @returns the fully selected fishing mortality rate
@@ -629,7 +629,7 @@ ExB <- function(invect, SelA, WeightA) {
 #'
 #' @examples
 #' print("wait on example data sets")
-findF <- function(cyr,Nyr,sel,aaw,M,reps=8) {
+findF <- function(cyr,Nyr,sel,aaw,M,Fmax=3.0,reps=8) {
   # cyr=catch[yr]; Nyr <- Nt[,yr-1]; sel=sel; aaw=aaw  
   wata <- aaw/1000
   Byr <- sum((Nyr*sel*wata))
@@ -641,12 +641,14 @@ findF <- function(cyr,Nyr,sel,aaw,M,reps=8) {
   Zyr <- sF + M
   predCyr <- sum((sF/Zyr) * (wata * Nyr) * (1 - exp(-Zyr)))
   for (i in 1:reps) {
-    Zadj <- cyr/(predCyr + 0.0001)
+    Zadj <- cyr/(predCyr + 0.00001)
+    cat(Zadj,"\n")
     fFyr <- Zadj * fFyr
     sF <- sel * fFyr
     Zyr <- sF + M
     predCyr <- sum((sF/Zyr) * (wata * Nyr) * (1 - exp(-Zyr)))
   }
+  cat("\n")
   return(fFyr) 
 } # end of findF
 
