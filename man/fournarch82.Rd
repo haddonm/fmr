@@ -3,7 +3,7 @@
 \docType{data}
 \name{fournarch82}
 \alias{fournarch82}
-\title{fournarch82 the observed catch-at-age for plaice.}
+\title{fournarch82 the observed catch-at-age for plaice}
 \format{
 A 20 row x 10 column  matrix purporting to be the number-at-age in a
 simulated population across 20 years for 10 ages, 4 - 13.

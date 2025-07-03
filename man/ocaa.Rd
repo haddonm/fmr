@@ -3,7 +3,7 @@
 \docType{data}
 \name{ocaa}
 \alias{ocaa}
-\title{ocaa the observed catch-at-age for plaice.}
+\title{ocaa the observed catch-at-age for plaice}
 \format{
 A 9 x 9 data.frame
 }

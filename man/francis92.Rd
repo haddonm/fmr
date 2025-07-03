@@ -3,7 +3,7 @@
 \docType{data}
 \name{francis92}
 \alias{francis92}
-\title{francis92 Three data objects suitable for use with an ASPM.}
+\title{francis92 Three data objects suitable for use with an ASPM}
 \format{
 A list of three objects
 \describe{

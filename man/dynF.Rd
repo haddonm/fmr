@@ -63,16 +63,15 @@ data(westroughy)
 fish <- westroughy$fish
 glb <- westroughy$glb
 props <- westroughy$props
-pars <- c(7.0,0.3)  # use closed form of avq
-dynamicsF(pars,fish,glb,props)    # 
 pars <- c(7.1,-1,-7.7) # logR0, sigCE, estimate avq
 fishery <- dynF(pars,fish,glb,props) 
 pars <- c(7.1,-1,-7.7)
 bestL <- optim(pars,dynF,method="Nelder-Mead",infish=fish,inglb=glb,
-               inprops=props,control=list(maxit = 1000,parscale = c(10,0.1)))
+               inprops=props,control=list(maxit=1000,parscale = c(10,1,10)))
 str(bestL)
-fishery <- dynamicsF(bestL$par,fish,glb,props)
-print(round(fishery,4)) 
+outfit(bestL,digits=6)
+out <- dynamicsF(bestL$par,fish,glb,props,full=TRUE)
+print(round(out$fishery,4)) 
 }
 # pars=bestL$par;infish=fish;inglb=glb;inprops=props
 # waa="waa";maa="maa";sela="sela"

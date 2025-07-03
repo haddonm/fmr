@@ -24,7 +24,7 @@
 
 # francis92-----------------------
 
-#' @title francis92 Three data objects suitable for use with an ASPM.
+#' @title francis92 Three data objects suitable for use with an ASPM
 #'
 #' @description A dataset containing the fish data.frame, the glb list, and the
 #'     props data.frame set up ready for use with an ASPM. These are data 
@@ -58,7 +58,7 @@
 
 # fournarch82----------------
 
-#' @title fournarch82 the observed catch-at-age for plaice. 
+#' @title fournarch82 the observed catch-at-age for plaice 
 #'
 #' @description Table 1 from Fournier and Archibald, 1982, p1200 containing the 
 #'     actual numbers-at-age in a simulated population. 
@@ -79,7 +79,7 @@
 
 # orhdat1-----------------------------------
 
-#' @title orhdat1 Three data objects suitable for use with asmreduct.
+#' @title orhdat1 Three data objects suitable for use with asmreduct
 #'
 #' @description A dataset containing a fish data.frame, the glb list, and 
 #'     the props data.frame set up ready for use with asmreduct. 
@@ -97,7 +97,7 @@
 
 # ocaa----------------------------------
 
-#' @title ocaa the observed catch-at-age for plaice. 
+#' @title ocaa the observed catch-at-age for plaice 
 #'
 #' @description Table 13.1 from Beverton & Holt, 1957, p451 containing the relative
 #'     catch-at-age for plaice from the north sea. This is a data.frame of nine 
@@ -163,7 +163,7 @@
 
 # plaice ----------------------------
 
-#' @title plaice data derived from Beverton and Holt, 1957 for European Plaice.
+#' @title plaice data derived from Beverton and Holt, 1957 for European Plaice
 #' 
 #' @description plaice data including fish, glb, props, agedata, and lendata
 #'     for North sea plaice derived from tables and the text of the classical
@@ -200,7 +200,7 @@
 
 # westroughy-------------------
 
-#' @title westroughy Three data objects describing western Tasmanian Orange Roughy.
+#' @title westroughy Three data objects describing western Tasmanian Orange Roughy
 #'
 #' @description westroughy a dataset containing the fish data.frame, the glb 
 #'     list, and the props data.frame set up ready for analysis using an 
@@ -223,8 +223,6 @@
 #'     Scalefish and Shark Fishery 2016 and 2017. Part 2, 2017}. Australian 
 #'     Fisheries Management Authority and CSIRO Oceans and Atmosphere, Hobart.
 #'     837p.
-#'     
-#' @export
 #'     
 #' @examples
 #' data(westroughy)

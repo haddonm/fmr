@@ -3,7 +3,7 @@
 \docType{data}
 \name{orhdat1}
 \alias{orhdat1}
-\title{orhdat1 Three data objects suitable for use with asmreduct.}
+\title{orhdat1 Three data objects suitable for use with asmreduct}
 \format{
 A list of three objects
 \describe{

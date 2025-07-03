@@ -3,7 +3,7 @@
 \docType{data}
 \name{plaice}
 \alias{plaice}
-\title{plaice data derived from Beverton and Holt, 1957 for European Plaice.}
+\title{plaice data derived from Beverton and Holt, 1957 for European Plaice}
 \format{
 A list of five objects with only the first four containing data, the
 lendata only contains formatted data for illustrating that format, it is

@@ -3,7 +3,7 @@
 \docType{data}
 \name{westroughy}
 \alias{westroughy}
-\title{westroughy Three data objects describing western Tasmanian Orange Roughy.}
+\title{westroughy Three data objects describing western Tasmanian Orange Roughy}
 \format{
 A list of three objects
 \describe{
