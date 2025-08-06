@@ -14,11 +14,12 @@ robustASPM(
   scaler = 15,
   Hrange = c(0.01, 0.45, 0.005),
   numyrs = 50,
-  console = TRUE
+  verbose = TRUE
 )
 }
 \arguments{
-\item{inpar}{the parameter set to begin the trials with}
+\item{inpar}{the parameter set to begin the trials with, this must be a
+named vector of the optimum parameter values = LogR0, logsigCE, logavq}
 
 \item{dynfun}{the dynamics function giving rise to -veLL, usually dynF, or
 dynamicsF, or dynamicsH}
@@ -42,7 +43,7 @@ parameter set. defaults to c(0.01, 0.45, 0.005)}
 \item{numyrs}{the number of years used to drive each harvest rate to an
 equilibrium population structure}
 
-\item{console}{print summary statistics to the screen? default = TRUE}
+\item{verbose}{print progress count to the screen? default = TRUE}
 }
 \value{
 a list of results from each run, the range of values across runs, and

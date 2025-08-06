@@ -2,7 +2,7 @@
 % Please edit documentation in R/aspm.r
 \name{dynamicsF}
 \alias{dynamicsF}
-\title{dynamicsF describe the ASPM dynamics}
+\title{dynamicsF describe the ASPM dynamics using instantaneous F}
 \usage{
 dynamicsF(
   pars,

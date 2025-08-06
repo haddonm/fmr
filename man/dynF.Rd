@@ -69,8 +69,8 @@ pars <- c(7.1,-1,-7.7)
 bestL <- optim(pars,dynF,method="Nelder-Mead",infish=fish,inglb=glb,
                inprops=props,control=list(maxit=1000,parscale = c(10,1,10)))
 str(bestL)
-outfit(bestL,digits=6)
-out <- dynamicsF(bestL$par,fish,glb,props,full=TRUE)
+codeutils::outfit(bestL,digits=6)
+out <- dynF(bestL$par,fish,glb,props,full=TRUE)
 print(round(out$fishery,4)) 
 }
 # pars=bestL$par;infish=fish;inglb=glb;inprops=props

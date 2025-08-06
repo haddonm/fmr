@@ -59,8 +59,12 @@ data(westroughy)
 fish <- westroughy$fish
 glb <- westroughy$glb
 props <- westroughy$props
-pars=c(7.064324,-1.257487,-7.694248) 
-out <- dynamicsH(pars,infish=fish,inglb=glb,inprops=props,full=TRUE)
+pars=c(7.064324,-1.257487,-7.694248)
+bestL <- optim(pars,dynamicsH,method="Nelder-Mead",infish=fish,inglb=glb,
+               inprops=props,control=list(maxit=1000,parscale = c(10,1,10)))
+str(bestL)
+codeutils::outfit(bestL,digits=6)
+out <- dynamicsH(bestL$par,infish=fish,inglb=glb,inprops=props,full=TRUE)
 print(round(out$fishery,4))
 # pars=c(7.064324,-1.257487,-7.694248);infish=fish;inglb=glb;
 # inprops=props;full=TRUE; waa="waa";maa="maa";sela="sela"

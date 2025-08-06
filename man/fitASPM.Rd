@@ -4,7 +4,17 @@
 \alias{fitASPM}
 \title{fitASPM fits an age-structured production model}
 \usage{
-fitASPM(initpar, minfun, infish, inglb, inprops, hessian = FALSE)
+fitASPM(
+  initpar,
+  minfun,
+  infish,
+  inglb,
+  inprops,
+  gradtol = 1e-04,
+  stepmax = 0.1,
+  steptol = 1e-08,
+  hessian = FALSE
+)
 }
 \arguments{
 \item{initpar}{a vector of 2 or 3 numbers that are the initial parameter
@@ -20,7 +30,24 @@ catchability coefficient.}
 
 \item{inprops}{the props data.frame from readdata or built in dataset}
 
-\item{hessian}{should the hessian be estimated, default = FALSE}
+\item{gradtol}{default = 1e-04 a positive scalar giving the tolerance at
+which the scaled gradient is considered close enough to zero to
+terminate the algorithm. The scaled gradient is a measure of the
+relative change in f in each direction p\link{i} divided by the relative
+change in p\link{i} (copied frm nlm help).}
+
+\item{stepmax}{default = 0.1 a positive scalar which gives the maximum
+allowable scaled step length. stepmax is used to prevent steps which
+would cause the optimization function to overflow, to prevent the
+algorithm from leaving the area of interest in parameter space, or to
+detect divergence in the algorithm. stepmax would be chosen small enough
+to prevent the first two of these occurrences, but should be larger than
+any anticipated reasonable step. (copied frm nlm help).}
+
+\item{steptol}{default = 1e-08 A positive scalar providing the minimum
+allowable relative step length. (copied frm nlm help).}
+
+\item{hessian}{should hessian be estimated at the optimum, default = FALSE}
 }
 \value{
 a list containing the optimal output

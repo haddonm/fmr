@@ -86,7 +86,8 @@ library(fmr)
 library(codeutils)
 
 dbdir <- getDBdir()
-datadir <- pathtopath(dbdir,"A_CodeR/fmr/data-raw")
+datadir <- pathtopath(dbdir,"A_CodeR/fmr/notpublic/")
+pkgdata <- pathtopath(dbdir,"A_CodeR/fmr/data/")
 source(pathtopath(datadir,"util_functions.R"))
 
 westroughy <- readdata(pathtopath(datadir,"westroughy.csv"),verbose=FALSE)
@@ -94,6 +95,7 @@ glb <- westroughy$glb
 fish <- westroughy$fish
 
 glb$R0 <-  8.0
+glb$deltaS <- 5
 
 columns <- c("age","laa","waa","maa","sela")
 props <- as.data.frame(matrix(0,nrow=glb$nages,ncol=length(columns),
@@ -114,7 +116,7 @@ props[,"sela"] <- logist(inL50=glb$sela50,delta=glb$deltaS,depend=glb$ages)
 
 westroughy <- list(fish=fish,glb=glb,props=props)
 
-save(westroughy,file=pathtopath(datadir,"westroughy.RData"))
+save(westroughy,file=pathtopath(pkgdata,"westroughy.RData"))
 
 # check and transfer -------------------------------------------------------
 
@@ -124,6 +126,7 @@ tools::checkRdaFiles(paths=datadir)
 
 
 # Francis 1992-----------------------------
+
 library(codeutils)
 library(hplot)
 library(fmr)
@@ -133,10 +136,9 @@ source(pathtopath(rundir,"source_fmr.R"))
 
 
 fish <- read.csv(file=pathtopath(rundir,"francis_1992.csv"))
-colnames(fish) <- c("year","catch","index","cv")
+colnames(fish) <- c("year","catch","cpue","cv")
 
-data(fishdat)
-glb <- fishdat$glb
+glb <- NULL
 glb$maxage <- 100
 glb$M <- 0.05
 glb$Linf <- 42.5
@@ -176,7 +178,7 @@ props[,"sela"] <- logist(inL50=glb$sela50,delta=glb$deltaS,depend=glb$ages)
 francis92 <- list(fish=fish,glb=glb,props=props)
 
 dbdir <- getDBdir()
-datadir <- pathtopath(dbdir,"/A_Code/fmr/data/")
+datadir <- pathtopath(dbdir,"/A_CodeR/fmr/data/")
 
 save(francis92,file=pathtopath(datadir,"francis92.RData"))
 

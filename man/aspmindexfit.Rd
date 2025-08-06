@@ -4,7 +4,15 @@
 \alias{aspmindexfit}
 \title{aspmindexfit plots an aspm fit to CPUE or Index data}
 \usage{
-aspmindexfit(infish, glb, CI = NULL, rundir = "", console = TRUE)
+aspmindexfit(
+  infish,
+  glb,
+  CI = NULL,
+  rundir = "",
+  CIlwd = 1,
+  CIcol = 4,
+  console = TRUE
+)
 }
 \arguments{
 \item{infish}{the matrix of fishery dynamics from the dynamicsH, dynamicsF,
@@ -15,6 +23,10 @@ of dynF functions}
 \item{CI}{the output of the getLNCI function that defines Log-Normal CI}
 
 \item{rundir}{default = "", give a full path if saving a png file}
+
+\item{CIlwd}{width of CI lines default = 1}
+
+\item{CIcol}{colour of CI lines, default = 4 = blue}
 
 \item{console}{should the plot be sent to the console, default = TRUE. If
 set = FALSE, then rundir can be set to identify where the png of the

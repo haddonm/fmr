@@ -29,7 +29,14 @@
 #' @description A dataset containing the fish data.frame, the glb list, and the
 #'     props data.frame set up ready for use with an ASPM. These are data 
 #'     obtained from Francis 1992 concerning orange roughy from New Zealand's
-#'     Chatham Rise.
+#'     Chatham Rise. Francis' 1992 paper is well known as an important 
+#'     discussion of risk analysis when providing fisheries management advice.
+#'     It was one of the first published uses of an age-structured production 
+#'     model. It is even better known as providing a clear exposition of what 
+#'     has become a standard re-parameterization of the Beverton-Holt stock-
+#'     recruitment model. Francis demonstrates how the B-H model can be 
+#'     re-defined using steepness and unfished recruitment level. The full
+#'     derivation is provided in Haddon (2021, p172).
 #'
 #' @format A list of three objects
 #' \describe{
@@ -48,6 +55,10 @@
 #'     (\emph{Hoplostethus atlanticus}) on the Chatham Rise, New Zealand.
 #'     \emph{Canadian Journal of Fisheries and Aquatic Sciences} \emph{49}:
 #'     922-930.
+#'     
+#' @references Haddon, M. (2021) \emph{Using R for Modelling and Quantitative 
+#'     Methods in Fisheries} CRC Press. Chapman & Hall, Boca Raton. 337p. ISBN:
+#'     978-0-367-46988-7 see also https://haddonm.github.io/URMQMF/index.html.
 #' 
 #' @examples
 #' data(francis92)
