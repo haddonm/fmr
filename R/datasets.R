@@ -87,6 +87,57 @@
 #' rowfreqboot(x=fournarch82,n=250)
 "fournarch82"
 
+# maplike -------------------------
+
+#' @title maplike the likelihood surface of LnR0 and Lnq for ASPM
+#'
+#' @description A 2601 row data.frame containing the initial parameter vector,
+#'     the -veLL, the optimum solution, the back transformed optimum, the 
+#'     minimum gradient, and a counter. This can be used to plot the lieklihood
+#'     surface in a crude manner it ranges from LnR0 = seq(5.9,8.4,0.05) and
+#'     Lnq = seq(-8.7,-6.2,0.05), which is 51 x 51.  
+#'
+#' @format A 2601 row x 12 column data.frame
+#' 
+#' @examples
+#' data(maplike)
+#' pickbad <- which(maplike[,"-veLL"] > 3)
+#' roundlike <- round(maplike[,"-veLL"],8)
+#' outn <- table(roundlike); print(outn)
+#' pickopt <- which(roundlike == as.numeric(names(outn)[1]))
+#' pickworst <- which(roundlike == as.numeric(names(outn)[length(outn)])) 
+#' plot(maplike[,3],maplike[,1],type="p",cex=1,col=0,xlab="Ln(q)",
+#'      ylab="Ln(R0)",panel.first=grid())
+#' points(maplike[pickbad,3],maplike[pickbad,1],cex=2,col=2)
+#' points(maplike[pickopt,3],maplike[pickopt,1],cex=3,col=5)
+#' points(maplike[pickworst,3],maplike[pickworst,1],cex=3,col=3)
+"maplike"
+
+# outlike-------------------------------------------------
+
+#' @title outlike a 51 x 51 matrix of likelihoods for LnR0 and Lnq
+#'
+#' @description A 51 x 51 data.frame with rows as LnR0 = seq(5.9,8.4,0.05) and
+#'     columns of Lnq = seq(-8.7,-6.2,0.05). The values are the -veLL for each
+#'     combination when combined with a constant LnsigCE = -1.3. This can also
+#'     be used with persp to generate a 3D plot of the likelihood surface. 
+#'     Note, in teh example, 
+#'
+#' @format A 51 x 51 data.frame
+#' 
+#' @examples
+#' data(outlike)
+#' p1 <- seq(5.9,8.4,0.05)
+#' p2 <- -1.3
+#' p3 <- seq(-8.7,-6.2,0.05)
+#' z <- outlike
+#' x <- p1
+#' y <- p3
+#' trans <- persp(x,y,z,zlim=c(0,20),xlim=c(5.8,8.5),ylim=c(-8.7,-6.0),
+#'                theta=-10,phi=50,shade=1e-02,border=NULL,
+#'                lwd=0.25,xlab="LnR0",ylab="Lnq",zlab="-veLL",
+#'                scale=TRUE,expand=0.4,axes=TRUE,ticktype="detailed")
+"outlike"
 
 # orhdat1-----------------------------------
 
