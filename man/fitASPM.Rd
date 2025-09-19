@@ -10,9 +10,9 @@ fitASPM(
   infish,
   inglb,
   inprops,
-  gradtol = 1e-04,
+  gradtol = 1e-06,
   stepmax = 0.1,
-  steptol = 1e-08,
+  steptol = 1e-06,
   hessian = FALSE
 )
 }

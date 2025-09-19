@@ -125,6 +125,21 @@ tools::resaveRdaFiles(paths=datadir,compress="auto")
 tools::checkRdaFiles(paths=datadir)
 
 
+# robustresults------------------------------------
+
+library(fmr)
+library(codeutils)
+
+dbdir <- getDBdir()
+datadir <- pathtopath(dbdir,"A_CodeR/fmr/notpublic/")
+pkgdata <- pathtopath(dbdir,"A_CodeR/fmr/data/")
+
+load(pathtopath(datadir,"robustresults.RData"))
+robustresults <- results
+save(robustresults,file=pathtopath(pkgdata,"robustresults.RData"))
+
+
+
 # Francis 1992-----------------------------
 
 library(codeutils)

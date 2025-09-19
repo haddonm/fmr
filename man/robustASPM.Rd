@@ -14,7 +14,8 @@ robustASPM(
   scaler = 15,
   Hrange = c(0.01, 0.45, 0.005),
   numyrs = 50,
-  verbose = TRUE
+  verbose = TRUE,
+  steptol = 1e-05
 )
 }
 \arguments{

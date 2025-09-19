@@ -711,8 +711,8 @@ findF <- function(cyr,Nyr,sel,aaw,M,Fmax=3.0,reps=8) {
 #' bestL
 #' out <- dynamicsH(bestL$estimate,fish,glb,props,full=TRUE)
 #' round(out$fishery,4)
-fitASPM <- function(initpar,minfun,infish,inglb,inprops,gradtol=1e-04,
-                    stepmax=0.1,steptol=1e-08,hessian=FALSE) { 
+fitASPM <- function(initpar,minfun,infish,inglb,inprops,gradtol=1e-06,
+                    stepmax=0.1,steptol=1e-06,hessian=FALSE) { 
   paramscale = magnitude(initpar)
   bestL <- optim(par=initpar,fn=minfun,method="Nelder-Mead",
                  infish=infish,inglb=inglb,inprops=inprops,
@@ -1258,25 +1258,41 @@ prodASPM <- function(inprod, target=0.48, console=TRUE, plot=TRUE) {
 #' @examples
 #' print("wait on data sets")
 robustASPM <- function(inpar,dynfun,fish,glb,props,N=10,scaler=15,
-                       Hrange=c(0.01,0.45,0.005),numyrs=50,verbose=TRUE) {
+                        Hrange=c(0.01,0.45,0.005),numyrs=50,verbose=TRUE,
+                        steptol=1e-05) {
   origpar <- (inpar) # return Ln(R0) to nominal scale
-  pars <- cbind(rnorm(N,mean=origpar[1],sd=abs(origpar[1])/scaler),
-                rnorm(N,mean=origpar[2],sd=abs(origpar[2])/scaler),
-                rnorm(N,mean=origpar[3],sd=abs(origpar[3])/scaler))
-  columns <- c("iLnR0","isigmaCE","iavq","-veLL","LnR0","LsigCE","Lavq",
-               "R0","sigCE","avq","MSY","B0","pardist","Iters") # prefix i implies input
+  np <- length(inpar)
+  if (np == 3) { 
+    pars <- cbind(rnorm(N,mean=origpar[1],sd=abs(origpar[1])/scaler),
+                  rnorm(N,mean=origpar[2],sd=abs(origpar[2])/scaler),
+                  rnorm(N,mean=origpar[3],sd=abs(origpar[3])/scaler))
+    columns <- c("iLnR0","isigmaCE","iavq","-veLL","LnR0","LsigCE","Lavq",
+                 "R0","sigCE","avq","MSY","B0","pardist","Iters")     
+  } else {
+    pars <- cbind(rnorm(N,mean=origpar[1],sd=abs(origpar[1])/scaler),
+                  rnorm(N,mean=origpar[2],sd=abs(origpar[2])/scaler))
+    columns <- c("iLnR0","isigmaCE","-veLL","LnR0","LsigCE",
+                 "R0","sigCE","avq","MSY","B0","pardist","Iters")      
+  }
   results <- matrix(0,nrow=N,ncol=length(columns),dimnames=list(1:N,columns))
   for (i in 1:N) { # i = 1   # 
     dist <- 0
-    bestSP <- fitASPM(pars[i,],dynfun,fish,glb,props)
+    bestSP <- fitASPM(pars[i,],dynfun,fish,glb,props,steptol=steptol)
     opar <- bestSP$estimate
-    for (pickp in 1:3) dist <- dist + (pars[i,pickp] - inpar[pickp])^2
+    out <- dynamicsH(opar,infish=fish,inglb=glb,inprops=props,full=TRUE)
+    for (pickp in 1:np) dist <- dist + (pars[i,pickp] - inpar[pickp])^2
     dist <- sqrt(dist)
     prod <- getProduction(exp(opar[1]),fish,glb,props,
                           Hrg=Hrange,nyr=numyrs)
     anspen <- prodASPM(prod,console=FALSE,plot=FALSE)
-    results[i,] <- c(pars[i,],bestSP$minimum,bestSP$estimate,
-                     exp(bestSP$estimate),anspen["MSY"],anspen["B0"],dist,i)
+    if (np == 3) {
+      results[i,] <- c(pars[i,],bestSP$minimum,bestSP$estimate,
+                       exp(bestSP$estimate),anspen["MSY"],anspen["B0"],dist,i)
+    } else {
+      results[i,] <- c(pars[i,],bestSP$minimum,bestSP$estimate,
+                       exp(bestSP$estimate),out$avq,anspen["MSY"],
+                       anspen["B0"],dist,i)      
+    }
     if (verbose) cat(i," ")
   }
   ordres <- results[order(results[,"-veLL"]),] # see best and worst fit

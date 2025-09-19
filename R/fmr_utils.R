@@ -330,12 +330,9 @@ getvector <- function(indat,locate,sep=",") { # indat=dat; locate=pick+2;sep=","
 #'
 #' @param f the function whose value needs to match cyr (catch in year)
 #' @param interval the interval over which to search
-#' @param M the instantaneous natural mortality rate
-#' @param cyr the observed catch in a given year
-#' @param Byr the exploitable biomass at the start of the year in which the
-#'     catches are to be taken
 #' @param tol the tolerance of the match between the predicted and observed 
 #'     catch
+#' @param ... any other arguments used in f
 #'
 #' @return an instantaneous fishing mortality rate that should generate the 
 #'     observed catches from a given exploitable biomass in a year
@@ -347,27 +344,27 @@ getvector <- function(indat,locate,sep=",") { # indat=dat; locate=pick+2;sep=","
 #' }
 #' grsearch(f=matchC,interval=c(0.2,0.45),M=0.036,cyr=5117.988,Byr=15760.748,
 #'          tol = 1e-09)  # should be 0.4007973
-grsearch <- function(f, interval, M, cyr, Byr, tol = 1e-09) {#.Machine$double.eps^0.25) {
+grsearch <- function(f, interval, tol = 1e-09, ...) {#.Machine$double.eps^0.25) {
   golden_ratio <- (sqrt(5) - 1) / 2  # Define the golden ratio
   lower=interval[1]
   upper=interval[2]
   x1 <- upper - golden_ratio * (upper - lower)  # Calculate initial points
   x2 <- lower + golden_ratio * (upper - lower)
-  f1 <- f(x1,M, cyr, Byr)   # Evaluate function at initial points
-  f2 <- f(x2,M, cyr, Byr)
+  f1 <- f(x1, ...)   # Evaluate function at initial points
+  f2 <- f(x2, ...)
   while (abs(upper - lower) > tol) {   # Iteratively narrow the interval
     if (f1 < f2) {
       upper <- x2
       x2 <- x1
       f2 <- f1
       x1 <- upper - golden_ratio * (upper - lower)
-      f1 <- f(x1,M, cyr, Byr)
+      f1 <- f(x1, ...)
     } else {
       lower <- x1
       x1 <- x2
       f1 <- f2
       x2 <- lower + golden_ratio * (upper - lower)
-      f2 <- f(x2,M, cyr, Byr)
+      f2 <- f(x2, ...)
     }
   }
   # Return the midpoint of the final interval as the estimated minimum

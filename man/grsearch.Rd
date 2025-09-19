@@ -4,22 +4,17 @@
 \alias{grsearch}
 \title{grsearch a golden ratio search algorithm to estimate F in an ASPM}
 \usage{
-grsearch(f, interval, M, cyr, Byr, tol = 1e-09)
+grsearch(f, interval, tol = 1e-09, ...)
 }
 \arguments{
 \item{f}{the function whose value needs to match cyr (catch in year)}
 
 \item{interval}{the interval over which to search}
 
-\item{M}{the instantaneous natural mortality rate}
-
-\item{cyr}{the observed catch in a given year}
-
-\item{Byr}{the exploitable biomass at the start of the year in which the
-catches are to be taken}
-
 \item{tol}{the tolerance of the match between the predicted and observed
 catch}
+
+\item{...}{any other arguments used in f}
 }
 \value{
 an instantaneous fishing mortality rate that should generate the

@@ -87,31 +87,6 @@
 #' rowfreqboot(x=fournarch82,n=250)
 "fournarch82"
 
-# maplike -------------------------
-
-#' @title maplike the likelihood surface of LnR0 and Lnq for ASPM
-#'
-#' @description A 2601 row data.frame containing the initial parameter vector,
-#'     the -veLL, the optimum solution, the back transformed optimum, the 
-#'     minimum gradient, and a counter. This can be used to plot the lieklihood
-#'     surface in a crude manner it ranges from LnR0 = seq(5.9,8.4,0.05) and
-#'     Lnq = seq(-8.7,-6.2,0.05), which is 51 x 51.  
-#'
-#' @format A 2601 row x 12 column data.frame
-#' 
-#' @examples
-#' data(maplike)
-#' pickbad <- which(maplike[,"-veLL"] > 3)
-#' roundlike <- round(maplike[,"-veLL"],8)
-#' outn <- table(roundlike); print(outn)
-#' pickopt <- which(roundlike == as.numeric(names(outn)[1]))
-#' pickworst <- which(roundlike == as.numeric(names(outn)[length(outn)])) 
-#' plot(maplike[,3],maplike[,1],type="p",cex=1,col=0,xlab="Ln(q)",
-#'      ylab="Ln(R0)",panel.first=grid())
-#' points(maplike[pickbad,3],maplike[pickbad,1],cex=2,col=2)
-#' points(maplike[pickopt,3],maplike[pickopt,1],cex=3,col=5)
-#' points(maplike[pickworst,3],maplike[pickworst,1],cex=3,col=3)
-"maplike"
 
 # outlike-------------------------------------------------
 
@@ -260,9 +235,42 @@
 #'  print(plaice$agedata)
 "plaice"
 
+# robustresults-------------------
+
+#' @title robustresults are 'robustASPM' outputs western Tasmanian Orange Roughy
+#'
+#' @description robustresults a data.frame containing the results of running
+#'     the robustASPM function using the westroughy data sets and using the 
+#'     dynamicsF function that has instantaneous fishing mortality rates. It
+#'     constitutes a 200 x 14 data.frame with columns iLnR0, isigmaCE, iavq, 
+#'     -veLL, LnR0, LsigCE, Lavq, R0, sigCE, avq, MSY, B0, pardist, and Iters.
+#'     See the description in teh Introduction to Age-Structured Models 
+#'     chapter in More Fisheries Modelling using R.
+#'     
+#' @format A data.frame of 14 columns and 200 rows  
+#' \describe{
+#'   \item{fish}{ a data.frame containing year, catch, cpue, SE of the cpue }
+#'   \item{glb}{biological parameters relating to growth, selectivity, 
+#'     weight-at-age, steepness, and resilience and spsname }
+#'   \item{props}{ contains six variables ages, laa, waa, maa, sela, and feca,
+#'     which are all relative to age.}
+#'   \item{agedata}{ a list of 5 objects, yrage - the years in which age data are
+#'     available, ages - the observed ages, agemax - the maximum age, nage - 
+#'     the number of observed ages, and naa - the numbers-at-age by year}
+#'   \item{lendata}{ a list of 5 objects akin to the agedata object but for
+#'     length data.}
+#' }  
+#'     
+#' @examples
+#' \dontrun{
+#'  data(robustresults)
+#'  str(robustresults)
+#' }
+"robustresults"
+
 # westroughy-------------------
 
-#' @title westroughy Three data objects describing western Tasmanian Orange Roughy
+#' @title westroughy A list of 3 data objects for western Tasmanian Orange Roughy
 #'
 #' @description westroughy a dataset containing the fish data.frame, the glb 
 #'     list, and the props data.frame set up ready for analysis using an 
@@ -293,4 +301,5 @@
 #' props <- westroughy$props
 #' str(glb)
 "westroughy"
+
 
