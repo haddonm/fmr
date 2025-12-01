@@ -4,16 +4,20 @@
 \alias{bh}
 \title{bh calculates the expected Beverton-Holt recruitment}
 \usage{
-bh(spb, h, R0, B0)
+bh(spb, R0, B0, steep, sigmaR = 1e-09)
 }
 \arguments{
 \item{spb}{the current spawning or mature biomass}
 
-\item{h}{the steepness of the Beverton-Holt stock recruitment curve}
-
 \item{R0}{the unfished average recruitment level}
 
 \item{B0}{the unfished spawning biomass.}
+
+\item{steep}{the steepness of the Beverton-Holt stock recruitment curve}
+
+\item{sigmaR}{recruitment variability, a bias-corrected Log-Normal random
+effect. Default = 1e-09. If < 0.001 then epsilon is set = 1.0 which
+implies no effect.}
 }
 \value{
 the expected Beverton-Holt recruitment level, a real number in the
@@ -25,7 +29,10 @@ from the available spawning biomass, the steepness, R0 and B0. This would
 be used when fitting a model to data.
 }
 \examples{
-rec <- bh(10000,0.75,1500000,30000)
+rec <- bh(10000,1500000,30000,0.75)
 print(rec)   # should be 1285714
-bh(spb=30000,h=0.75,R0=1500000,B0=30000)  # should be 1500000
+bh(spb=30000,R0=1500000,B0=30000,steep=0.75)  # should be 1500000
+recs <- numeric(100)
+for (i in 1:100) recs[i] <- bh(2500,pop$R0,pop$B0,globals$steep,sigmaR=0.3)
+print(recs)
 }

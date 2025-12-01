@@ -146,24 +146,32 @@ aspmphaseplot <- function(fishery,prod,ans,Blim=0.2,filename="",resol=200,
 #'     be used when fitting a model to data. 
 #'
 #' @param spb the current spawning or mature biomass
-#' @param h the steepness of the Beverton-Holt stock recruitment curve
 #' @param R0 the unfished average recruitment level
 #' @param B0 the unfished spawning biomass.
+#' @param steep the steepness of the Beverton-Holt stock recruitment curve
+#' @param sigmaR recruitment variability, a bias-corrected Log-Normal random 
+#'     effect. Default = 1e-09. If < 0.001 then epsilon is set = 1.0 which 
+#'     implies no effect.
 #'
 #' @return the expected Beverton-Holt recruitment level, a real number in the 
 #'     linear scale
 #' @export
 #'
 #' @examples
-#' rec <- bh(10000,0.75,1500000,30000)
+#' rec <- bh(10000,1500000,30000,0.75)
 #' print(rec)   # should be 1285714
-#' bh(spb=30000,h=0.75,R0=1500000,B0=30000)  # should be 1500000
-bh <- function(spb,h,R0,B0) {
-   a <- (4 * h * R0)/(5 * h - 1)
-   b <- (B0 * (1 - h))/(5 * h -1)
-   return((a * spb)/(b + spb))
+#' bh(spb=30000,R0=1500000,B0=30000,steep=0.75)  # should be 1500000
+#' recs <- numeric(100)
+#' for (i in 1:100) recs[i] <- bh(2500,pop$R0,pop$B0,globals$steep,sigmaR=0.3)
+#' print(recs)
+bh <- function(spb,R0,B0,steep,sigmaR=1e-09) {
+  if (sigmaR < 0.0001) { epsilon <-  1.0
+  } else {
+    epsilon <- exp(rnorm(1,mean=0,sd=sigmaR) - (sigmaR * sigmaR)/2)
+  }
+  recs <- ((4*steep*R0*spb)/(((1-steep)*B0)+(5*steep-1)*spb)) * epsilon
+  return(recs)
 } # end of bh
-
 
 #' @title doDepletion - depletes the stock to the declared initdep level
 #'
@@ -677,24 +685,24 @@ findF <- function(cyr,Nyr,sel,aaw,M,Fmax=3.0,reps=8) {
 #'     values given to the estimate of logR0, and the estimate of the variation
 #'     around the CPUE data that the model is to be fitted to, and finally, the
 #'     catchability coefficient.
-#' @param minfun the dynamics function outputning a -ve log-likelihood 
+#' @param minfun the dynamics function outputing a -ve log-likelihood 
 #' @param infish the fish data.frame from readdata or built in dataset
 #' @param inglb the glb data.frame from readdata or built in dataset
 #' @param inprops the props data.frame from readdata or built in dataset
 #' @param gradtol default = 1e-04 a positive scalar giving the tolerance at 
 #'     which the scaled gradient is considered close enough to zero to 
 #'     terminate the algorithm. The scaled gradient is a measure of the 
-#'     relative change in f in each direction p[i] divided by the relative 
-#'     change in p[i] (copied frm nlm help).
+#'     relative change in f in each direction each initpar divided by the 
+#'     relative change in each initpar (copied from nlm help).
 #' @param stepmax default = 0.1 a positive scalar which gives the maximum 
 #'     allowable scaled step length. stepmax is used to prevent steps which 
 #'     would cause the optimization function to overflow, to prevent the 
 #'     algorithm from leaving the area of interest in parameter space, or to 
 #'     detect divergence in the algorithm. stepmax would be chosen small enough 
 #'     to prevent the first two of these occurrences, but should be larger than 
-#'     any anticipated reasonable step. (copied frm nlm help).
+#'     any anticipated reasonable step. (copied from nlm help).
 #' @param steptol default = 1e-08 A positive scalar providing the minimum 
-#'     allowable relative step length. (copied frm nlm help).
+#'     allowable relative step length. (copied from nlm help).
 #' @param hessian should hessian be estimated at the optimum, default = FALSE
 #' 
 #' @return a list containing the optimal output

@@ -4,12 +4,12 @@
 \alias{logistic}
 \title{logistic standard selectivity function}
 \usage{
-logistic(inl50, inl95, depend)
+logistic(L50, delta, depend)
 }
 \arguments{
-\item{inl50}{is the length/age at 50 percent selection/maturity/whatever}
+\item{L50}{is the length/age at 50 percent selection/maturity/whatever}
 
-\item{inl95}{is the length/age at 5 percent selection/maturity/whatever}
+\item{delta}{is l95 - l50 selection/maturity/whatever, nominalscale}
 
 \item{depend}{a vector of lengths/ages for which the logistic value will be
 calculated.}
@@ -25,9 +25,9 @@ required. This version uses the logistic function
 which explicitly defines the SM50 and uses SM95 as the second parameter.
 }
 \examples{
-in50 <- 3.398
-in95 <- 4.386
-ages <- seq(2,10,1)
-select <- logistic(inl50=in50,inl95=in95,depend=ages)
+in50 <- 3
+delta <- 1.25
+ages <- seq(1,10,1)
+select <- logistic(L50=in50,delta=delta,depend=ages)
 round(cbind(ages,select),5)
 }

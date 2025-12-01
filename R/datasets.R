@@ -1,4 +1,28 @@
 
+# abdat------------------
+
+#' @title abdat fishery data for Block 12 of Tasmanian blacklip fishery
+#'
+#' @description A dataset containing columns of year, LML, catches, and cpue 
+#'     data for use in fmr when exploring size-based integrated models.
+#'
+#' @format A 58 row x 4 column matrix
+#' \describe{
+#'   \item{year}{ 9 fishing years from 1963 to 2020}
+#'   \item{lml}{ the legal minimum length in the year of catch}
+#'   \item{catch}{ the annual catch of blacklip abalone \emph{Haliotis rubra}}
+#'   \item{cpue}{ the standardizaed cpue for each year}
+#' }
+#' 
+#' @references McAllister, J. and C. Mundy (2024) \emph{Tasmanian Abalone 
+#'     Assessment}, Institute for Marine & Antarctic Studies, University of 
+#'     Tamsania p 1-144.
+#'     
+#' @examples
+#' data(abdat)
+#' abdat
+"abdat"
+
 # fish --------------------
 
 #' @title fish fishery data for the plaice example from Beverton and Holt, 1957
@@ -198,6 +222,33 @@
 #'  print(plaice$agedata)
 "param"
 
+# pindat ----------------------------
+
+#' @title pindat preliminary parameter estimates for a SBM model for abalone
+#' 
+#' @description Preliminary parameters used when fitting a statistical catch-at-
+#'     size model to the abalone data from McAllister & Mundy (2024). This 
+#'     data has also been included in the size-based MSE, 'aMSE' described at
+#'     https://haddonm.github.io/aMSEGuide
+#'
+#' @format A data.frame of two columns
+#' \describe{
+#'   \item{var}{ the name of each parameter }
+#'   \item{value}{ the natural logarithm transformed value of each parameter }
+#' }
+#' 
+#' @references McAllister, J. and C. Mundy (2024) \emph{Tasmanian Abalone 
+#'     Assessment}, Institute for Marine & Antarctic Studies, University of 
+#'     Tamsania p 1-144.
+#' 
+#' @examples 
+#'  data(plaice)
+#'  str(plaice)
+#'  print(plaice$fish)
+#'  print(plaice$agedata)
+"pindat"
+
+
 # plaice ----------------------------
 
 #' @title plaice data derived from Beverton and Holt, 1957 for European Plaice
@@ -267,6 +318,31 @@
 #'  str(robustresults)
 #' }
 "robustresults"
+
+# sizecomp -----------------------
+
+#' @title sizecomp a 38 x 20 matrix of sizecomposition data for abalone
+#'
+#' @description sizecomp a a 38 x 20 matrix of 2mm size-classes from 136 - 210
+#'     mm and 20 years from 1993 - 2020, with counts in each size-class in each
+#'     year. Actual sample sizes vary from 345 - 9960, although effective
+#'     sample size, of course, is lower than these limits. 
+#'
+#' @format A 38 x 20 matrix of integer counts
+#' \describe{
+#'   \item{rows}{ 38 2 mm size-classes from 136 - 210 mm}
+#'   \item{columns}{ 20 years from 1993 - 2020}
+#' }
+#' 
+#' @references Haddon, M. (2025) aMSE: A Software Framework for Abalone 
+#'     Management Strategy Evaluation_. R package version 1.0.5,
+#'     <https://github.com/haddonm/aMSE>.
+#'     
+#' @examples
+#' data(sizecomp)
+#' sizecomp
+"sizecomp"
+
 
 # westroughy-------------------
 

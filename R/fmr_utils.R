@@ -1,9 +1,9 @@
 
 
-#' @title calccaa estimates the catch-at-age from teh predicted numbers-at-age
+#' @title calccaa estimates the catch-at-age from the predicted numbers-at-age
 #' 
 #' @description calccaa uses the Baranov catch equation to calculate the 
-#'     predicted catch-at-age from teh predicted numbers-at-age (such as 
+#'     predicted catch-at-age from the predicted numbers-at-age (such as 
 #'     calculates by calcnaa)
 #'
 #' @param pars the model parameter vector
@@ -275,7 +275,7 @@ getsingle <- function(inline,sep=",") {  # inline=dat[41]
 #' 
 #' getssq2(pars,M=0.2,yrs,ages,onaa,owa,cpue=fish[,"obsce"]) #should be 331.1994
 getssq2 <- function(pars,M,yrs,ages,onaa,owa,cpue) {
-  select <- logistic((pars[27]),(pars[28]),ages)
+  select <- logistic(exp(pars[27]),exp(pars[28]),ages)
   pnaa <- calcnaa(pars=pars,M=M,sel=select,yrs=yrs,ages=ages)
   pcaa <- calccaa(pars,pnaa,M,select,ages)
   ssq1 <- sum((log(onaa/pcaa)^2),na.rm=TRUE)
@@ -292,7 +292,7 @@ getssq2 <- function(pars,M,yrs,ages,onaa,owa,cpue) {
 #'     getvector extarcts a line of numbers from a specified line within
 #'     the readLine object.This function works out how many numbers there
 #'     are. If you wish to add a comment at the end of a vector of numbers
-#'     it must be separated from tehm by the separator. e.g. a comma
+#'     it must be separated from them by the separator. e.g. a comma
 #' @param indat the readLines object
 #' @param locate the line number from which to extract the numbers
 #' @param sep the separator between numbers, defaults to ","
@@ -410,23 +410,21 @@ iscol <- function(incol,inmat) { # incol="ages"; inmat=pnaa
 #'     required. This version uses the logistic function
 #'     1/(1+exp(-log(19.0)*(lens-inL50)/(inL95-inL50))),
 #'     which explicitly defines the SM50 and uses SM95 as the second parameter.
-#' @param inl50 is the length/age at 50 percent selection/maturity/whatever
-#' @param inl95 is the length/age at 5 percent selection/maturity/whatever
+#' @param L50 is the length/age at 50 percent selection/maturity/whatever
+#' @param delta is l95 - l50 selection/maturity/whatever, nominalscale
 #' @param depend a vector of lengths/ages for which the logistic value will be
 #'     calculated.
 #' @return A vector of length/age(depend) containing predicted logistic values
 #' @export
 #' 
 #' @examples
-#' in50 <- 3.398
-#' in95 <- 4.386
-#' ages <- seq(2,10,1)
-#' select <- logistic(inl50=in50,inl95=in95,depend=ages)
+#' in50 <- 3
+#' delta <- 1.25
+#' ages <- seq(1,10,1)
+#' select <- logistic(L50=in50,delta=delta,depend=ages)
 #' round(cbind(ages,select),5)
-logistic <- function(inl50,inl95,depend) {
-  L50 <- exp(inl50)
-  L95 <- exp(inl95)
-  ans <- 1/(1+exp(-log(19.0)*(depend-L50)/(L95 - L50)))
+logistic <- function(L50,delta,depend) {
+  ans <- 1/(1+exp(-log(19.0)*(depend-L50)/(delta)))
   return(ans)
 } # end of logistic
 

@@ -22,7 +22,7 @@ values given to the estimate of logR0, and the estimate of the variation
 around the CPUE data that the model is to be fitted to, and finally, the
 catchability coefficient.}
 
-\item{minfun}{the dynamics function outputning a -ve log-likelihood}
+\item{minfun}{the dynamics function outputing a -ve log-likelihood}
 
 \item{infish}{the fish data.frame from readdata or built in dataset}
 
@@ -33,8 +33,8 @@ catchability coefficient.}
 \item{gradtol}{default = 1e-04 a positive scalar giving the tolerance at
 which the scaled gradient is considered close enough to zero to
 terminate the algorithm. The scaled gradient is a measure of the
-relative change in f in each direction p\link{i} divided by the relative
-change in p\link{i} (copied frm nlm help).}
+relative change in f in each direction each initpar divided by the
+relative change in each initpar (copied from nlm help).}
 
 \item{stepmax}{default = 0.1 a positive scalar which gives the maximum
 allowable scaled step length. stepmax is used to prevent steps which
@@ -42,10 +42,10 @@ would cause the optimization function to overflow, to prevent the
 algorithm from leaving the area of interest in parameter space, or to
 detect divergence in the algorithm. stepmax would be chosen small enough
 to prevent the first two of these occurrences, but should be larger than
-any anticipated reasonable step. (copied frm nlm help).}
+any anticipated reasonable step. (copied from nlm help).}
 
 \item{steptol}{default = 1e-08 A positive scalar providing the minimum
-allowable relative step length. (copied frm nlm help).}
+allowable relative step length. (copied from nlm help).}
 
 \item{hessian}{should hessian be estimated at the optimum, default = FALSE}
 }

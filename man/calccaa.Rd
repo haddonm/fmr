@@ -2,7 +2,7 @@
 % Please edit documentation in R/fmr_utils.R
 \name{calccaa}
 \alias{calccaa}
-\title{calccaa estimates the catch-at-age from teh predicted numbers-at-age}
+\title{calccaa estimates the catch-at-age from the predicted numbers-at-age}
 \usage{
 calccaa(pars, pnaa, M, sel, ages)
 }
@@ -22,7 +22,7 @@ a matrix of predicted catch-at-age with yrs as rows and ages as cols
 }
 \description{
 calccaa uses the Baranov catch equation to calculate the
-predicted catch-at-age from teh predicted numbers-at-age (such as
+predicted catch-at-age from the predicted numbers-at-age (such as
 calculates by calcnaa)
 }
 \examples{
