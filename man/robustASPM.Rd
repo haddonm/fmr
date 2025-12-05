@@ -45,6 +45,9 @@ parameter set. defaults to c(0.01, 0.45, 0.005)}
 equilibrium population structure}
 
 \item{verbose}{print progress count to the screen? default = TRUE}
+
+\item{steptol}{default = 1e-05 A positive scalar providing the minimum
+allowable relative step length inside nlm. (copied from nlm help).}
 }
 \value{
 a list of results from each run, the range of values across runs, and

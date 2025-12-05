@@ -139,39 +139,6 @@ aspmphaseplot <- function(fishery,prod,ans,Blim=0.2,filename="",resol=200,
    return(invisible(result))
 } # end of aspmphaseplot
 
-#' @title bh calculates the expected Beverton-Holt recruitment
-#'
-#' @description bh calculate the expected Beverton-Holt stock recruitment level
-#'     from the available spawning biomass, the steepness, R0 and B0. This would
-#'     be used when fitting a model to data. 
-#'
-#' @param spb the current spawning or mature biomass
-#' @param R0 the unfished average recruitment level
-#' @param B0 the unfished spawning biomass.
-#' @param steep the steepness of the Beverton-Holt stock recruitment curve
-#' @param sigmaR recruitment variability, a bias-corrected Log-Normal random 
-#'     effect. Default = 1e-09. If < 0.001 then epsilon is set = 1.0 which 
-#'     implies no effect.
-#'
-#' @return the expected Beverton-Holt recruitment level, a real number in the 
-#'     linear scale
-#' @export
-#'
-#' @examples
-#' rec <- bh(10000,1500000,30000,0.75)
-#' print(rec)   # should be 1285714
-#' bh(spb=30000,R0=1500000,B0=30000,steep=0.75)  # should be 1500000
-#' recs <- numeric(100)
-#' for (i in 1:100) recs[i] <- bh(2500,pop$R0,pop$B0,globals$steep,sigmaR=0.3)
-#' print(recs)
-bh <- function(spb,R0,B0,steep,sigmaR=1e-09) {
-  if (sigmaR < 0.0001) { epsilon <-  1.0
-  } else {
-    epsilon <- exp(rnorm(1,mean=0,sd=sigmaR) - (sigmaR * sigmaR)/2)
-  }
-  recs <- ((4*steep*R0*spb)/(((1-steep)*B0)+(5*steep-1)*spb)) * epsilon
-  return(recs)
-} # end of bh
 
 #' @title doDepletion - depletes the stock to the declared initdep level
 #'
@@ -226,7 +193,7 @@ doDepletion <- function(inR0,indepl,inprops,inglb,inc=0.02,Numyrs=50) {
       Nt[,1] <- naa
       year <- 2     # instead of zero to allow for indexing matrices
       repeat {
-         Nt[1,year] <- bh(SpawnB,steep,inR0,B0)  #  Age 0
+         Nt[1,year] <- bh(SpawnB,inR0,B0,steep)  #  Age 0
          Nt[2:(Nages-1),year] <- Nt[1:(Nages-2),(year-1)] * exp(-M/2)
          Nt[Nages,year] <- (Nt[(Nages-1),(year-1)]*exp(-M/2)) + (Nt[(Nages),(year-1)]*exp(-M/2))
          # Now do the fishing
@@ -329,7 +296,7 @@ dynF <- function(pars,infish,inglb,inprops,
   for (yr in 2:nyrs1) {  # yr=2
     spb <- SpB(Nt[,(yr-1)],aam,aaw)
     exb <- ExB(Nt[,(yr-1)],sel,aaw)
-    Nt[1,yr] <- bh(spb,inglb$steep,R0,B0)
+    Nt[1,yr] <- bh(spb,R0,B0,inglb$steep)
     fishery[yr,"recruit"] <- Nt[1,yr]
     yrF <- findFs(catch[yr],Nt[,yr-1],sel,aaw,M,reps=reps)
     # yrF <- optimize(matchC,interval=c(0,4.0),M=M,cyr=catch[yr],
@@ -447,7 +414,7 @@ dynamicsF <- function(pars,infish,inglb,inprops,
   for (yr in 2:(nyrs+1)) {  # yr=2
     spb <- SpB(Nt[,(yr-1)],aam,aaw)
     exb <- ExB(Nt[,(yr-1)],sel,aaw)
-    Nt[1,yr] <- bh(spb,inglb$steep,R0,B0)
+    Nt[1,yr] <- bh(spb,R0,B0,inglb$steep)
     fishery[yr,"recruit"] <- Nt[1,yr]
     yrF <- optimize(matchC,interval=c(0,4.0),M=M,cyr=catch[yr],
                     Nyr=Nt[,yr-1],sel=sel,waa=aaw,maximum=FALSE,
@@ -562,7 +529,7 @@ dynamicsH <- function(pars,infish,inglb,inprops,
   for (yr in 2:(nyrs+1)) {  # yr=2# do dynamics for yr 2 - nyrs+1 columns
     spb <- SpB(Nt[,(yr-1)],aam,aaw)
     exb <- ExB(Nt[,(yr-1)]*hS,sel,aaw)
-    Nt[1,yr] <- bh(spb,inglb$steep,R0,B0)
+    Nt[1,yr] <- bh(spb,R0,B0,inglb$steep)
     fishery[yr,"recruit"] <- Nt[1,yr]
     harvest <- min((fishery[yr,"catch"]/exb),0.975) # sets upper limit to H
     hrate <- sel * harvest
@@ -821,7 +788,7 @@ getProduction <- function(inR0,infish,inglb,inprops,Hrg=c(0.025,0.4,0.025),
     for (iter in 1:maxiter) {  # iterate until equilibrium yield reached
       for (yr in 2:nyr) {  # yr=nyrs+1
         spb <- SpB(NAA[,(yr-1)],aam,aaw)
-        NAA[1,yr] <- bh(spb,steep,inR0,B0)
+        NAA[1,yr] <- bh(spb,inR0,B0,steep)
         Ct <- (NAA[,(yr-1)] * hS) * (harvest * sel)
         NAA[2:nages,yr] <- ((NAA[1:(nages-1),(yr-1)] * hS) - Ct[1:(nages-1)]) * hS
         NAA[nages,yr] <- NAA[nages,yr] + ((NAA[nages,yr-1] * hS) - Ct[nages]) * hS
@@ -1258,6 +1225,8 @@ prodASPM <- function(inprod, target=0.48, console=TRUE, plot=TRUE) {
 #' @param numyrs the number of years used to drive each harvest rate to an
 #'     equilibrium population structure
 #' @param verbose print progress count to the screen? default = TRUE
+#' @param steptol default = 1e-05 A positive scalar providing the minimum 
+#'     allowable relative step length inside nlm. (copied from nlm help). 
 #'
 #' @return a list of results from each run, the range of values across runs, and
 #'     the median values.
@@ -1309,6 +1278,36 @@ robustASPM <- function(inpar,dynfun,fish,glb,props,N=10,scaler=15,
   medvalues <- apply(results,2,median)
   return(list(results=ordres,range=bounds,medians=medvalues))
 } # end of robustASMP
+
+#' @title simbh simulates the expected Beverton-Holt recruitment
+#'
+#' @description simbh simulates the expected Beverton-Holt stock recruitment 
+#'     level from the available spawning biomass, the steepness, R0 and B0. 
+#'     This would be used when simulating a stock recruitment relationship. 
+#'
+#' @param spb the current spawning or mature biomass
+#' @param R0 the unfished average recruitment level
+#' @param B0 the unfished spawning biomass.
+#' @param steep the steepness of the Beverton-Holt stock recruitment curve
+#' @param sigmaR recruitment variability, a bias-corrected Log-Normal random 
+#'     effect. Default = 1e-09. If < 0.001 then epsilon is set = 1.0 which 
+#'     implies no effect.
+#'
+#' @return the expected Beverton-Holt recruitment level, a real number in the 
+#'     linear scale
+#' @export
+#'
+#' @examples
+#' simbh(10000,1500000,30000,0.75)                  # should be 1285714
+#' simbh(spb=30000,R0=1500000,B0=30000,steep=0.75)  # should be 1500000
+simbh <- function(spb,R0,B0,steep,sigmaR=1e-09) {
+  if (sigmaR < 0.0001) { epsilon <-  1.0
+  } else {
+    epsilon <- exp(rnorm(1,mean=0,sd=sigmaR) - (sigmaR * sigmaR)/2)
+  }
+  recs <- ((4*steep*R0*spb)/(((1-steep)*B0)+(5*steep-1)*spb)) * epsilon
+  return(recs)
+} # end of simbh
 
 #' @title SpB - calculate spawning biomass from a vector of numbers-at-age
 #'

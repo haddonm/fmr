@@ -1,4 +1,27 @@
 
+#' @title bh calculates the Beverton-Holt recruitment
+#'
+#' @description bh calculates the Beverton-Holt recruitment for the
+#'    input populations in a single year; parameterized with steepness,
+#'    R0, and B0. This is for use when fitting a model as it allows for the
+#'    direct input of recruitment deviates.
+#'
+#' @param spb the current spawning biomass
+#' @param R0 the unfished recruitment levels for the population
+#' @param B0 the unfished spawning biomass; scalar
+#' @param steep the steepness for the population; scalar
+#' @param devR recruitment deviate for a given year. default = 1.0, meaning
+#'     the value will come off the stock recruitment curve.
+#'
+#' @return an absolute number of recruits from a given spawning biomass
+#' @export
+#'
+#' @examples
+#' print("wait on data")
+bh <- function(spb,R0,B0,steep,devR=1.0) {
+  rec <- ((4*steep*R0*spb)/((1-steep)*B0+(5*steep-1)*spb)) * devR
+  return(rec)
+} # end of bh
 
 #' @title calccaa estimates the catch-at-age from the predicted numbers-at-age
 #' 

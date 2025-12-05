@@ -23,6 +23,36 @@
 #' abdat
 "abdat"
 
+# absaudata ----------------------
+
+#' @title absaudata a list of five objects relating to a Tasmanian abalone stock
+#'
+#' @description absaudata is a list of five objects relating to a single
+#'     statistical block in teh West Coast Tasmanian blacklip abalone fishery 
+#'     (Haliotis rubra). It contains fish, sizecomp, glb, const, and pindat. 
+#'     These can be used to generate a stock of abalone to illustrate the use 
+#'     of a size-based model (SBM).
+#'
+#' @format A list of five objects, both matrices and lists
+#' \describe{
+#'   \item{fish}{58years x 4 (year, LML, catch, and cpue) matrix 1963 - 2020}
+#'   \item{sizecomp}{19 size-class x 31 year matrix of size-composition data 
+#'       where some years have no data}
+#'   \item{glb}{a globals object containing model constants such as the midpts 
+#'       of the size classes, number of size classes, natural mortality, 
+#'       steepness, sigR, lambda (hyper-stability coefficient), and the years 
+#'       in which recruitment deviates are estiamted. see str(glb)}
+#'   \item{const}{9 constants relating to weight-at, maturity-at, and 
+#'       growth-at-size}
+#'   \item{pindat}{initial parameter values prior to fitting, 34 x 2 matrix,
+#'       with the second column determining which parameters are fitted}
+#' }
+#'     
+#' @examples
+#' data(absaudata)
+#' str(absaudata)
+"absaudata"
+
 # fish --------------------
 
 #' @title fish fishery data for the plaice example from Beverton and Holt, 1957
@@ -343,6 +373,32 @@
 #' sizecomp
 "sizecomp"
 
+# TRL ----------------------
+
+#' @title TRL a list of five objects realting to an hypothetical lobster fishery
+#'
+#' @description TRL is a list of five objects relating to an hypothetical 
+#'     tropical rock lobster fishery. It contains fish, sizecomp, glb, 
+#'     constants, and allpin. These can be used to generate a stock of rock
+#'     lobster for use in a size-based model (SBM). The males and females have 
+#'     different growth dynamics and so require separate STM.
+#'
+#' @format A list of five objects, both matrices and lists
+#' \describe{
+#'   \item{fish}{34 years x 4 (year, LML, catch, and cpue) matrix 1988 - 2021}
+#'   \item{sizecomp}{31 size-class x 17 year x 2 sexes of size-composition data}
+#'   \item{glb}{a globals object containing model constants such as natural
+#'       mortality, size-classes, steepness, etc. see str(glb)}
+#'   \item{constants}{14 constants relating to weight-at, maturity-at, and 
+#'       growth-at-size for males and females}
+#'   \item{allpin}{initial parameter values prior to fitting, 27 x 2 matrix,
+#'       with the second column determining which parameters are fitted}
+#' }
+#'     
+#' @examples
+#' data(TRL)
+#' str(TRL)
+"TRL"
 
 # westroughy-------------------
 

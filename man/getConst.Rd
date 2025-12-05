@@ -24,10 +24,10 @@ only' under Debug/on Error to avoid that, and put NA where the data
 are missing
 }
 \examples{
-  inline <- "MaxDL , 31,32,33"
+  inline <- "name , 31,32,33"
   getConst(inline=inline,nb=3,index=2)
-  inline <- "MaxDL , 31,32,NA"
+  inline <- "anothername , 31,32,NA"
   getConst(inline=inline,nb=3,index=2)
-  inline <- "MaxDL , 31,32,"  # missing values not allowed   
-  getConst(inline=inline,nb=3,index=2)
+  inline <- "finalname , 31,32,"  # missing values not allowed   
+ # getConst(inline=inline,nb=3,index=2) # unhash and try to see error
 }

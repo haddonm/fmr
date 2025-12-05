@@ -8,7 +8,7 @@
 #' @importFrom stats pnorm cor optimize
 #' @importFrom utils tail head str
 #' @importFrom codeutils which.closest getmax getmin magnitude pathtopath
-#' @importFrom codeutils removeEmpty
+#' @importFrom codeutils removeEmpty makeUnit
 #' @importFrom hplot plotprep parset
 NULL
 
