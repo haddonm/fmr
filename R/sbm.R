@@ -262,6 +262,78 @@ getabSBMinit <- function(R0,glb,matwt,G) {
   return(list(B0=B0,N0=initN))
 } # end of getabSBMinit
 
+#' @title getabSBMproduction calculates productivity from optimum parameters
+#' 
+#' @description getabSBMproduction uses the optimum parameters and G to 
+#'     describe the productivity characteristics of a population at a given LML.
+#'     It does this by fishing the equilibrium population to a new equilibrium 
+#'     under and array of constant harvest rates to determine the sustainable 
+#'     yields obtainable at each harvest rate used.
+#'
+#' @param LML what legal minimum length to use?
+#' @param optpar the optimum parameters (in log-space) from a model fit
+#' @param glb the globals object
+#' @param biol the biological properties of the population
+#' @param G the growth transition matrix generated using the optimum parameters
+#' @param nyrs how many years should one project the model when searching for
+#'     a new equilibrium when being fished at each harvest rate, default=100
+#' @param H a vector of trial harvest rates, default = seq(0.005,0.4,0.005)
+#'
+#' @return a matrix of H, matureB, exploitableB, yield, depletion, and cpue
+#' @export
+#'
+#' @examples
+#' print("wait on data sets")
+#' #   LML=140;optpar=pindat[,1];glb=glb;biol=biol;G=G;nyrs=100;
+#' #  H=seq(0.005,0.4,0.005)
+getabSBMproduction <- function(LML,optpar,glb,biol,G,nyrs=100,
+                               H=seq(0.005,0.4,0.005)) {
+  nH <- length(H)
+  nc <- glb$Nclass
+  mids <- glb$midpts
+  surv <- exp(-glb$natM)
+  surv2 <- exp(-glb$natM/2)
+  steep <- glb$steep
+  R0 <- exp(optpar["LnR0"])
+  MatWt <- biol[,"matwt"]
+  emergent <- biol[,"emergence"]
+  WtL <- biol[,"WtL"]
+  sel <- logistic(LML,exp(optpar["seldelta"]),mids)
+  equilN <- getabSBMinit(R0=R0,glb=glb,matwt=MatWt,G=G)$N0
+  columns <- c("H","matB","expB","predC","depl","predce")
+  ans <- matrix(0,nrow=nH,ncol=length(columns),dimnames=list(H,columns))
+  for (i in 1:nH) {  # i = 1
+    Nt <- matrix(0,nrow=nc,ncol=(nyrs+1),dimnames=list(mids,1:(nyrs+1)))
+    NumN <- Nt
+    catchN <- Nt
+    predC <- depl <- recruit <- matB <- expB <- numeric((nyrs+1))
+    Nt[,1] <- equilN                           # START DYNAMICS
+    B0 <- sum(Nt[,1] * MatWt)/1e6                        # allow for the first two parameters
+    for (yr in 1:nyrs) {  # yr=1             
+      NumN[,yr] <- (surv2 * (G %*% Nt[,yr])) # half-way through year NAS
+      expB1 <- sum(NumN[,yr] * sel * WtL)/1e6
+      fishH <- sel * H[i]
+      catchN[,yr] <- (fishH * NumN[,yr])
+      Nt[,(yr+1)] <- (surv2 * ((1-(fishH)) * NumN[,yr]))
+      predC[yr] <- sum(catchN[,yr] * WtL)/1e6
+      expB2 <- sum(Nt[,(yr+1)] * sel * WtL)/1e6
+      expB[yr] <- (expB1 + expB2)/2.0
+      matB[yr] <- sum(Nt[,(yr+1)] * MatWt)/1e6
+      depl[yr] <- matB[yr]/B0
+      recruit[yr] <- bh(matB[yr],R0,B0,steep) 
+      Nt[1,(yr+1)] <- recruit[yr]
+    } # year loop
+    lambda <- glb$lambda   # if lambda = 1 mult = 1, if Lambda=0.65 mult=15.46
+    #  mult <- 2500.0*exp(-7.824046*lambda) # empirically determined for TAS
+    qest <- exp(optpar["qest"])   #exp(mean(log(cpue[pickce]/expB[pickce])))
+    # predce <- qest * mult * (expB ^ lambda)
+    predce <- qest * (expB ^ lambda)
+    ans[i,] <- c(H[i],matB[nyrs],expB[nyrs],predC[nyrs],depl[nyrs],predce[nyrs])
+  } # end of H loop
+  return(ans)
+} # end of getabSBMproduction
+
+
 #' @title getConst extracts 'nb' numbers from a line of text
 #'
 #' @description getConst parses a line of text and extracts 'nb' pieces of

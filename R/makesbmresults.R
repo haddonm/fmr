@@ -36,7 +36,7 @@ plotbiology <- function(rundir,biol,console=TRUE) {
   plot1(mids,biol[,"emergence"],lwd=2,defpar = FALSE,ylab="Emergence")
   plot1(mids,biol[,"WtL"],lwd=2,defpar = FALSE,ylab="Weight-at-Length")
   plot1(mids,biol[,"matwt"],lwd=3,defpar = FALSE,ylab="Maturity x Weight")
-  lines(mids,biol[,"mature"]*max(biol[,"WtL"]),lwd=2,col=2)
+  lines(mids,biol[,"maturity"]*max(biol[,"WtL"]),lwd=2,col=2)
   lines(mids,biol[,"WtL"],lwd=2,col=3)
   legend("topleft",c("MatWt","Maturity","Weight"),col=c(1,2,3),lwd=3,bty="n",cex=1.5)
   if (!console) {
