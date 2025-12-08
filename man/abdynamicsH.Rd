@@ -4,16 +4,18 @@
 \alias{abdynamicsH}
 \title{abdynamicsH calculates the size-based dynamics for the population}
 \usage{
-abdynamicsH(abstk, pin, fish, const, glb, full = TRUE, initH = 0)
+abdynamicsH(pin, fish, biol, G, const, glb, full = TRUE, initH = 0)
 }
 \arguments{
-\item{abstk}{the stock derived from makeabstock}
-
 \item{pin}{the log transformed vector of parameters, pindat column 1}
 
 \item{fish}{the fishery data in two matrices. The first contains the
 year, the LML, catches, and the cpue, and the second contains the
 numbers-at-size in the catch, just for those years with observations.}
+
+\item{biol}{the biol matrix from makebiol}
+
+\item{G}{the growth transition matrix from makebiol}
 
 \item{const}{contains biological constants, including those for growth}
 
@@ -41,5 +43,5 @@ to speed some of the computations
 }
 \examples{
 print("wait on example data sets")
-# abstk=abstk;pin=pindat[,1];fish=fish;const=const;glb=glb;full=TRUE;initH=0 
+# pin=pindat[,1];fish=fish;biol=biol;G=G;const=const;glb=glb;full=FALSE;initH=0 
 }

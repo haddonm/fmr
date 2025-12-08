@@ -4,14 +4,16 @@
 \alias{getabSBMinit}
 \title{getabSBMinit initiates a single sex abalone Size-Based Model}
 \usage{
-getabSBMinit(R0, glb, biol)
+getabSBMinit(R0, glb, matwt, G)
 }
 \arguments{
 \item{R0}{the nominal scale estimated unfished recruitment}
 
 \item{glb}{the globals object containing natM and the midpts}
 
-\item{biol}{the biol list containing growth, maturity and weight-at-length}
+\item{matwt}{the vector of maturity x weight-at-length}
+
+\item{G}{the growth transition matrix}
 }
 \value{
 a list of B0 the unfished spawning biomass, and N0 the unfished
@@ -25,10 +27,10 @@ biol object of the species being modelled.
 }
 \examples{
 data(absaudata)
-abstk <- makeabstock(fish=absaudata$fish,const=absaudata$const,
-                     glb=absaudata$glb,pin=absaudata$pindat)
+biolout <- makebiol(fish=absaudata$fish,const=absaudata$const,
+                    glb=absaudata$glb,listtoenv=FALSE)
 initSBM <- getabSBMinit(exp(absaudata$pindat["LnR0",1]),glb=absaudata$glb,
-                      biol=abstk$biol)
+                        matwt=biolout$biol[,"matwt"],G=biolout$G)
 print(initSBM$B0)
 print(round(initSBM$N0))
 }

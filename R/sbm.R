@@ -10,11 +10,12 @@
 #'     composition of the catch. In this case it uses Rcpp and RcppArmadillo
 #'     to speed some of the computations
 #'
-#' @param abstk the stock derived from makeabstock
 #' @param pin the log transformed vector of parameters, pindat column 1
 #' @param fish the fishery data in two matrices. The first contains the
 #'     year, the LML, catches, and the cpue, and the second contains the 
 #'     numbers-at-size in the catch, just for those years with observations.
+#' @param biol the biol matrix from makebiol
+#' @param G the growth transition matrix from makebiol
 #' @param const contains biological constants, including those for growth
 #' @param glb the global object
 #' @param full should only the predicted cpue and numbers-at-size in the
@@ -28,8 +29,8 @@
 #'
 #' @examples
 #' print("wait on example data sets")
-#' # abstk=abstk;pin=pindat[,1];fish=fish;const=const;glb=glb;full=TRUE;initH=0 
-abdynamicsH <- function(abstk,pin,fish,const,glb,full=TRUE,initH=0) {
+#' # pin=pindat[,1];fish=fish;biol=biol;G=G;const=const;glb=glb;full=FALSE;initH=0 
+abdynamicsH <- function(pin,fish,biol,G,const,glb,full=TRUE,initH=0) {
   epin <- exp(pin)
   npin <- length(epin)
   R0 <- epin["LnR0"]
@@ -38,37 +39,45 @@ abdynamicsH <- function(abstk,pin,fish,const,glb,full=TRUE,initH=0) {
   catch <- fish[,"catch"]
   yrs <- glb$yrs   
   nyr <- length(yrs) #  define matrices, vectors, and constants  
-  midpts <- glb$midpts
+  mids <- glb$midpts
   N <- glb$Nclass
-  recyrs <- glb$recyrs
-  pickrec <- match(recyrs,yrs)
-  nrec <- length(pickrec)
-  recloc <- which(substr(names(pin),1,1) == "d")
-  recdevs <- epin[recloc]
-  biol <- abstk$biol
-  dyn <- abstk$dyn
-  B0 <- abstk$B0
-  Nt <- abstk$Nt
-  NEbeg <- abstk$NEbeg
-  WtL <- biol$WtL
-  maturity <- biol$maturity
-  emergent <- biol$emergence
-  MatWt <- WtL * maturity
-  steep <- glb$steep
-  surv <- exp(-glb$natM)
-  surv2 <- exp(-glb$natM/2.0) 
+  pickrec <- match(glb$recyrs,yrs) # which years to estiamte recdevs
+  recdevs <- epin[glb$recpar]
+  defmat <- matrix(0,nrow=N,ncol=nyr,dimnames=list(mids,yrs))
+  defvect <- numeric(nyr) ; names(defvect) <- yrs
+  Nt <- NEbeg <- defmat 
+  colnam <- c("catch","predC","cpue","predCE","matureB","exploitB",
+              "deplet","deplexB","recruit","harvest")
+  dyn <- matrix(0,nrow=nyr,ncol=length(colnam),dimnames=list(yrs,colnam))
+  dyn[,"catch"] <- fish[,"catch"]
+  dyn[,"cpue"] <- fish[,"cpue"]
   LMLs <- unique(fish[,"lml"])  # define selectivity by year
   nlml <- length(LMLs)
-  sel <- matrix(0,nrow=N,ncol=nyr,dimnames=list(midpts,yrs))
+  sel <- matrix(0,nrow=N,ncol=nyr,dimnames=list(mids,yrs))
   for (i in 1:nlml) { # i = 1
     pick <- which(fish[,"lml"] == LMLs[i])
     L50 <- fish[pick[1],"lml"] 
     delta <- epin["seldelta"]
-    sel[,pick] <- knifelogistic(L50,delta,midpts,knifeedge=LMLs[i])
+    sel[,pick] <- knifelogistic(L50,delta,mids,knifeedge=LMLs[i])
   }
-  gpar <- c(epin["Linf"],const["K"],const["cvG"])
-  G <- STMvB(p=gpar,mids=midpts)
-  exB0 <- sum(NEbeg[,1] * sel[,1] * WtL)/1e6
+  WtL <- biol[,"WtL"]
+  maturity <- biol[,"maturity"]
+  emergent <- biol[,"emergence"]
+  matwt <- biol[,"matwt"]
+  R0 <- exp(pin["LnR0"])
+  init <- getabSBMinit(R0=R0,glb=glb,matwt=matwt,G=G)
+  B0 <- init$B0
+  dyn[1,"matureB"] <- B0
+  Nt[,1] <- init$N0 
+  NEbeg[,1] <- init$N0 * sel[,1] 
+  exB0 <- sum(NEbeg[,1] * WtL)/1e06
+  dyn[1,"exploitB"] <- exB0
+  dyn[1,"deplet"] <- 1.0
+  dyn[1,"deplexB"] <- 1.0
+  dyn[1,"recruit"] <- R0
+  steep <- glb$steep
+  surv <- exp(-glb$natM)
+  surv2 <- exp(-glb$natM/2.0) 
   expBU <- numeric(nyr)
   NumN <- matrix(0,nrow=N,ncol=nyr,  # midyr ExploitNAS 
                  dimnames=list(rownames(Nt),colnames(Nt)))
@@ -103,18 +112,17 @@ abdynamicsH <- function(abstk,pin,fish,const,glb,full=TRUE,initH=0) {
     dyn[yr,"predC"] <- sum(catchN[,yr] * WtL)/1e6
     expB2 <- sum(Nt[,yr] * sel[,yr] * WtL)/1e6
     dyn[yr,"exploitB"] <- (expB1 + expB2)/2.0  # half pre- + post fishing expB
-    dyn[yr,"matureB"] <- sum(Nt[,yr] * MatWt)/1e6
+    dyn[yr,"matureB"] <- sum(Nt[,yr] * matwt)/1e6
     devR <- 1.0
     if (yr %in% pickrec) {
       countrec <- countrec + 1
       devR <- recdevs[countrec]
     }
     dyn[yr,"recruit"] <- bh(dyn[yr,"matureB"],R0,B0,steep,devR=devR) 
-    # cat(yrs[yr],yr,countrec,devR,recruit[yr],"\n")
     Nt[1,yr] <- dyn[yr,"recruit"]
   } # year loop
-  dyn[,"deplet"] <-dyn[,"matureB"]/B0
-  # exBdepl <- expB/exB0
+  dyn[,"deplet"] <- dyn[,"matureB"]/B0
+  dyn[,"deplexB"] <- dyn[,"exploitB"]/exB0
   lambda <- glb$lambda   
   qest <- epin["qest"]
   expB <- dyn[2:nyr,"exploitB"]
@@ -122,7 +130,6 @@ abdynamicsH <- function(abstk,pin,fish,const,glb,full=TRUE,initH=0) {
   if (full) {
     ans <- list(Nt=Nt,catchN=catchN,dyn=dyn,G=G,B0=B0,initH=initH,
                 sel=sel)
-    
   } else {
     ans <- list(predce=dyn[,"predCE"],predC=dyn[,"predC"],catchN=catchN,
                 Nt=Nt,dyn=dyn)
@@ -130,7 +137,93 @@ abdynamicsH <- function(abstk,pin,fish,const,glb,full=TRUE,initH=0) {
   return(ans)
 } # end of abdynamicsH
 
-
+#' @title fitsdm fits a size-based model for example abalone data
+#' 
+#' @description fitsbm is a wrapper function that sets up the input requirements
+#'     for optim and, optionally, nlminb so it allows a dual model fit first
+#'     with optim, which is robust but generally slow, followed by nlminb which
+#'     is faster but, usually only if it starts near the solution.
+#'
+#' @param pardat a two column matrix of the log-trasnformed parameter vector
+#'     combined with another column of phases, either 1 or 0 determiing 
+#'     whether the parameter will be estimated or not
+#' @param likefunk a function for estimating the negative log-likelihood -veLL
+#' @param funk a function used to calcualte the stock dynamics
+#' @param glb the globals object see str(glb)
+#' @param fish the fisheries dependent datam year, LML, catch and cpue
+#' @param biol the biol matrix from makebiol
+#' @param G the growth transition matrix from makebiol
+#' @param const a vector of biological constants used to set weight-, maturity-,
+#'     emergence-, and growth-at-size. Emergence is of post-larval juveniles
+#'     from cryptic habitat.
+#' @param omega a vector of relative weights applied to each data set in an 
+#'     effort to balance their relative contribution to the total -veLL
+#' @param sizecomp the size composition data from commercial catches, usually 
+#'     after filtering for some minimum sample size number.
+#' @param both default = TRUE Should the detailed components of the -veLL be
+#'     returned, - used when summarizing the optimum fit, or, the default,  
+#'     should only the -veLL be returned - used when fitting the model 
+#' @param tol the tolerance used when using the numerical methods with optim 
+#'     and nlminb
+#' @param initH an annual harvest rate used to set an initial depletion, 
+#'     default = 0
+#'
+#' @returns Either just the -veLL, the default, or a more detailed vector of 
+#'     the components of the -veLL and other constants used in the model fit.
+#' @export
+#'
+#' @examples
+#' \dontrun{
+#'  require(fmr)
+#'  data(absaudata)
+#'  list2env(absaudata,envir=.GlobalEnv)
+#'  biolout <- makeabiol(fish=fish,const=const,glb=glb)
+#'  out <- abdynamicsH(pin=pindat[,1],fish=fish,biol=biol,G=G,const=const,
+#'                     glb=glb)
+#'  picksc=which(colSums(sizecomp) > 100)
+#'  finalcomp <- sizecomp[,picksc]
+#'  omega=c(1,1e-03)
+#'  fitout <- fitlbm(pardat=pindat,likefunk=negLL,funk=abdynamicsH,glb=glb,
+#'                fish=fish,biol=biol,G=G,const=const,omega=omega,
+#'                sizecomp=finalcomp)
+#'  out <- abdynamicsH(pin=fitout$optpar,fish=fish,biol=biol,G=G,const=const,
+#'                     glb=glb)
+#'  plotSBMdynamics(rundir="",dyn=out$dyn,fish=fish,pars=exp(fitout$optpar),
+#'                  glb,console = TRUE) 
+#'  pindat <- cbind(fitout$optpar,rep(1,length(fitout$optpar)))
+#'  print(pindat)
+#' }
+fitlbm <- function(pardat,likefunk,funk,glb,fish,biol,G,const,omega,
+                   sizecomp,both=TRUE,tol=1e-08,initH=0) {
+  notfix <- which(pardat[,2] > 0)
+  pin <- pardat[notfix,1]
+  allpin <- pardat[,1]
+  oldlogL <- likefunk(pars=pin,funk=funk,initpar=allpin,glb=glb,fish=fish,
+                      biol=biol,G=G,const=const,notfixed=notfix,
+                      omega=omega,finalcomp=sizecomp,full=FALSE,initH=initH) 
+  ans <- optim(par=pin,likefunk,initpar=allpin,method="BFGS",
+               funk=funk,glb=glb,fish=fish,biol=biol,G=G,const=const,
+               omega=omega,finalcomp=sizecomp,notfixed=notfix,
+               full=FALSE,initH=initH,
+               control=list(maxit=300,trace=4,reltol=tol))
+  bestpar <- allpin
+  fitpar <- ans$par
+  bestpar[notfix] <- fitpar
+  ans2 <- ans
+  if (both) {
+    ans2 <- nlminb(start=fitpar,likefunk,initpar=bestpar,funk=funk,glb=glb,
+                   fish=fish,biol=biol,G=G,const=const,omega=omega,
+                   finalcomp=sizecomp,notfixed=notfix,full=FALSE,initH=initH,
+                   control=list(eval.max=500,iter.max=300,trace=25,rel.tol=tol)) 
+    fitpar <- ans2$par
+    bestpar[notfix] <- fitpar
+  }
+  neglogL <- likefunk(pars=pin,funk=funk,initpar=allpin,glb=glb,fish=fish,
+                      biol=biol,G=G,const=const,notfixed=notfix,
+                      omega=omega,finalcomp=sizecomp,full=FALSE,initH=initH) 
+  return(list(ans2=ans2,ans=ans,both=both,oldlogL=oldlogL,neglogL=neglogL,
+              optpar=bestpar))
+} # end of fitlbm
 
 #' @title getabSBMinit initiates a single sex abalone Size-Based Model
 #' 
@@ -141,7 +234,8 @@ abdynamicsH <- function(abstk,pin,fish,const,glb,full=TRUE,initH=0) {
 #'
 #' @param R0 the nominal scale estimated unfished recruitment
 #' @param glb the globals object containing natM and the midpts
-#' @param biol the biol list containing growth, maturity and weight-at-length
+#' @param matwt the vector of maturity x weight-at-length
+#' @param G the growth transition matrix
 #'
 #' @returns a list of B0 the unfished spawning biomass, and N0 the unfished 
 #'     numbers-at-size
@@ -149,21 +243,20 @@ abdynamicsH <- function(abstk,pin,fish,const,glb,full=TRUE,initH=0) {
 #'
 #' @examples
 #' data(absaudata)
-#' abstk <- makeabstock(fish=absaudata$fish,const=absaudata$const,
-#'                      glb=absaudata$glb,pin=absaudata$pindat)
+#' biolout <- makebiol(fish=absaudata$fish,const=absaudata$const,
+#'                     glb=absaudata$glb,listtoenv=FALSE)
 #' initSBM <- getabSBMinit(exp(absaudata$pindat["LnR0",1]),glb=absaudata$glb,
-#'                       biol=abstk$biol)
+#'                         matwt=biolout$biol[,"matwt"],G=biolout$G)
 #' print(initSBM$B0)
 #' print(round(initSBM$N0))
-getabSBMinit <- function(R0,glb,biol) {
+getabSBMinit <- function(R0,glb,matwt,G) {
   surv <- exp(-glb$natM)
   mids <- glb$midpts
-  G <- biol$G
   I <- makeUnit(nrow(G)) # generates a square Unit matrix same size as G
   S <- makeUnit(nrow(G),surv)
   rec <- numeric(glb$Nclass); rec[1] <- 1 # generate mass per recruit
   N0 <- (solve(I - G %*% S)) %*% rec
-  A0 <-  sum(biol$maturity * biol$WtL * N0)/1e06
+  A0 <-  sum(matwt * N0)/1e06
   B0 <- R0 * A0
   initN <- N0 * R0
   return(list(B0=B0,N0=initN))
@@ -362,6 +455,73 @@ getStr <- function(inline,nb,index=2) { # inline=indat[begin];nb=4;start=1
   return(outconst)
 } # end of getStr
 
+#' @title getvcov calculates the hessian and the variance covariance matrix
+#' 
+#' @description getvcov uses optim and the optimal parameter set to estimate
+#'     the hessian matrix, which it then inverts to estimate the variance-
+#'     covariance matrix. The standard errors of the parameters are found
+#'     on the diagonal. If verbose is TRUE, the default, then approximate 95 
+#'     percent confidence intervals for the first 5 parameters are written to 
+#'     the console. They are approximate because the number of observations is
+#'     set arbitrarily to 50.
+#'
+#' @param pardat the matrix of optimal parameters and which are to fitted
+#' @param likefunk what function is used to calculate the -veLL
+#' @param dynfunk what function estimates the stock dynamics
+#' @param glb the global constants
+#' @param fish the fishery data in two matrices. The first contains the
+#'     year, the LML, catches, and the cpue, and the second contains the 
+#'     numbers-at-size in the catch, just for those years with observations.
+#' @param biol the matrix of maturity, WtL, emergence, and Maturity x Weight
+#' @param G the growth transition matrix from makebiol
+#' @param const contains biological constants, including those for growth
+#' @param omega the individual allocated weights for each data source
+#' @param sizecomp the cleaned size-composition data
+#' @param initH default=0. the initial harvest rate to achieve the initial 
+#'     deplation. If that is 1.0 then initH = 0 works fine.
+#' @param num95 how many of the parameters should have 95 percent CI generated.
+#'     default=3, which, if none are held constant, will give all the non-recdev
+#'     parameters
+#' @param verbose default = TRUE, which writes 95 percent CI to the console
+#'
+#' @return a list of the variance-covariance matrix, the standard errors of
+#'     all parameters, the correlation matrix between parameters, and a
+#'     matrix of parameter confidence intervals.
+#' @export
+#'
+#' @examples
+#' print("wait on example data sets")
+#' #  pardat=pindat; likefunk=negLL;dynfunk=abdynamicsH;glb=glb;fish=fish
+#' #  const=const; omega=omega; sizecomp=finalcomp;initH=0;verbose=TRUE;
+#' #  num95=4
+getvcov <- function(pardat,likefunk,dynfunk,glb,fish,biol,G,const,omega,
+                    sizecomp,initH=0,num95=3,verbose=TRUE) {
+  notfix <- which(pardat[,2] > 0)
+  pin <- pardat[notfix,1]
+  allpin <- pardat[,1]
+  if (verbose) cat("Be patient, generating the Hessian can take time  \n")
+  ans3 <- optim(par=pin,fn=likefunk,initpar=allpin,method="BFGS",
+                funk=dynfunk,glb=glb,fish=fish,biol=biol,G=G,const=const,
+                omega=omega,finalcomp=sizecomp,notfixed=notfix,
+                full=FALSE,hessian=TRUE,initH=initH,
+                control=list(maxit=300,trace=4,reltol=1e-08))
+  vcov <- solve(ans3$hessian)
+  sterr <- sqrt(diag(vcov))
+  correl <- cov2cor(vcov)
+  newfitpar <- ans3$par
+  columns <- names(newfitpar)[1:num95]
+  outpar <- length(columns)
+  rows <- c("U95","Mean","L95")
+  parCI <- matrix(0,nrow=3,ncol=outpar,dimnames=list(rows,columns))
+  U95 <- newfitpar + qt(0.975,50)* sterr
+  L95 <- newfitpar - qt(0.975,50)* sterr
+  parCI[1,] <- exp(U95[c(1:outpar)])
+  parCI[2,] <- exp(newfitpar[c(1:outpar)])
+  parCI[3,] <- exp(L95[c(1:outpar)])  
+  if (verbose) print(parCI)
+  return(list(vcov=vcov,sterr=sterr,correl=correl,parCI=parCI))
+} # end of getvcov
+
 #' @title knifelogistic a Logistic selectivity function with knifeedge option
 #'
 #' @description knifelogistic a logistic selectivity function with the option
@@ -416,85 +576,48 @@ knifelogistic <- function(L50,delta,lens,knifeedge=0,maxLML=0) {
   return(ans)
 } # end of knifelogistic
 
-#' @title makeabstock defines an abalone stock's properties prior to assessment
+#' @title makebiol defines an abalone stock's biological properties
 #' 
-#' @description makeabstock characterizes an abalone stock and fishery prior to
+#' @description makebiol characterizes an abalone stock prior to
 #'     its use in a stock assessment. The output list contains a 'biol' list 
-#'     containing the weight, maturity and emergence from crypsis for each 
-#'     size/length or size-class. It also contains the growth transition matrix.
-#'     It also contain the unfished biomass B0, then the initial fishery 
-#'     dynamics 'dyn', containing catch, cpue, mature and exploitable biomass,
-#'     etc. Then 'Nt' the matrix that will contain the numbers-at-time, 
-#'     containing the initial numbers-at-size in the first column. The 'NEbeg',
-#'     the start of year numbers-at-size of exploitable abalone. The final 
-#'     'fishery' object contains each year's selectivity (to allow for LML 
-#'     changes through time), the unique LMLs that occur, the years in the data,
-#'     the number of years, the survivorship from natural mortality and that 
-#'     from half the natural mortality. 
+#'     containing the weight, maturity, emergencefrom crypsis, and the combined
+#'     matwt for each size/length or size-class. It also contains the growth
+#'     transition matrix. By default the result is returned invisibly but is 
+#'     also returned to the gloabl environment for immediate use
 #'
 #' @param fish the fishery dependent data including year, LML, catch, and cpue
 #' @param const parameters for weight-at, maturity-at, and emergence-at-size,
 #'     and the von Bertalanffy parameters Linf, K, and CV.
 #' @param glb the global constants object
-#' @param pin the vector of initial parameters and whether they are fitted or 
-#'     fixed
-#' @param listtoenv default=FALSE, should list2env be used to put all list 
+#' @param listtoenv default=TRUE, should list2env be used to put all list 
 #'     objects into the .GlobalEnv.
 #'
-#'
-#' @returns a list of size objects, biol, B0, dyn, Nt, NEbeg, and fishery
+#' @returns a list of the matrix of biological properties and G the growth
+#'     transition matrix
 #' @export
 #'
 #' @examples
 #' data(absaudata)
-#' abstk <- makeabstock(fish=absaudata$fish,const=absaudata$const,
-#'                      glb=absaudata$glb,pin=absaudata$pindat,listtoenv=FALSE)
-#' str(abstk)
-makeabstock <- function(fish,const,glb,pin,listtoenv=FALSE) {
+#' biolout <- makebiol(fish=absaudata$fish,const=absaudata$const,
+#'                      glb=absaudata$glb,listtoenv=FALSE)
+#' str(biolout)
+#' # fish=absaudata$fish;const=absaudata$const;glb=absaudata$glb
+makebiol <- function(fish,const,glb,listtoenv=TRUE) {
   mids <- glb$midpts
   Nclass <- glb$Nclass
-  WtL <- const["Wta"] * mids ^ const["Wtb"]
-  maturity <- logistic(L50=const["M50"],delta=const["Mdelta"],depend=mids)
-  emergence <- logistic(L50=const["E50"],delta=const["Edelta"],depend=mids)
+  columns <- c("WtL","maturity","emergence","matwt")
+  biol <- matrix(0,nrow=Nclass,ncol=length(columns),dimnames=list(mids,columns))
+  biol[,"WtL"] <- const["Wta"] * mids ^ const["Wtb"]
+  biol[,"maturity"] <- logistic(L50=const["M50"],delta=const["Mdelta"],
+                                depend=mids)
+  biol[,"emergence"] <- logistic(L50=const["E50"],delta=const["Edelta"],
+                                 depend=mids)
+  biol[,"matwt"] <- biol[,"maturity"] * biol[,"WtL"]
   G <- STMvB(p=c(const["Linf"],const["K"],const["cvG"]),mids=mids)
-  biol <- list(WtL=WtL,maturity=maturity,emergence=emergence,G=G)
-  # do structure
-  yrs <- fish[,"year"]
-  nyr <- length(yrs)
-  defmat <- matrix(0,nrow=Nclass,ncol=nyr,dimnames=list(mids,yrs))
-  defvect <- numeric(nyr) ; names(defvect) <- yrs
-  Nt <- NEbeg <- defmat 
-  sel <- matrix(0,nrow=Nclass,ncol=nyr,dimnames=list(mids,yrs))
-  colnam <- c("catch","predC","cpue","predCE","matureB","exploitB","midyrexpB",
-              "deplet","recruit","harvest")
-  dyn <- matrix(0,nrow=nyr,ncol=length(colnam),dimnames=list(yrs,colnam))
-  dyn[,"catch"] <- fish[,"catch"]
-  dyn[,"cpue"] <- fish[,"cpue"]
-  surv <- exp(-glb$natM)
-  surv2 <- exp(-glb$natM/2.0) 
-  LMLs <- unique(fish[,"lml"])  # define selectivity by year
-  nlml <- length(LMLs)
-  for (i in 1:nlml) { # i = 1
-    pick <- which(fish[,"lml"] == LMLs[i])
-    L50 <- fish[pick[1],"lml"] 
-    delta <- exp(pin["seldelta",1])
-    sel[,pick] <- knifelogistic(L50,delta,mids,knifeedge=LMLs[i])
-  }
-  fishery <- list(sel=sel,LMLs=LMLs,yrs=yrs,nyr=nyr,surv=surv,surv2=surv2)
-  #equilpops
-  R0 <- exp(pin["LnR0",1])
-  init <- getabSBMinit(R0=R0,glb=glb,biol=biol)
-  B0 <- init$B0
-  dyn[1,"matureB"] <- B0
-  Nt[,1] <- init$N0 
-  NEbeg[,1] <- init$N0 * sel[,1] 
-  dyn[1,"exploitB"] <- sum(NEbeg[,1] * WtL)/1e06
-  dyn[1,"deplet"] <- 1.0
-  dyn[1,"recruit"] <- R0
-  stock <- list(biol=biol,B0=B0,dyn=dyn,Nt=Nt,NEbeg=NEbeg,fishery=fishery)
-  if (listtoenv) list2env(stock,envir=.GlobalEnv)
-  return(invisible(stock))
-} # end of makeabstock
+  biolout <- list(biol=biol,G=G)
+  if (listtoenv) list2env(biolout,envir=.GlobalEnv)
+  return(invisible(biolout))
+} # end of makebiol
 
 #' @title makestock set up the size-based model stock 
 #' 
@@ -574,95 +697,173 @@ makestock <- function(fish,const,glb,pin) {
   stock <- list(biol=biol,B0=B0,dyn=dyn,Nt=Nt,NEbeg=NEbeg,fishery=fishery)
 } # end of makestock
 
-
-#' @title plotSBMdynamics plots the implied dynamics from the assessment
+#' @title negLL estimates the negative log-likelihood for an abalone stock
 #' 
-#' @description plotSBMdynamics generates a 3 x 2 plot of the cpue imposed on
-#'     the predicted cpue, the exploitable biomass, the mature biomass,
-#'     the harvest rate, the recruitment levels, and the mature biomass
-#'     depletion levels. 
+#' @description negLL given an abalone stock along with all the related
+#'     requirements, negLL estimates the -ve Log-Likelihood that combines the 
+#'     -veLL from the cpue and from the size composition data.
+#'     It can output either only the -veLL (used when fitting the model to data)
+#'     or a listing of the components of the likelihood and other constants
 #'
-#' @param rundir the directory for all ctrl, data, and output files.
-#' @param dyn the matrix of the dynamics out of the 'dynamics' function 
-#'     that uses the optimum estimate of the parameters
-#' @param fish the fishery data used in the assessment
-#' @param pars the back-transformed parameters from the assessment
+#' @param pars the log-transformed model parameters
+#' @param funk the dynamics function, for abalone = abdynaicsH
+#' @param initpar a copy of the initial parameters
 #' @param glb the globals object
-#' @param console should the plot go to the console or be saved? Default=TRUE 
+#' @param fish the fishery data including year, LML, catch and cpue
+#' @param biol the biol matrix from makebiol
+#' @param G the growth transition matrix from makebiol
+#' @param const the biological constants relating to weight-, maturity-, 
+#'     emergence, and growth-at-size
+#' @param notfixed a vector of the indices of the parameters to be estimated
+#' @param omega the weights to be applied to each data sets log-likelihood
+#' @param finalcomp a matrix containing only those columns of the sizecomp data
+#'     that are to be included in the analysis
+#' @param full should the full details be generated or only the final -veLL
+#' @param initH an initial harvest rate used to generate an initial depletion
 #'
-#' @return nothing but it does add a plot to the console or to rundir
+#' @returns Either just the log-likelihood or a vector of its components. 
 #' @export
 #'
 #' @examples
 #' \dontrun{
-#'     plotSBMdynamics(rundir,dyn,fish,exp(pindat[,1]),glb,console = TRUE)
+#'  data(absaudata)
+#'  list2env(absaudata,envir=.GlobalEnv)
+#'  out <- abdynamicsH(pin=pindat[,1],fish=fish,biol=biol,G=G,const=const,
+#'                     glb=glb)
+#'  round(out$dyn,3)
+#'  picksc=which(colSums(sizecomp) > 100)
+#'  finalcomp <- sizecomp[,picksc]
+#'  notfixed=which(pindat[,2] > 0)  
+#'  negLL(pars=pindat[,1],funk=abdynamicsH,initpar=pars,glb=glb,fish=fish,
+#'        biol=biol,G=G,const=const,notfixed=notfixed,
+#'        omega=c(1,1e-03),finalcomp=finalcomp,full=FALSE,initH=0)
 #' }
-#' #  rundir=rundir; console=TRUE; pars=allpin
-#' # rundir=rundir;dyn=outdyn$dyn;fish=fish;pars=exp(out$optpar);glb=glb;
-#' # fisindex=NULL; predfisindex=NULL; console = TRUE
-plotSBMdynamics <- function(rundir,dyn,fish,pars,glb,console=TRUE) {
-  # rundir=""; dyn=out$dyn; fish=fish;pars=exp(pindat[,1]);console=TRUE
-  if (console) {   filen="" } else {
-    filen <- filenametopath(rundir,"optimum_population_dynamics.png")
+#' #  pars=pin;initpar=allpin;method="BFGS";
+#' #  funk=abdynamicsH;glb=glb;fish=fish;biol=biol;G=G;const=const
+#' #  omega=omega;finalcomp=sizecomp;notfixed=notfix;full=FALSE;initH=0
+negLL <- function(pars,funk,initpar=pars,glb,fish,biol,G,const,
+                  notfixed=c(1:length(pars)),omega,finalcomp,
+                  full=FALSE,initH=0) {
+  usepar <- initpar
+  usepar[notfixed] <- pars[notfixed]
+  npar <- length(pars[notfixed])
+  out <- funk(pin=usepar,fish=fish,biol=biol,G=G,const=const,glb=glb,
+              full=full,initH=initH)
+  if (!full) {
+    logpredce <- log(out$predce)
+  } else {
+    logpredce <- log(out$dyn[,"predCE"])
   }
-  numplot <- c(4,2)
-  npar <- length(pars)
-  years <- glb$yrs
-  nyrs <- length(years)
-  recyrs <- glb$recyrs
-  deviates <- rep(1.0,length(years))
-  pickyr <- match(recyrs,years)
-  devpars <- npar - length(recyrs) + 1
-  deviates[pickyr] <- pars[devpars:npar]
-  plotprep(width=9,height=8,newdev=FALSE,filename=filen,verbose=FALSE)
-  parset(plots=numplot,byrow=FALSE,margin=c(0.3,0.45,0.05,0.05))
-  ymax <- getmax(c(dyn[,"predCE"],fish[,"cpue"]))
-  plot1(years,dyn[,"predCE"],lwd=2,col=2,ylab="CPUE",defpar=FALSE,maxy=ymax)
-  lines(years,fish[,"cpue"],lwd=2,col=1)
-  legend("topright",c("Observed","Predicted"),col=c("black","red"),
-         lwd=3,cex=1,bty="n")
-  # residuals
-  tmp <- dyn[,"cpue"]/dyn[,"predCE"]
-  resid <- tmp[which(tmp > 0)]
-  residyr <- as.numeric(names(resid))
-  nres <- length(resid)  
-  maxy <- getmax(resid)
-  miny <- getmin(resid,mult=1.2)
-  plot(residyr,resid,type="p",pch=16,cex=1,ylab="CPUE Residuals",xlab="",
-       ylim=c(miny,maxy),panel.first=grid())
-  #  plot1(residyr,resid,type="p",pch=16,cex=1,ylab="CPUE Residuals",defpar=FALSE)
-  abline(h=1.0,lwd=1,col="darkgrey")
-  for (i in 1:nres) {
-    x <- c(residyr[i],residyr[i])
-    lines(x,c(resid[i],1.0),lwd=1,col=2)
+  logobsce <- log(fish[,"cpue"])
+  sigce <- getrmse(indat=fish)$rmse
+  pick <- which(is.na(logobsce))
+  if (length(pick) > 0) {
+    LLce <- -sum(dnorm(x=logobsce[-pick],mean=logpredce[-pick],sd=sigce,
+                       log=TRUE))
+  } else {
+    LLce <- -sum(dnorm(x=logobsce,mean=logpredce,sd=sigce,log=TRUE))
   }
-  plot1(years,fish[,"catch"],lwd=2,ylab="Catch (t)",defpar=FALSE)
-  lines(years,dyn[,"predC"],lwd=2,col=2)
-  plot1(years,dyn[,"harvest"],lwd=2,ylab="Harvest Rate",defpar=FALSE)
-  # plot1(years,dyn[,"exBdepl"],lwd=2,ylab="Exploitable Biomass",defpar=FALSE)
-  # label <- paste0("Depl = ",round(dyn[nyrs,"exBdepl"],3))
-  #  mtext(text=label,side=3,line=-1.1,cex=1.0)
-  plot1(years,dyn[,"deplet"],lwd=2,ylab="Mature Biomass depletion",defpar=FALSE)
-  label <- paste0("Depl = ",round(dyn[nyrs,"deplet"],3))
-  mtext(text=label,side=3,line=-1.1,cex=1.0)
-  recs <- dyn[,"recruit"]
-  pickpred <- match(glb$recyrs,as.numeric(names(recs)))  
-  plot1(years,dyn[,"recruit"],lwd=2,ylab="Recruitment",defpar=FALSE)
-  lines(years[pickpred],recs[pickpred],lwd=2,col="red")
-  spb <- dyn[,"matureB"]
-  nodev <- bh(spb,pars[1],spb[1],glb$steep,devR=1)
-  lines(years,nodev,lwd=2,col=4)
-  legend("topright",c("No Deviates","+ Deviates"),col=c("blue","red"),
-         lwd=3,cex=1,bty="n")
-  plot1(years,deviates,lwd=2,ylab="Recruitment deviates",defpar=FALSE,col="blue")
-  lines(years[pickpred],deviates[pickpred],lwd=2,col="red")
-  abline(h=1,lwd=1,col="darkgrey")
-  if (!console) {
-    caption <- paste0("The population dynamics implied by the assessment. ",
-                      "Note different years used on residual plot.")
-    addplot(filen,rundir=rundir,category="Assessment",caption)
+  catchN <- out$catchN
+  mids <- as.numeric(rownames(finalcomp))
+  yrsize <- as.numeric(colnames(finalcomp))
+  years <- as.numeric(colnames(catchN))
+  midpts <- glb$midpts
+  pickyr <- match(yrsize,years)
+  picksize <- match(mids,midpts)
+  nyrs <- length(pickyr)
+  LLsc <- 0
+  tyr <- colSums(finalcomp,na.rm=TRUE)
+  for (yr in 1:nyrs) { # yr = 1
+    obs <- finalcomp[,yr]/tyr[yr]
+    pred <- catchN[picksize,pickyr[yr]]
+    ppred <- pred/sum(pred,na.rm=TRUE)
+    LLsc <- LLsc - (tyr[yr] * sum(obs * (log(ppred+1e-7)),na.rm=TRUE))
   }
-} # end of plotSBMdynamics
+  #  allsad <- getsad(fish=fish,dyn=out,sizecomp=finalcomp)
+  sigR <- glb$sigR
+  devs <- usepar[glb$recpar]
+  penaltyR <- sum((devs^2/(sigR^2)) + log(sigR))/2.0
+  # penLnR0 <-  penaltyup(usepar["LnR0"],limLnR0)
+  # penDL <- penaltyup(exp(usepar["MaxDL"]),glb$DLmax)
+  # penDL <- penDL + penaltydown(exp(usepar["MaxDL"]),glb$DLmin)
+  catch <- out$dyn[,c("catch","predC")]
+  pencatch <- sum((catch[,1]-catch[,2])^2,na.rm=TRUE)/1000
+  expB <- out$dyn[,"exploitB"]
+  predC <- catch[,2]
+  #  penH <- (sum(penaltyup(predC/expB,0.8),na.rm=TRUE) - 1)/100
+  #  wtsc <- glb$wtsc
+  # penmult <- glb$penmult
+  if (!full) {
+    logL <- omega[1]*LLce + omega[2]*LLsc + penaltyR + pencatch
+    names(logL) <- "logL"
+    # + penLnR0 + penDL + pencatch + penH + penaltyCE
+  } else {
+    LLsc <- as.numeric(LLsc)
+    logL <- c("LLce"=LLce*omega[1],"compL"=omega[2]*LLsc,
+              "penaltyR"=penaltyR,"sigmaCE"=as.numeric(sigce),
+              "pencatch"=pencatch,"omega"=omega,
+              #  "wtsc"=wtsc,"penLnR0"=penLnR0,"penDL"=penDL,
+              #  "penH"=penH,"penaltyCE"=penaltyCE,
+              "totalL"=(omega[1]*LLce + omega[2]*LLsc + 
+                          penaltyR + pencatch), # + penH + penaltyCE), 
+              #  "sad"=allsad$sad,"sadce"=allsad$sadce,"sadcomp"=allsad$sadcomp,
+              "sigmaR"=sigR,"lambda"=glb$lambda,"steep"=glb$steep,"M"=glb$natM,
+              "LLsc"=LLsc)
+  }
+  return(logL)
+} # end of negLL
+
+#' @title preliminaryfit obtains the fit to inital parameter values
+#' 
+#' @description preliminaryfit runs the dynamics and pots them as well as
+#'     calculating the initial negative log-likelihood
+#'
+#' @param pindat the matrix containing the vector of parameter values and the
+#'     vector of phases - either 1 or 0 indicating which will be estimated and
+#'     which fixed
+#' @param glb the globals object
+#' @param fish the fishery data including year, LML, catch and cpue
+#' @param biol the biol matrix from makebiol
+#' @param G the growth transition matrix from makebiol
+#' @param const the biological constants relating to weight-, maturity-, 
+#'     emergence, and growth-at-size
+#' @param sizecomp the size composition data from commercial catches
+#' @param omega the weights to be given to each data stream
+#' @param full should full details be given or just the log-likelihood
+#' @param initH an initial harvest rate used to generate an initial depletion
+#'
+#' @returns Either just the log-likelihood or a vector of its components. It 
+#'     also generates a plot of the initial dynamics
+#' @export
+#'
+#' @examples
+#' \dontrun{
+#'  data(absaudata)
+#'  list2env(absaudata,envir=.GlobalEnv)
+#'  biolout <- makebiol(fish=fish,const=const,glb=glb)
+#'  out <- abdynamicsH(pin=pindat[,1],fish=fish,biol=biol,G=G,const=const,
+#'                     glb=glb)
+#'  round(out$dyn,3)
+#'  oldlogL <- preliminaryfit(pindat=pindat,glb=glb,fish=fish,biol=biol,G=G,
+#'                            const=const,sizecomp=sizecomp,omega=c(1,1e-3),
+#'                            full=FALSE,initH=0)
+#'  oldlogL
+#' }
+preliminaryfit <- function(pindat,glb,fish,biol,G,const,sizecomp,omega,
+                           full=TRUE,initH=0) {
+  out <- abdynamicsH(pin=pindat[,1],fish=fish,biol=biol,G=G,const=const,glb=glb,
+                     full=TRUE,initH=0)
+  plotSBMdynamics(rundir="",dyn=out$dyn,fish=fish,pars=exp(pindat[,1]),glb,
+                  console = TRUE) 
+  picksc=which(colSums(sizecomp) > 100)
+  finalcomp <- sizecomp[,picksc]
+  notfixed=which(pindat[,2] > 0)  
+  allpin=pindat[,1]
+  oldlogL <- negLL(pars=pindat[,1],funk=abdynamicsH,initpar=allpin,glb=glb,
+                   fish=fish,biol=biol,G=G,const=const,notfixed=notfixed,
+                   omega=c(1,1e-03),finalcomp=finalcomp,full=full,initH=initH)
+  return(invisible(oldlogL))
+} # end if preliminaryfit 
 
 #' @title SBMctrltemplate creates a draft control file for Size-Based Models
 #' 
@@ -683,9 +884,7 @@ plotSBMdynamics <- function(rundir,dyn,fish,pars,glb,console=TRUE) {
 #'
 #' @examples
 #' \dontrun{
-#'  rundir <- tempdir()
-#'  SBMctrltemplate(rundir,infile="draftctrlLBM.csv")
-#'  setup <- readSBMctrl(rundir,infile="draftctrlLBM.csv")
+#' print("wait on suitable internal data")
 #'  # indir=rundir; filename="control2.csv"  #
 #' }
 SBMctrltemplate <- function(rundir,infile="controlLBM.csv") { 
@@ -774,9 +973,7 @@ SBMctrltemplate <- function(rundir,infile="controlLBM.csv") {
 #'
 #' @examples
 #' \dontrun{
-#'  rundir <- tempdir()
-#'  SBMdatatemplate(rundir,outfile="dataSBM.csv")
-#'  setup <- readSBMdata(rundir,outfile="dataSBM.csv")
+#' print("wait on suitable internal data")
 #' }
 SBMdatatemplate <- function(rundir,outfile="dataSBM.csv") { 
   # rundir=rundir; filename="dataSBM.csv"
@@ -985,9 +1182,7 @@ SBMpintemplate <- function(rundir,infile,title="A_rock_Lobster") {
 #'
 #' @examples
 #' \dontrun{
-#'  rundir <- tempdir()
-#'  SBMctrltemplate(rundir,infile="ctrlSBM.csv")
-#'  setup <- readSBMctrl(rundir,infile="ctrlSBM.csv") 
+#'  print("wait on suitable internal data")
 #' }
 readSBMctrl <- function(rundir,infile="controlLBM.csv",verbose=TRUE) {
   # rundir=rundir; infile="ctrlSBM.csv"; verbose=TRUE

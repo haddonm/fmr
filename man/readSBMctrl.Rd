@@ -22,9 +22,7 @@ constants, and glb objects
 }
 \examples{
 \dontrun{
- rundir <- tempdir()
- SBMctrltemplate(rundir,infile="ctrlSBM.csv")
- setup <- readSBMctrl(rundir,infile="ctrlSBM.csv") 
+ print("wait on suitable internal data")
 }
 }
 \seealso{

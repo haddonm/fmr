@@ -22,9 +22,7 @@ mortality because M is not unique, which means R can become confused.
 }
 \examples{
 \dontrun{
- rundir <- tempdir()
- SBMctrltemplate(rundir,infile="draftctrlLBM.csv")
- setup <- readSBMctrl(rundir,infile="draftctrlLBM.csv")
+print("wait on suitable internal data")
  # indir=rundir; filename="control2.csv"  #
 }
 }

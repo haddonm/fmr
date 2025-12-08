@@ -22,9 +22,7 @@ cpue, any FIS data, and size-composition data.
 }
 \examples{
 \dontrun{
- rundir <- tempdir()
- SBMdatatemplate(rundir,outfile="dataSBM.csv")
- setup <- readSBMdata(rundir,outfile="dataSBM.csv")
+print("wait on suitable internal data")
 }
 }
 \seealso{
