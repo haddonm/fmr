@@ -903,7 +903,9 @@ negLL <- function(pars,funk,initpar=pars,glb,fish,biol,G,const,
 #' @param omega the weights to be given to each data stream
 #' @param full should full details be given or just the log-likelihood
 #' @param initH an initial harvest rate used to generate an initial depletion
-#'
+#' @param console default = TRUE, plot goes to screen or file
+#' @param rundir default = "", if plotted to file provide a directory name
+#' 
 #' @returns Either just the log-likelihood or a vector of its components. It 
 #'     also generates a plot of the initial dynamics
 #' @export
@@ -922,11 +924,11 @@ negLL <- function(pars,funk,initpar=pars,glb,fish,biol,G,const,
 #'  oldlogL
 #' }
 preliminaryfit <- function(pindat,glb,fish,biol,G,const,sizecomp,omega,
-                           full=TRUE,initH=0) {
+                           full=TRUE,initH=0,console=TRUE,rundir="") {
   out <- abdynamicsH(pin=pindat[,1],fish=fish,biol=biol,G=G,const=const,glb=glb,
                      full=TRUE,initH=0)
-  plotSBMdynamics(rundir="",dyn=out$dyn,fish=fish,pars=exp(pindat[,1]),glb,
-                  console = TRUE) 
+  plotSBMdynamics(rundir=rundir,dyn=out$dyn,fish=fish,pars=exp(pindat[,1]),glb,
+                  console = console) 
   picksc=which(colSums(sizecomp) > 100)
   finalcomp <- sizecomp[,picksc]
   notfixed=which(pindat[,2] > 0)  

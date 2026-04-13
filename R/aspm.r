@@ -1228,8 +1228,8 @@ prodASPM <- function(inprod, target=0.48, console=TRUE, plot=TRUE) {
 #' @param steptol default = 1e-05 A positive scalar providing the minimum 
 #'     allowable relative step length inside nlm. (copied from nlm help). 
 #'
-#' @return a list of results from each run, the range of values across runs, and
-#'     the median values.
+#' @return a list of results from each run, including the gradients, the range 
+#'     of values across runs, and the median values.
 #' @export
 #'
 #' @examples
@@ -1244,29 +1244,30 @@ robustASPM <- function(inpar,dynfun,fish,glb,props,N=10,scaler=15,
                   rnorm(N,mean=origpar[2],sd=abs(origpar[2])/scaler),
                   rnorm(N,mean=origpar[3],sd=abs(origpar[3])/scaler))
     columns <- c("iLnR0","isigmaCE","iavq","-veLL","LnR0","LsigCE","Lavq",
+                 "gradR0","gradSigCE","gradq",
                  "R0","sigCE","avq","MSY","B0","pardist","Iters")     
   } else {
     pars <- cbind(rnorm(N,mean=origpar[1],sd=abs(origpar[1])/scaler),
                   rnorm(N,mean=origpar[2],sd=abs(origpar[2])/scaler))
-    columns <- c("iLnR0","isigmaCE","-veLL","LnR0","LsigCE",
-                 "R0","sigCE","avq","MSY","B0","pardist","Iters")      
+    columns <- c("iLnR0","isigmaCE","-veLL","LnR0","LsigCE","gradR0",
+                 "gradSigCE","R0","sigCE","avq","MSY","B0","pardist","Iters")      
   }
   results <- matrix(0,nrow=N,ncol=length(columns),dimnames=list(1:N,columns))
   for (i in 1:N) { # i = 1   # 
     dist <- 0
     bestSP <- fitASPM(pars[i,],dynfun,fish,glb,props,steptol=steptol)
     opar <- bestSP$estimate
-    out <- dynamicsH(opar,infish=fish,inglb=glb,inprops=props,full=TRUE)
+    out <- dynfun(opar,infish=fish,inglb=glb,inprops=props,full=TRUE)
     for (pickp in 1:np) dist <- dist + (pars[i,pickp] - inpar[pickp])^2
     dist <- sqrt(dist)
     prod <- getProduction(exp(opar[1]),fish,glb,props,
                           Hrg=Hrange,nyr=numyrs)
     anspen <- prodASPM(prod,console=FALSE,plot=FALSE)
     if (np == 3) {
-      results[i,] <- c(pars[i,],bestSP$minimum,bestSP$estimate,
+      results[i,] <- c(pars[i,],bestSP$minimum,bestSP$estimate,bestSP$gradient,
                        exp(bestSP$estimate),anspen["MSY"],anspen["B0"],dist,i)
     } else {
-      results[i,] <- c(pars[i,],bestSP$minimum,bestSP$estimate,
+      results[i,] <- c(pars[i,],bestSP$minimum,bestSP$estimate,bestSP$gradient,
                        exp(bestSP$estimate),out$avq,anspen["MSY"],
                        anspen["B0"],dist,i)      
     }

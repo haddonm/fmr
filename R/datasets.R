@@ -53,6 +53,38 @@
 #' str(absaudata)
 "absaudata"
 
+# bestL1 ----------------------------
+
+#' @title bestL1 The outcome of robustness testing for westroughy data
+#'
+#' @description A dataset consisting of three objects summarizing the output
+#'     of a robustness test conducted on an ASPM of the westroughy data. The
+#'     optimum solution gave a -veLL = 2.677492, but out of 200 trials only 27
+#'     managed to obtain that value. But 150 had -veLL <= 2.677498. However, 
+#'     37 had -veLL > 17.0. This model is clearly not overly robust. 
+#'
+#' @format A list of three objects
+#' \describe{
+#'   \item{results}{ a 200 x 17 matrix, 3 columns of input parameter vectors, 
+#'         prefix 'i', the -veLL, the 3 estimated parameters, the 3 gradients,
+#'         and the R0, sigCE, avq, MSY, B0, pardist,and Iters, for each of 200
+#'         random parameter vectors }
+#'   \item{range}{ a 2 x 17 matrixc of the range for each column }
+#'   \item{medians}{ a 1 x 17 mtrix of the medians of each column, this is of
+#'         less use than the first two if the solutions are not all similar }
+#' }
+#' 
+#' @references Haddon, M. (2021) \emph{Using R for Modelling and Quantitative 
+#'     Methods in Fisheries} CRC Press. Chapman & Hall, Boca Raton. 337p. ISBN:
+#'     978-0-367-46988-7 see also https://haddonm.github.io/URMQMF/index.html.
+#' 
+#' @examples
+#' data(bestL1)
+#' countLL <- table((round(bestL1$results[,"-veLL"],6)))
+#' print(countLL)
+"bestL1"
+
+
 # fish --------------------
 
 #' @title fish fishery data for the plaice example from Beverton and Holt, 1957

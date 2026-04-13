@@ -14,7 +14,9 @@ preliminaryfit(
   sizecomp,
   omega,
   full = TRUE,
-  initH = 0
+  initH = 0,
+  console = TRUE,
+  rundir = ""
 )
 }
 \arguments{
@@ -40,6 +42,10 @@ emergence, and growth-at-size}
 \item{full}{should full details be given or just the log-likelihood}
 
 \item{initH}{an initial harvest rate used to generate an initial depletion}
+
+\item{console}{default = TRUE, plot goes to screen or file}
+
+\item{rundir}{default = "", if plotted to file provide a directory name}
 }
 \value{
 Either just the log-likelihood or a vector of its components. It

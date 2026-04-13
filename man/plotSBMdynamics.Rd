@@ -4,7 +4,15 @@
 \alias{plotSBMdynamics}
 \title{plotSBMdynamics plots the implied dynamics from the assessment}
 \usage{
-plotSBMdynamics(rundir, dyn, fish, pars, glb, console = TRUE)
+plotSBMdynamics(
+  rundir,
+  dyn,
+  fish,
+  pars,
+  glb,
+  console = TRUE,
+  fileadd = "optimum"
+)
 }
 \arguments{
 \item{rundir}{the directory for all ctrl, data, and output files.}
@@ -19,6 +27,9 @@ that uses the optimum estimate of the parameters}
 \item{glb}{the globals object}
 
 \item{console}{should the plot go to the console or be saved? Default=TRUE}
+
+\item{fileadd}{default = 'optimum' assumes the dynamics reflect the
+optimum fit. If plotting initial fit change this to 'preliminary"}
 }
 \value{
 nothing but it does add a plot to the console or to rundir

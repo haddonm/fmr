@@ -61,6 +61,8 @@ plotbiology <- function(rundir,biol,console=TRUE) {
 #' @param pars the back-transformed parameters from the assessment
 #' @param glb the globals object
 #' @param console should the plot go to the console or be saved? Default=TRUE 
+#' @param fileadd default = 'optimum' assumes the dynamics reflect the 
+#'     optimum fit. If plotting initial fit change this to 'preliminary"
 #'
 #' @return nothing but it does add a plot to the console or to rundir
 #' @export
@@ -72,10 +74,11 @@ plotbiology <- function(rundir,biol,console=TRUE) {
 #' #  rundir=rundir; console=TRUE; pars=allpin
 #' # rundir=rundir;dyn=outdyn$dyn;fish=fish;pars=exp(out$optpar);glb=glb;
 #' # fisindex=NULL; predfisindex=NULL; console = TRUE
-plotSBMdynamics <- function(rundir,dyn,fish,pars,glb,console=TRUE) {
+plotSBMdynamics <- function(rundir,dyn,fish,pars,glb,console=TRUE,
+                            fileadd="optimum") {
   # rundir=""; dyn=out$dyn; fish=fish;pars=exp(pindat[,1]);console=TRUE
   if (console) {   filen="" } else {
-    filen <- pathtopath(rundir,"optimum_population_dynamics.png")
+    filen <- pathtopath(rundir,paste0(fileadd,"_population_dynamics.png"))
   }
   numplot <- c(4,2)
   npar <- length(pars)
@@ -130,8 +133,10 @@ plotSBMdynamics <- function(rundir,dyn,fish,pars,glb,console=TRUE) {
   lines(years[pickpred],deviates[pickpred],lwd=2,col="red")
   abline(h=1,lwd=1,col="darkgrey")
   if (!console) {
-    caption <- paste0("The population dynamics implied by the assessment. ",
-                      "Note different years used on residual plot.")
+    caption <- paste0("The population dynamics implied by the parameters. ",
+                      "Note different years used on residual plot. Red line ",
+                      "on catches are the rpedicted catches on top of black ",
+                      "observed catches")
     addplot(filen,rundir=rundir,category="Assessment",caption)
   }
 } # end of plotSBMdynamics

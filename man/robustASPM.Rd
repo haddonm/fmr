@@ -50,8 +50,8 @@ equilibrium population structure}
 allowable relative step length inside nlm. (copied from nlm help).}
 }
 \value{
-a list of results from each run, the range of values across runs, and
-the median values.
+a list of results from each run, including the gradients, the range
+of values across runs, and the median values.
 }
 \description{
 robustASPM conducts a robustness test on the quality of fit of
