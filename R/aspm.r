@@ -20,19 +20,25 @@
 #'    \link{getLNCI}, \link{dynamicsH}, \link{dynamicsF}, \link{dynF}
 #' }     
 #'
-#' @return nothing but it does generate a plot
+#' @return the filen used, which defaults to '' but generates a plot
 #' @export
 #'
 #' @examples
-#' data("westroughy")
-#' fish <- westroughy$fish; glb <- westroughy$glb
-#' props <- westroughy$props
-#' pars <- c(7.1,-1,-7.7)
-#' ans <- fitASPM(pars,dynamicsH,infish=fish,inglb=glb,inprops =props)
-#' out <- dynamicsH(ans$estimate,infish=fish,inglb=glb,inprops=props,
-#'                  full=TRUE)
-#' ceCI <- getLNCI(out$fishery[,"predCE"],exp(ans$estimate[2]))
-#' aspmindexfit(infish=out$fishery,glb=glb,CI=ceCI,console=TRUE)
+#' data(francis92)
+#' glb <- francis92$glb;  props=francis92$props; fish=francis92$fish
+#' pars <- c(11.5,-1,-1)  # Try values 11.5, 11, and 10 for the log(R0) value
+#' out115 <- dynamicsH(pars=pars,infish=fish,inglb=glb,inprops=props,
+#'                     full=TRUE)
+#' pars <- c(11.0,-1,-1)
+#' out11 <- dynamicsH(pars=pars,infish=fish,inglb=glb,inprops=props,
+#'                    full=TRUE)
+#' pars <- c(10.0,-1,-1)
+#' out10 <- dynamicsH(pars=pars,infish=fish,inglb=glb,inprops=props,
+#'                    full=TRUE)
+#' filen <- aspmindexfit(out115$fishery,glb=glb,CI=NULL,console=TRUE)
+#' lines(1977:1989,out11$fishery[,"predCE"],lwd=2,col=2)
+#' lines(1977:1989,out10$fishery[,"predCE"],lwd=2,col=4)
+#' legend("topright",c("11.5","11","10"),col=c(1,2,4),lwd=3,cex=1,bty="n")
 aspmindexfit <- function(infish,glb,CI=NULL,rundir="",CIlwd=1,CIcol=4,
                          console=TRUE) {
   colnames(infish) <- tolower(colnames(infish))
@@ -43,7 +49,7 @@ aspmindexfit <- function(infish,glb,CI=NULL,rundir="",CIlwd=1,CIcol=4,
   if (inherits(CI,"matrix")) ymax <- getmax(CI[,"upper"]) 
   filen=""
   if (!console) filen <- pathtopath(rundir,paste0(glb$spsname,"_aspm.png"))
-  if (console) plotprep(width=9,height=5,cex=1.0,filename=filen)
+  plotprep(width=9,height=5,cex=1.0,filename=filen,verbose=FALSE)
   parset()
   plot(yrs,cpue,type="p",pch=16,col=2,cex=1.0,ylim=c(0,ymax),
        yaxs="i",xlab="",panel.first=grid(),ylab="Relative Abundance Index")
@@ -51,7 +57,7 @@ aspmindexfit <- function(infish,glb,CI=NULL,rundir="",CIlwd=1,CIcol=4,
   if (inherits(CI,"matrix"))  {
     segments(x0=yrs,y0=CI[,1],x1=yrs,y1=CI[,3],lwd=CIlwd,col=CIcol)
   }
-  if (!console) dev.off()
+  return(invisible(filen))
 } # end of aspmindexfit
 
 #' @title aspmphaseplot - plots the phase plot of harvest rate vs biomass
@@ -942,6 +948,7 @@ matchC <- function(f,M,cyr,Nyr,sel,waa) {
 #'     automatically inside. Defaults to TRUE
 #' @param target target depletion level. Defaults to 0.48
 #' @param usef defines the font to use usef(ont),default = 7 bold times
+#' @param rundir default '', otherwise give a full path if saving a file
 #' @param png save a png file with the name in 'png', default = "", which
 #'     means no file produced
 #'
@@ -963,18 +970,22 @@ matchC <- function(f,M,cyr,Nyr,sel,waa) {
 #' plotASPM(out$fishery,CI=ceCI)
 #' }  # infish=fisheryPen; CI=ceCI; defineplot=TRUE; target=0.48; usef=7;png=""
 #' # infish=outH$fishery; CI=ceCI;defineplot=TRUE; target=0.48; usef=7;png=""
-plotASPM <- function(infish,CI=NA,defineplot=TRUE, target=0.48,usef=7,png="") { 
+plotASPM <- function(infish,CI=NA,defineplot=TRUE, target=0.48,usef=7,
+                     rundir="",png="") { 
    if (nchar(png) > 0) defineplot=FALSE
    if (defineplot) { 
+     
       if (names(dev.cur()) %in% c("null device", "RStudioGD"))
          dev.new(width = 7, height = 5.5, noRStudioGD = TRUE)
+     
    }
    par(mfrow=c(3,2),mai=c(0.25,0.4,0.1,0.05),oma=c(0.0,0,0.0,0.0),tck=-0.02) 
    par(cex=0.85,mgp=c(1.35,0.35,0),font.axis=usef,font=usef,font.lab=usef)  
+   graphfile <- ""
    if (nchar(png) > 0) {
       dev.off()
       graphics.off()
-      graphfile <- png
+      graphfile <- pathtopath(rundir,png)
       if (file.exists(graphfile)) file.remove(graphfile)
       png(filename=graphfile,width=210,height=160,units="mm",res=200) 
       par(mfrow=c(3,2),mai=c(0.25,0.4,0.1,0.05),oma=c(0.0,0,0.0,0.0),tck=-0.02) 
@@ -1022,7 +1033,7 @@ plotASPM <- function(infish,CI=NA,defineplot=TRUE, target=0.48,usef=7,png="") {
         panel.first=grid(),ylab="Depletion")
    abline(h=c(0.2,target),col=c(2,3),lwd=1)
    text(yrs[nyrs-1],0.9,round(infish$deplete[nrow(infish)],3),cex=1.0)
-   if (nchar(png) > 0) dev.off()
+   return(invisible(graphfile))
 } # end of plotASPM
 
 #' @title plotceASPM plots just the fit of the ASPM model to the CPUE data
@@ -1087,28 +1098,26 @@ plotceASPM <- function(infish,CI=NA,defineplot=TRUE) {
 #' @param console should the plot go to the console or be saved as a png file
 #'     into rundir? default=TRUE ie plot to console
 #'
-#' @return nothing but it does generate a plot
+#' @return thefilen used, which defaults '', but generates a plot
 #' @export
 #'
 #' @examples
 #' data("westroughy")
 #' plotprops(rundir="",westroughy$props,console=TRUE)
 plotprops <- function(rundir,props,console=TRUE) {
-  if (console) {
-    filen <- "" 
-  } else {
-    filen <- pathtopath(rundir,"fishery_properties.png")
-  }
+  filen <- "" 
+  if (!console)  filen <- pathtopath(rundir,"fishery_properties.png")
   label <- c("Length-at-Age","Weight-at-Age","Maturity-at-Age",
              "Selectivity-at-Age")
   ages <- props[,1]
-  if (console) plotprep(width=9, height=7,filename=filen)
+  plotprep(width=9, height=7,filename=filen,verbose=FALSE)
   parset(plots=c(2,2),margin=c(0.25,0.5,0.1,0.1),outmargin=c(1,0,0,0))
   for (i in 2:5) {
     plot(ages,props[,i],type="l",lwd=3,xlab="",ylab=label[i-1],
          panel.first=grid())
   }
   mtext("Age Years",side=1,line=-0.1,outer=TRUE,cex=1.1)
+  return(invisible(filen))
 } # end of plotprops
 
 #' @title prodASPM summarizes ASPM statistics and plots the productivity

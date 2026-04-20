@@ -16,7 +16,7 @@ sela in columns 2 - 5}
 into rundir? default=TRUE ie plot to console}
 }
 \value{
-nothing but it does generate a plot
+thefilen used, which defaults '', but generates a plot
 }
 \description{
 plotprops generates a 2 x 2 plot of the fishery properties of

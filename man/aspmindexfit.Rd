@@ -33,22 +33,28 @@ set = FALSE, then rundir can be set to identify where the png of the
 plot will be saved}
 }
 \value{
-nothing but it does generate a plot
+the filen used, which defaults to '' but generates a plot
 }
 \description{
 aspmindexfit plots an aspm fit to CPUE or Index data with the
 option of including 95\% Log-Normal CI around the model fit.
 }
 \examples{
-data("westroughy")
-fish <- westroughy$fish; glb <- westroughy$glb
-props <- westroughy$props
-pars <- c(7.1,-1,-7.7)
-ans <- fitASPM(pars,dynamicsH,infish=fish,inglb=glb,inprops =props)
-out <- dynamicsH(ans$estimate,infish=fish,inglb=glb,inprops=props,
-                 full=TRUE)
-ceCI <- getLNCI(out$fishery[,"predCE"],exp(ans$estimate[2]))
-aspmindexfit(infish=out$fishery,glb=glb,CI=ceCI,console=TRUE)
+data(francis92)
+glb <- francis92$glb;  props=francis92$props; fish=francis92$fish
+pars <- c(11.5,-1,-1)  # Try values 11.5, 11, and 10 for the log(R0) value
+out115 <- dynamicsH(pars=pars,infish=fish,inglb=glb,inprops=props,
+                    full=TRUE)
+pars <- c(11.0,-1,-1)
+out11 <- dynamicsH(pars=pars,infish=fish,inglb=glb,inprops=props,
+                   full=TRUE)
+pars <- c(10.0,-1,-1)
+out10 <- dynamicsH(pars=pars,infish=fish,inglb=glb,inprops=props,
+                   full=TRUE)
+filen <- aspmindexfit(out115$fishery,glb=glb,CI=NULL,console=TRUE)
+lines(1977:1989,out11$fishery[,"predCE"],lwd=2,col=2)
+lines(1977:1989,out10$fishery[,"predCE"],lwd=2,col=4)
+legend("topright",c("11.5","11","10"),col=c(1,2,4),lwd=3,cex=1,bty="n")
 }
 \seealso{
 {
