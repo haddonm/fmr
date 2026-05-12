@@ -7,11 +7,11 @@
 plotASPM(
   infish,
   CI = NA,
-  defineplot = TRUE,
   target = 0.48,
   usef = 7,
   rundir = "",
-  png = ""
+  console = TRUE,
+  scenario = ""
 )
 }
 \arguments{
@@ -20,17 +20,18 @@ plotASPM(
 \item{CI}{defaults to NA, if confidence intervals around the cpue have been
 obtained using getLNCI, then the resulting matrix will generate 95pc CIs}
 
-\item{defineplot}{define the plot size and character outside the plot or
-automatically inside. Defaults to TRUE}
-
 \item{target}{target depletion level. Defaults to 0.48}
 
 \item{usef}{defines the font to use usef(ont),default = 7 bold times}
 
 \item{rundir}{default '', otherwise give a full path if saving a file}
 
-\item{png}{save a png file with the name in 'png', default = "", which
-means no file produced}
+\item{console}{default=TRUE, which implies the plot will go to console. If
+set TRUE it will save pathtopath(rundir,'scenario.png')}
+
+\item{scenario}{default = '', but if a file is to be saved then this should\
+be given a name for the file, if left as '', then it will be called
+ASPM.png}
 }
 \value{
 Nothing, but it does plot six graphs in a single plot.
@@ -44,7 +45,7 @@ the observed CPUE, and the harvest rate. This routine is still under
 development to include more options.
 }
 \examples{
-\dontrun{
+require(fmr)
 data(westroughy)
 fish <- westroughy$fish
 glb <- westroughy$glb
@@ -53,9 +54,8 @@ pars <- c(7.1,-1,-7.7)  # logR0 logceSE logavq
 bestaspm <- fitASPM(pars,minfun=dynamicsH,infish=fish,
                    inglb=glb,inprops=props)
 out <- dynamicsH(bestaspm$estimate,fish,glb,props,full=TRUE)
-plotASPM(out$fishery,defineplot=TRUE)
-ceCI <- getLNCI(out$fishery[,"predCE"],exp(bestspm$estimate[2]))
-plotASPM(out$fishery,CI=ceCI)
-}  # infish=fisheryPen; CI=ceCI; defineplot=TRUE; target=0.48; usef=7;png=""
+plotASPM(out$fishery, console=TRUE)
+ceCI <- getLNCI(out$fishery[,"predCE"],exp(bestaspm$estimate[2]))
+plotASPM(out$fishery,CI=ceCI, console=TRUE)
 # infish=outH$fishery; CI=ceCI;defineplot=TRUE; target=0.48; usef=7;png=""
 }

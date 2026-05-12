@@ -317,38 +317,27 @@
 #'  print(plaice$agedata)
 "plaice"
 
-# robustresults-------------------
+# robustness-------------------
 
-#' @title robustresults are 'robustASPM' outputs western Tasmanian Orange Roughy
+#' @title robustness are 'robustASPM' outputs western Tasmanian Orange Roughy
 #'
 #' @description robustresults a data.frame containing the results of running
 #'     the robustASPM function using the westroughy data sets and using the 
 #'     dynamicsF function that has instantaneous fishing mortality rates. It
-#'     constitutes a 200 x 14 data.frame with columns iLnR0, isigmaCE, iavq, 
-#'     -veLL, LnR0, LsigCE, Lavq, R0, sigCE, avq, MSY, B0, pardist, and Iters.
-#'     See the description in teh Introduction to Age-Structured Models 
+#'     constitutes a 200 x 17 data.frame with columns iLnR0, isigmaCE, iavq, 
+#'     -veLL, LnR0, LsigCE, Lavq, gradR0, gradsigCE, gradq, R0, sigCE, avq, 
+#'     MSY, B0, pardist, and Iters.
+#'     See the description in the Introduction to Age-Structured Models 
 #'     chapter in More Fisheries Modelling using R.
 #'     
-#' @format A data.frame of 14 columns and 200 rows  
-#' \describe{
-#'   \item{fish}{ a data.frame containing year, catch, cpue, SE of the cpue }
-#'   \item{glb}{biological parameters relating to growth, selectivity, 
-#'     weight-at-age, steepness, and resilience and spsname }
-#'   \item{props}{ contains six variables ages, laa, waa, maa, sela, and feca,
-#'     which are all relative to age.}
-#'   \item{agedata}{ a list of 5 objects, yrage - the years in which age data are
-#'     available, ages - the observed ages, agemax - the maximum age, nage - 
-#'     the number of observed ages, and naa - the numbers-at-age by year}
-#'   \item{lendata}{ a list of 5 objects akin to the agedata object but for
-#'     length data.}
-#' }  
+#' @format A data.frame of 17 columns and 200 rows  
 #'     
 #' @examples
-#' \dontrun{
-#'  data(robustresults)
-#'  str(robustresults)
-#' }
-"robustresults"
+#'  data(robustness)
+#'  str(robustness)
+#'  countLL <- table((round(robustness[,"-veLL"],6)))
+#'  countLL
+"robustness"
 
 # sizecomp -----------------------
 
