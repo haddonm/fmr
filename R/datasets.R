@@ -323,7 +323,7 @@
 #'
 #' @description robustresults a data.frame containing the results of running
 #'     the robustASPM function using the westroughy data sets and using the 
-#'     dynamicsF function that has instantaneous fishing mortality rates. It
+#'     dynamicsH function that has Annual Harvest rates. It
 #'     constitutes a 200 x 17 data.frame with columns iLnR0, isigmaCE, iavq, 
 #'     -veLL, LnR0, LsigCE, Lavq, gradR0, gradsigCE, gradq, R0, sigCE, avq, 
 #'     MSY, B0, pardist, and Iters.
@@ -338,6 +338,30 @@
 #'  countLL <- table((round(robustness[,"-veLL"],6)))
 #'  countLL
 "robustness"
+
+# robustnessF-------------------
+
+#' @title robustnessF are 'robustASPM' outputs for roughy using instantaneous F
+#'
+#' @description robustnessF is a data.frame containing the results of running
+#'     the robustASPM function using the westroughy data sets and using the 
+#'     dynamicsF function that has instantaneous fishing mortality rates. It
+#'     constitutes a 200 x 17 data.frame with columns iLnR0, isigmaCE, iavq, 
+#'     -veLL, LnR0, LsigCE, Lavq, gradR0, gradsigCE, gradq, R0, sigCE, avq, 
+#'     MSY, B0, pardist, and Iters.
+#'     See the description in the Introduction to Age-Structured Models 
+#'     chapter in More Fisheries Modelling using R. Though robustnessF is
+#'     generated in the Advanced ASPM chapter.
+#'     
+#' @format A data.frame of 17 columns and 200 rows  
+#'     
+#' @examples
+#'  data(robustnessF)
+#'  str(robustnessF)
+#'  countLL <- table((round(robustnessF[,"-veLL"],6)))
+#'  countLL
+"robustnessF"
+
 
 # sizecomp -----------------------
 

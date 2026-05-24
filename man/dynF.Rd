@@ -55,7 +55,8 @@ dynF summarizes the dynamics of an Age-Structured
 Production Model (ASPM). Fitting the ASPM entails estimating the unfished
 recruitment level (R0), which is input as a parameter. In this case
 fishing mortality is implemented as instantaneous rates rather that
-as annual harvest rates. The maximize F = 4.0
+as annual harvest rates. The maximize F = 4.0. Once again we have
+included a penalty on catches to ensure that predC = ObsC.
 }
 \examples{
 \dontrun{
@@ -73,8 +74,8 @@ codeutils::outfit(bestL,digits=6)
 out <- dynF(bestL$par,fish,glb,props,full=TRUE)
 print(round(out$fishery,4)) 
 }
-# pars=bestL$par;infish=fish;inglb=glb;inprops=props
-# waa="waa";maa="maa";sela="sela"
+# pars=bestFD$estimate;infish=fish;inglb=glb;inprops=props
+# waa="waa";maa="maa";sela="sela"; full=TRUE; reps=9
 }
 \seealso{
 {

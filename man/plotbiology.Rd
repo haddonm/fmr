@@ -25,10 +25,4 @@ and prepared for inclusion in the results webpage.
 }
 \examples{
 print("wait on data sets")
-#   plotbiology(rundir=resdir,biol=biol,console=TRUE)
-}
-\seealso{
-{
-\link{makebiol}, \link{makehtml}
-}
 }

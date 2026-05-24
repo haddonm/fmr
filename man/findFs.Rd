@@ -26,8 +26,21 @@ the fully selected fishing mortality rates
 \description{
 findFs is used when searching for the instantaneous F that will
 produce the required catch in a given year in an age-structured model
-when there are multiple gears, with different selectivity being used.
+when there are multiple gears, with different selectivity being used. It
+uses a method modified from that described in Methot and Wetzel
+(2013, p7). This arrangement is designed solely for annual fisheries.
+By including a 'season' term and dividing each estimate of fFyr by
+the fraction of a year in each 'season', this adjustment routine could
+be applied to seasonal fisheries.
 }
 \examples{
 print("wait on example data sets")
+# cyr=obsC;Nyr=Nt[,yr-1];sel=as.matrix(sel[,pickft]);aaw=aaw;M=M;reps=reps
+}
+\references{
+Methot, R.D. and C.R. Wetzel (2013) Stock synthesis: A biological
+and statistical framework for fish stock assessment and fishery
+management. Supplementary Material: Appendix A: Technical Description of
+the Stock Synthesis assessment program \emph{Fisherie Research} 142:
+86-99. http://dx.doi.org/10.1016/j.fishres.2012.10.012
 }

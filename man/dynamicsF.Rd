@@ -12,7 +12,9 @@ dynamicsF(
   waa = "waa",
   maa = "maa",
   sela = "sela",
-  full = FALSE
+  full = FALSE,
+  diffC = TRUE,
+  maxF = 4
 )
 }
 \arguments{
@@ -41,6 +43,10 @@ present this would be the log of the initail depletion.}
 \item{full}{should all outputs from dynamics be given. When fitting the
 model, set this to FALSE. Once fitted, change this to TRUE to get all
 the required outputs.}
+
+\item{diffC}{should a catch penalty be used. default = TRUE}
+
+\item{maxF}{search for F in optimize from 0 to maxF, default = 4.0}
 }
 \value{
 a data.frame containing the fishery dynamics according to the input
@@ -52,7 +58,10 @@ dynamicsF summarizes the dynamics of an Age-Structured
 Production Model (ASPM). Fitting the ASPM entails estimating the unfished
 recruitment level (R0), which is input as a parameter. In this case
 fishing mortality is implemented as instantaneous rates rather that
-as annual harvest rates. The maximize F = 4.0
+as annual harvest rates. The maximize F = 4.0. It would be rare that
+when using instantaneous fishing mortality rates that predicted catch
+failed to equal observed catches. Even so, we have included the same
+penalty term into the likelihood as used in dynamicsH, just to the sure.
 }
 \examples{
 \dontrun{

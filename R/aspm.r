@@ -12,9 +12,12 @@
 #' @param rundir default = "", give a full path if saving a png file
 #' @param CIlwd width of CI lines default = 1
 #' @param CIcol colour of CI lines, default = 4 = blue
+#' @param maxy default = 0, which means use the data to set ymax. If maxy > 0
+#'     the ymax will be set to that value.
 #' @param console should the plot be sent to the console, default = TRUE. If
 #'     set = FALSE, then rundir can be set to identify where the png of the 
 #'     plot will be saved
+#' @param prepplot should the plotprep function be used
 #'     
 #' @seealso{
 #'    \link{getLNCI}, \link{dynamicsH}, \link{dynamicsF}, \link{dynF}
@@ -39,17 +42,22 @@
 #' lines(1977:1989,out11$fishery[,"predCE"],lwd=2,col=2)
 #' lines(1977:1989,out10$fishery[,"predCE"],lwd=2,col=4)
 #' legend("topright",c("11.5","11","10"),col=c(1,2,4),lwd=3,cex=1,bty="n")
-aspmindexfit <- function(infish,glb,CI=NULL,rundir="",CIlwd=1,CIcol=4,
-                         console=TRUE) {
+aspmindexfit <- function(infish,glb,CI=NULL,rundir="",CIlwd=1,CIcol=4,maxy=0,
+                         console=TRUE,prepplot=TRUE) {
   colnames(infish) <- tolower(colnames(infish))
   yrs <- infish[,"year"]
   cpue <- infish[,"cpue"]
   predce <- infish[,"predce"]
-  ymax <- getmax(c(cpue,predce))
-  if (inherits(CI,"matrix")) ymax <- getmax(CI[,"upper"]) 
+  ymax <- ifelse(maxy > 0, maxy, getmax(c(cpue,predce)))
+  if ((inherits(CI,"matrix")) & (maxy == 0)) ymax <- getmax(CI[,"upper"]) 
   filen=""
-  if (!console) filen <- pathtopath(rundir,paste0(glb$spsname,"_aspm.png"))
-  plotprep(width=9,height=5,cex=1.0,filename=filen,verbose=FALSE)
+  if (!console) { 
+    filen <- pathtopath(rundir,paste0(glb$spsname,"_aspm.png"))
+    plotprep(width=9,height=5,cex=1.0,filename=filen,verbose=FALSE)
+  }
+  if ((console) & prepplot) {
+    plotprep(width=9,height=5,cex=1.0,filename=filen,verbose=FALSE)
+  }
   parset()
   plot(yrs,cpue,type="p",pch=16,col=2,cex=1.0,ylim=c(0,ymax),
        yaxs="i",xlab="",panel.first=grid(),ylab="Relative Abundance Index")
@@ -221,7 +229,8 @@ doDepletion <- function(inR0,indepl,inprops,inglb,inc=0.02,Numyrs=50) {
 #'     Production Model (ASPM). Fitting the ASPM entails estimating the unfished
 #'     recruitment level (R0), which is input as a parameter. In this case 
 #'     fishing mortality is implemented as instantaneous rates rather that
-#'     as annual harvest rates. The maximize F = 4.0 
+#'     as annual harvest rates. The maximize F = 4.0. Once again we have 
+#'     included a penalty on catches to ensure that predC = ObsC. 
 #'
 #' @param pars the dynamics relies on many parameters sitting in the global
 #'     environment in particular ages, nages, maxage, M, fish, nyrs, and
@@ -268,8 +277,8 @@ doDepletion <- function(inR0,indepl,inprops,inglb,inc=0.02,Numyrs=50) {
 #' out <- dynF(bestL$par,fish,glb,props,full=TRUE)
 #' print(round(out$fishery,4)) 
 #' }
-#' # pars=bestL$par;infish=fish;inglb=glb;inprops=props
-#' # waa="waa";maa="maa";sela="sela"
+#' # pars=bestFD$estimate;infish=fish;inglb=glb;inprops=props
+#' # waa="waa";maa="maa";sela="sela"; full=TRUE; reps=9
 dynF <- function(pars,infish,inglb,inprops,
                  waa="waa",maa="maa",sela="sela",full=FALSE,reps=6) { 
   aaw <- inprops[,waa]
@@ -305,9 +314,6 @@ dynF <- function(pars,infish,inglb,inprops,
     Nt[1,yr] <- bh(spb,R0,B0,inglb$steep)
     fishery[yr,"recruit"] <- Nt[1,yr]
     yrF <- findFs(catch[yr],Nt[,yr-1],sel,aaw,M,reps=reps)
-    # yrF <- optimize(matchC,interval=c(0,4.0),M=M,cyr=catch[yr],
-    #                 Nyr=Nt[,yr-1],sel=sel,waa=aaw,maximum=FALSE,
-    #                 tol = 1e-09)$minimum
     sF <- sel * yrF
     psF <- sF[2:nages]
     msF <- sF[nages]
@@ -323,18 +329,19 @@ dynF <- function(pars,infish,inglb,inprops,
   exb <- ExB(Nt[,yr],sel,aaw)
   fishery[yr,c("spawnB","exploitB")] <- c(spb,exb)
   fishery[,"deplete"] <- fishery[,"spawnB"]/B0
+  indexC <- which(fishery[,"catch"] > 0)
+  absdiffC <- sum(abs(fishery[indexC,"catch"] - fishery[indexC,"predC"]))  
   ExpB <- fishery[1:nyrs,"exploitB"]
   fishery[2:nyrs1,"predCE"] <- ExpB * avq
-  pick <- which(fishery[,"cpue"] > 0)
-  f <- -sum(dnorm(log(fishery[pick,"cpue"]),log(fishery[pick,"predCE"]),
-                  sigCE,log=TRUE),na.rm=TRUE)
+  indexCE <- which(fishery[,"cpue"] > 0)
+  negLL <- -sum(dnorm(log(fishery[indexCE,"cpue"]),log(fishery[indexCE,"predCE"]),
+                  sigCE,log=TRUE),na.rm=TRUE) + absdiffC
   if (full) {
-    absdiffC <- sum(abs(fishery[,"catch"] - fishery[,"predC"]),na.rm=TRUE)
     out <- list(fishery=as.data.frame(fishery),Nt=Nt,B0=B0,R0=R0,avq=avq,
-                LL=f,diffC=absdiffC)
+                LL=negLL,diffC=absdiffC)
     return(out)
   } else {
-    return(f)
+    return(negLL)
   }
 } # end of dynF
 
@@ -344,7 +351,10 @@ dynF <- function(pars,infish,inglb,inprops,
 #'     Production Model (ASPM). Fitting the ASPM entails estimating the unfished
 #'     recruitment level (R0), which is input as a parameter. In this case 
 #'     fishing mortality is implemented as instantaneous rates rather that
-#'     as annual harvest rates. The maximize F = 4.0 
+#'     as annual harvest rates. The maximize F = 4.0. It would be rare that 
+#'     when using instantaneous fishing mortality rates that predicted catch
+#'     failed to equal observed catches. Even so, we have included the same
+#'     penalty term into the likelihood as used in dynamicsH, just to the sure.
 #'
 #' @param pars the dynamics relies on many parameters sitting in the global
 #'     environment in particular ages, nages, maxage, M, fish, nyrs, and
@@ -364,6 +374,8 @@ dynF <- function(pars,infish,inglb,inprops,
 #' @param full should all outputs from dynamics be given. When fitting the 
 #'     model, set this to FALSE. Once fitted, change this to TRUE to get all
 #'     the required outputs.
+#' @param diffC should a catch penalty be used. default = TRUE
+#' @param maxF search for F in optimize from 0 to maxF, default = 4.0
 #' 
 #' @seealso{
 #'  \link{dynamicsH}
@@ -389,7 +401,8 @@ dynF <- function(pars,infish,inglb,inprops,
 #' print(round(fishery,4)) 
 #' }
 dynamicsF <- function(pars,infish,inglb,inprops,
-                      waa="waa",maa="maa",sela="sela",full=FALSE) { 
+                      waa="waa",maa="maa",sela="sela",full=FALSE,diffC=TRUE,
+                      maxF=4.0) { 
   # pars=pars;infish=fish;inglb=glb;inprops=props;waa="waa";maa="maa";sela="sela";maxF=1.0
   aaw <- inprops[,waa]
   aam <- inprops[,maa]
@@ -422,7 +435,7 @@ dynamicsF <- function(pars,infish,inglb,inprops,
     exb <- ExB(Nt[,(yr-1)],sel,aaw)
     Nt[1,yr] <- bh(spb,R0,B0,inglb$steep)
     fishery[yr,"recruit"] <- Nt[1,yr]
-    yrF <- optimize(matchC,interval=c(0,4.0),M=M,cyr=catch[yr],
+    yrF <- optimize(matchC,interval=c(0,maxF),M=M,cyr=catch[yr],
                     Nyr=Nt[,yr-1],sel=sel,waa=aaw,maximum=FALSE,
                     tol = 1e-09)$minimum
     sF <- sel * yrF
@@ -440,13 +453,14 @@ dynamicsF <- function(pars,infish,inglb,inprops,
   exb <- ExB(Nt[,yr],sel,aaw)
   fishery[yr,c("spawnB","exploitB")] <- c(spb,exb)
   fishery[,"deplete"] <- fishery[,"spawnB"]/B0
+  absdiffC <- sum(abs(fishery[,"catch"] - fishery[,"predC"]),na.rm=TRUE)
   ExpB <- fishery[1:nyrs,"exploitB"]
   fishery[2:(nyrs+1),"predCE"] <- ExpB * avq
   pick <- which(fishery[,"cpue"] > 0)
   f <- -sum(dnorm(log(fishery[pick,"cpue"]),log(fishery[pick,"predCE"]),
                   sigCE,log=TRUE),na.rm=TRUE)
+  if (diffC) f <- f + absdiffC
   if (full) {
-    absdiffC <- sum(abs(fishery[,"catch"] - fishery[,"predC"]),na.rm=TRUE)
     out <- list(fishery=as.data.frame(fishery),Nt=Nt,B0=B0,R0=R0,avq=avq,
                 LL=f,diffC=absdiffC)
     return(out)
@@ -459,10 +473,15 @@ dynamicsF <- function(pars,infish,inglb,inprops,
 #' @title dynamicsH describe the ASPM dynamics using annual harvest rates
 #'
 #' @description dynamicsH summarizes the dynamics of the Age-Structured
-#'     Production Model (ASPM) in which the catches are represented as annual
+#'     Production Model (ASPM) in which the catches are predicted from annual
 #'     harvest rates. Fitting the ASPM entails estimating the unfished
 #'     recruitment level (R0), which is input as a parameter. There may be 
-#'     other parameters as described in the pars section. 
+#'     other parameters as described in the pars section. Methematically, it is
+#'     possible to have harvest rates > 1.0, which is biological nonsense. So,
+#'     the code includes an if statement that constrains the harvest rate to 
+#'     < 0.975 (which would be ridiculously high). Because of this we also \
+#'     include a penalty, absdiffC, to ensure that the predicted catches = the
+#'     observed catches.
 #'
 #' @param pars the dynamics relies on many parameters sitting in the function's
 #'     environment, these are ages, nages, maxage, M, maa, waa, sela, fish,
@@ -472,7 +491,7 @@ dynamicsF <- function(pars,infish,inglb,inprops,
 #'     directly in the dynamics but rather in the estimation of the likelihoods 
 #'     during the fitting process, 3) if is present, is the catchability 'q',
 #'     which alternatively can be estimated using the closed form. 4) If 
-#'     present this would be the log of the initail depletion.
+#'     present this would be the log of the initial depletion.
 #' @param infish the fish data.frame from readdata or an internal dataset
 #' @param inglb the glb data.frame from readdata or an internal dataset
 #' @param inprops the props data.frame from readdata or an internal dataset
@@ -482,6 +501,7 @@ dynamicsF <- function(pars,infish,inglb,inprops,
 #' @param full should all outputs from dynamics be given. When fitting the 
 #'     model, set this to FALSE. Once fitted, change this to TRUE to get all
 #'     the required outputs.
+#' @param diffC should a catch penalty be used. default = TRUE
 #'     
 #' @seealso{
 #'  \link{dynamicsF}
@@ -507,7 +527,7 @@ dynamicsF <- function(pars,infish,inglb,inprops,
 #' # pars=c(7.064324,-1.257487,-7.694248);infish=fish;inglb=glb;
 #' # inprops=props;full=TRUE; waa="waa";maa="maa";sela="sela"
 dynamicsH <- function(pars,infish,inglb,inprops,
-                      waa="waa",maa="maa",sela="sela",full=FALSE) {  
+                      waa="waa",maa="maa",sela="sela",full=FALSE,diffC=TRUE) {  
   aaw <- inprops[,waa]  # setup the model structure 
   aam <- inprops[,maa]
   sel <- inprops[,sela]
@@ -551,13 +571,15 @@ dynamicsH <- function(pars,infish,inglb,inprops,
   exb <- ExB(Nt[,yr]*hS,sel,aaw)
   fishery[yr,c("spawnB","exploitB")] <- c(spb,exb)
   fishery[,"deplete"] <- fishery[,"spawnB"]/B0
+  absdiffC <- sum(abs(fishery[,"catch"] - fishery[,"predC"]),na.rm=TRUE)
   ExpB <- fishery[1:nyrs,"exploitB"]  # calculate predicted CPUE
   avq <- ifelse(length(epars) > 2, epars[3], # estimate or closed form
               exp(mean(log(infish$cpue/fishery[1:nyrs,"exploitB"]),na.rm=TRUE)))
   fishery[2:(nyrs+1),"predCE"] <- ExpB * avq
   pick <- which(fishery[,"cpue"] > 0)  # calculate -ve log-likelihood
   f <- -sum(dnorm(log(fishery[pick,"cpue"]),log(fishery[pick,"predCE"]),
-                  sigCE,log=TRUE),na.rm=TRUE)  # uses log-Normal errors
+                  sigCE,log=TRUE),na.rm=TRUE) # log-Normal errors
+  if (diffC) f <- f + absdiffC
   if (full) {  # output everything or only -ve log-likelihood
     absdiffC <- sum(abs(fishery[,"catch"] - fishery[,"predC"]),na.rm=TRUE)
     out <- list(fishery=as.data.frame(fishery),Nt=Nt,B0=B0,R0=R0,avq=avq,
@@ -677,6 +699,7 @@ findF <- function(cyr,Nyr,sel,aaw,M,Fmax=3.0,reps=8) {
 #' @param steptol default = 1e-08 A positive scalar providing the minimum 
 #'     allowable relative step length. (copied from nlm help).
 #' @param hessian should hessian be estimated at the optimum, default = FALSE
+#' @param ... in case there are other arguments to be included into minfun
 #' 
 #' @return a list containing the optimal output
 #' @export
@@ -693,16 +716,16 @@ findF <- function(cyr,Nyr,sel,aaw,M,Fmax=3.0,reps=8) {
 #' out <- dynamicsH(bestL$estimate,fish,glb,props,full=TRUE)
 #' round(out$fishery,4)
 fitASPM <- function(initpar,minfun,infish,inglb,inprops,gradtol=1e-06,
-                    stepmax=0.1,steptol=1e-06,hessian=FALSE) { 
+                    stepmax=0.1,steptol=1e-06,hessian=FALSE,...) { 
   paramscale = magnitude(initpar)
   bestL <- optim(par=initpar,fn=minfun,method="Nelder-Mead",
                  infish=infish,inglb=inglb,inprops=inprops,
-                 control=list(maxit = 1000, parscale = paramscale))
+                 control=list(maxit = 1000, parscale = paramscale),...)
   bestL <- nlm(f=minfun,p=bestL$par,hessian=hessian,
                infish=infish,inglb=inglb,inprops=inprops,
                gradtol=gradtol,
                stepmax=stepmax,steptol=steptol,
-               iterlim=1000)
+               iterlim=1000,...)
   return(bestL)
 } # end of fitASPM
 

@@ -13,7 +13,8 @@ fitASPM(
   gradtol = 1e-06,
   stepmax = 0.1,
   steptol = 1e-06,
-  hessian = FALSE
+  hessian = FALSE,
+  ...
 )
 }
 \arguments{
@@ -48,6 +49,8 @@ any anticipated reasonable step. (copied from nlm help).}
 allowable relative step length. (copied from nlm help).}
 
 \item{hessian}{should hessian be estimated at the optimum, default = FALSE}
+
+\item{...}{in case there are other arguments to be included into minfun}
 }
 \value{
 a list containing the optimal output

@@ -1,8 +1,5 @@
 
 
-
-
-
 #' @title plotbiology generates a pot of the maturity, emergence, WtL, and MatWt
 #' 
 #' @description plotbiology only generates a 2 x 2 plot of maturity-at-length,
@@ -15,16 +12,11 @@
 #' @param biol the matrix of biological properties (except growth).
 #' @param console should the plot go to the console or be saved? Default=TRUE 
 #' 
-#' @seealso{
-#'  \link{makebiol}, \link{makehtml}
-#' }
-#'
 #' @return nothing but it does generate a plot to the console or to rundir
 #' @export
 #'
 #' @examples
 #' print("wait on data sets")
-#' #   plotbiology(rundir=resdir,biol=biol,console=TRUE)
 plotbiology <- function(rundir,biol,console=TRUE) {
   if (console) {   filen="" } else {
     filen <- pathtopath(rundir,"biological_properties.png")
@@ -32,11 +24,11 @@ plotbiology <- function(rundir,biol,console=TRUE) {
   mids <- as.numeric(rownames(biol))
   plotprep(width=8,height=7,newdev=FALSE,filename=filen,verbose=FALSE)
   parset(plots=c(2,2))
-  plot1(mids,biol[,"maturity"],lwd=2,defpar = FALSE,ylab="Maturity")
-  plot1(mids,biol[,"emergence"],lwd=2,defpar = FALSE,ylab="Emergence")
+  plot1(mids,biol[,"mature"],lwd=2,defpar = FALSE,ylab="Maturity")
+  plot1(mids,biol[,"emergent"],lwd=2,defpar = FALSE,ylab="Emergence")
   plot1(mids,biol[,"WtL"],lwd=2,defpar = FALSE,ylab="Weight-at-Length")
-  plot1(mids,biol[,"matwt"],lwd=3,defpar = FALSE,ylab="Maturity x Weight")
-  lines(mids,biol[,"maturity"]*max(biol[,"WtL"]),lwd=2,col=2)
+  plot1(mids,biol[,"MatWt"],lwd=3,defpar = FALSE,ylab="Maturity x Weight")
+  lines(mids,biol[,"mature"]*max(biol[,"WtL"]),lwd=2,col=2)
   lines(mids,biol[,"WtL"],lwd=2,col=3)
   legend("topleft",c("MatWt","Maturity","Weight"),col=c(1,2,3),lwd=3,bty="n",cex=1.5)
   if (!console) {

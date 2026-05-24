@@ -11,7 +11,9 @@ aspmindexfit(
   rundir = "",
   CIlwd = 1,
   CIcol = 4,
-  console = TRUE
+  maxy = 0,
+  console = TRUE,
+  prepplot = TRUE
 )
 }
 \arguments{
@@ -28,9 +30,14 @@ of dynF functions}
 
 \item{CIcol}{colour of CI lines, default = 4 = blue}
 
+\item{maxy}{default = 0, which means use the data to set ymax. If maxy > 0
+the ymax will be set to that value.}
+
 \item{console}{should the plot be sent to the console, default = TRUE. If
 set = FALSE, then rundir can be set to identify where the png of the
 plot will be saved}
+
+\item{prepplot}{should the plotprep function be used}
 }
 \value{
 the filen used, which defaults to '' but generates a plot
