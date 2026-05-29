@@ -7,12 +7,12 @@
 \format{
 A list of three objects
 \describe{
-\item{fish}{ a data.frame containing Year, Catch, standardized CPUE, and
-SE, the standard error of the CPUE estimates, if present}
+\item{fish}{ a 31 x 4 data.frame containing Year, Catch, standardized
+CPUE, and SE, the standard error of the CPUE estimates, if present}
 \item{glb}{ a list of global variables including maxage, M, parameters for
 growth, weight-at-age, maturity-at-age, steepness, R0, selectivity,
 resilience, number of ages, and the ages themselves. }
-\item{props}{ a data.frame of age, laa, waa, maa, sela, and feca}
+\item{props}{ a data.frame of age, laa, waa, maa, and sela. }
 }
 }
 \usage{

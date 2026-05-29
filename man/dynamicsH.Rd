@@ -12,7 +12,9 @@ dynamicsH(
   waa = "waa",
   maa = "maa",
   sela = "sela",
-  full = FALSE
+  full = FALSE,
+  diffC = TRUE,
+  ...
 )
 }
 \arguments{
@@ -24,7 +26,7 @@ the variability around the index of relative abundance (cpue), not used
 directly in the dynamics but rather in the estimation of the likelihoods
 during the fitting process, 3) if is present, is the catchability 'q',
 which alternatively can be estimated using the closed form. 4) If
-present this would be the log of the initail depletion.}
+present this would be the log of the initial depletion.}
 
 \item{infish}{the fish data.frame from readdata or an internal dataset}
 
@@ -41,6 +43,10 @@ present this would be the log of the initail depletion.}
 \item{full}{should all outputs from dynamics be given. When fitting the
 model, set this to FALSE. Once fitted, change this to TRUE to get all
 the required outputs.}
+
+\item{diffC}{should a catch penalty be used. default = TRUE}
+
+\item{...}{any extra arguments needed}
 }
 \value{
 a data.frame containing the fishery dynamics according to the input
@@ -49,10 +55,15 @@ CPUE and PredCE, which can be used in a maximum likelihood context.
 }
 \description{
 dynamicsH summarizes the dynamics of the Age-Structured
-Production Model (ASPM) in which the catches are represented as annual
+Production Model (ASPM) in which the catches are predicted from annual
 harvest rates. Fitting the ASPM entails estimating the unfished
 recruitment level (R0), which is input as a parameter. There may be
-other parameters as described in the pars section.
+other parameters as described in the pars section. Methematically, it is
+possible to have harvest rates > 1.0, which is biological nonsense. So,
+the code includes an if statement that constrains the harvest rate to
+< 0.975 (which would be ridiculously high). Because of this we also \
+include a penalty, absdiffC, to ensure that the predicted catches = the
+observed catches.
 }
 \examples{
 data(westroughy)

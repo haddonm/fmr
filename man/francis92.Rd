@@ -7,8 +7,8 @@
 \format{
 A list of three objects
 \describe{
-\item{fish}{ a data.frame containing year, catch (tonnes), index (trawl
-survey index), and Coefficient of Variation.}
+\item{fish}{ a 13 x 4 data.frame containing year, catch (tonnes),
+index (trawl survey index), and Coefficient of Variation.}
 \item{glb}{ a list of global variables including maxage, M, parameters for
 growth, weight-at-age, maturity-at-age, steepness, R0, selectivity,
 resilience, number of ages, ages, number of years of catch data,

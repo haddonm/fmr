@@ -9,7 +9,7 @@
 #'     (2013, p7). This arrangement is designed solely for annual fisheries.
 #'     By including a 'season' term and dividing each estimate of fFyr by
 #'     the fraction of a year in each 'season', this adjustment routine could 
-#'     be applied to seasonal fisheries.
+#'     be applied to seasonal fisheries.  
 #'
 #' @param cyr a vector of known catches in a given year for nfleets
 #' @param Nyr the numbers at size at the start of the given year or end of the 
@@ -29,8 +29,22 @@
 #'     86-99. http://dx.doi.org/10.1016/j.fishres.2012.10.012 
 #'
 #' @examples
-#' print("wait on example data sets")
-#' # cyr=obsC;Nyr=Nt[,yr-1];sel=as.matrix(sel[,pickft]);aaw=aaw;M=M;reps=reps
+#' \dontrun{
+#'   require(fmr)
+#'  library(codeutils)
+#'  library(hplot)
+#'  library(knitr)
+#'  data("westroughy")
+#'  fish <- westroughy$fish
+#'  glb <- westroughy$glb
+#'  props <- westroughy$props
+#'  pars <- c(7,-0.4,-6.7)  
+#'  bestFD <- fitASPM(initpar=pars,minfun=dynF,infish=fish,inglb=glb,
+#'                    inprops=props,gradtol=1e-05,stepmax=0.1,steptol=1e-07,
+#'                    hessian=TRUE,reps=9)
+#'  outfit(bestFD,digits=7,title="Instantaneous Rates 2",
+#'         parnames=c("LnR0","Ln(sigCE)","Ln(q)"))   
+#' }                
 findFs <- function(cyr,Nyr,sel,aaw,M,reps=8) {
   sel <- as.matrix(sel)
   nages <- length(sel[,1]) # uses selectivity by age
@@ -41,7 +55,7 @@ findFs <- function(cyr,Nyr,sel,aaw,M,reps=8) {
   temp1 <- cyr / (Byr + 0.1*cyr)  # next 4 lines = Pope's approximation
   join1 <- 1/(1 + exp(30*(temp1 - 0.95))) # join keeps it differentiable
   tempyr <- (join1 * temp1) + (0.95 * (1 - join1)) #approx mid-yr harvest rate
-  fFyr <- -log(1 - tempyr)/season
+  fFyr <- -log(1 - tempyr)
   wtNyr <- wata * Nyr
   sF <- matrix(0,nrow=nages,ncol=nfleet)
   for (ft in 1:nfleet) {
@@ -50,7 +64,7 @@ findFs <- function(cyr,Nyr,sel,aaw,M,reps=8) {
                          (1 - exp(-(M + sF[,ft]))))
   }
   for (i in 1:reps) {
-    Zadj <- cyr/(predCyr + 0.000001)  # limits how precise one can get
+    Zadj <- cyr/(predCyr + 0.0000001)  # limits how precise one can get
     fFyr <- Zadj * fFyr
     for (ft in 1:nfleet) {
       sF[,ft] <- sel[,ft]*fFyr[ft]
@@ -58,5 +72,7 @@ findFs <- function(cyr,Nyr,sel,aaw,M,reps=8) {
                            (1 - exp(-(M + sF[,ft]))))
     }
   }
+  Zadj <- cyr/(predCyr + 0.0000001)  # limits how precise one can get
+  fFyr <- Zadj * fFyr
   return(fFyr) 
 } # end of findFs

@@ -14,7 +14,8 @@ dynamicsF(
   sela = "sela",
   full = FALSE,
   diffC = TRUE,
-  maxF = 4
+  maxF = 4,
+  ...
 )
 }
 \arguments{
@@ -47,6 +48,8 @@ the required outputs.}
 \item{diffC}{should a catch penalty be used. default = TRUE}
 
 \item{maxF}{search for F in optimize from 0 to maxF, default = 4.0}
+
+\item{...}{any extra arguments needed}
 }
 \value{
 a data.frame containing the fishery dynamics according to the input

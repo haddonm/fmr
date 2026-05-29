@@ -34,8 +34,22 @@ the fraction of a year in each 'season', this adjustment routine could
 be applied to seasonal fisheries.
 }
 \examples{
-print("wait on example data sets")
-# cyr=obsC;Nyr=Nt[,yr-1];sel=as.matrix(sel[,pickft]);aaw=aaw;M=M;reps=reps
+\dontrun{
+  require(fmr)
+ library(codeutils)
+ library(hplot)
+ library(knitr)
+ data("westroughy")
+ fish <- westroughy$fish
+ glb <- westroughy$glb
+ props <- westroughy$props
+ pars <- c(7,-0.4,-6.7)  
+ bestFD <- fitASPM(initpar=pars,minfun=dynF,infish=fish,inglb=glb,
+                   inprops=props,gradtol=1e-05,stepmax=0.1,steptol=1e-07,
+                   hessian=TRUE,reps=9)
+ outfit(bestFD,digits=7,title="Instantaneous Rates 2",
+        parnames=c("LnR0","Ln(sigCE)","Ln(q)"))   
+}                
 }
 \references{
 Methot, R.D. and C.R. Wetzel (2013) Stock synthesis: A biological

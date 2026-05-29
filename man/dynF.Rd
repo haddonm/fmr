@@ -74,8 +74,8 @@ codeutils::outfit(bestL,digits=6)
 out <- dynF(bestL$par,fish,glb,props,full=TRUE)
 print(round(out$fishery,4)) 
 }
-# pars=bestFD$estimate;infish=fish;inglb=glb;inprops=props
-# waa="waa";maa="maa";sela="sela"; full=TRUE; reps=9
+# pars=pars <- c(7.1,-1.2,-7.7) ;infish=fish;inglb=glb;inprops=props
+# waa="waa";maa="maa";sela="sela"; full=TRUE; reps=11
 }
 \seealso{
 {
