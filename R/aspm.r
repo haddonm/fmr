@@ -277,68 +277,70 @@ doDepletion <- function(inR0,indepl,inprops,inglb,inc=0.02,Numyrs=50) {
 #' out <- dynF(bestL$par,fish,glb,props,full=TRUE)
 #' print(round(out$fishery,4)) 
 #' }
-#' # pars=pars <- c(7.1,-1.2,-7.7) ;infish=fish;inglb=glb;inprops=props
-#' # waa="waa";maa="maa";sela="sela"; full=TRUE; reps=11
+#' # pars=pars <- c(7.0,-0.7,-6.7) ;infish=fish;inglb=glb;inprops=props
+#' # waa="waa";maa="maa";sela="sela"; full=TRUE; reps=5
 dynF <- function(pars,infish,inglb,inprops,
-                 waa="waa",maa="maa",sela="sela",full=FALSE,reps=6) { 
+                  waa="waa",maa="maa",sela="sela",full=FALSE,reps=5) { 
   aaw <- inprops[,waa]
+  wata <- aaw/1000.0
   aam <- inprops[,maa]
-  sel <- inprops[,sela]
+  sel <- as.matrix(inprops[,sela])
   epars <- exp(pars)
   R0 <- epars[1]
+  steep <- inglb$steep
   sigCE <- epars[2]
   avq <- epars[3]
-  B0 <- getB0(R0,inglb,inprops)   
   nyrs1 <- length(infish[,"year"])
   nyrs <- nyrs1 - 1
   nages <- inglb$nages
   maxage <- inglb$maxage
   Nt <- matrix(0,nrow=nages,ncol=nyrs1,dimnames=list(0:maxage,0:nyrs))
-  columns <- c("year","catch","predC","spawnB","exploitB","cpue",
-               "predCE","deplete","recruit","fullF","fullH")
-  fishery <- matrix(NA,nrow=nyrs1,ncol=length(columns),
-                    dimnames=list(0:nyrs,columns))
-  fishery[,"year"] <- infish$year
-  fishery[,"catch"] <- infish$catch
-  fishery[,"cpue"] <- infish$cpue
-  fishery[1,"recruit"] <- R0  
-  catch <- fishery[,"catch"]
-  pickC <- which(fishery[,"catch"] > 0)
-  pickCE <- which(fishery[,"cpue"] > 0)
+  spawnB = exploitB = recruit = fullF = predC = predCE = numeric(nyrs1)
+  recruit[1] <- R0
+  catch <- infish[,"catch"]
+  cpue <- infish[,"cpue"]
+  pickC <- which(catch > 0)
+  pickCE <- which(cpue > 0)
   M <- inglb$M
   surv <- exp(-M)
   Nt[1,1] <- R0   # get unfished (yr=1) Numbers-at-age index 0 - maxage
   for (age in 1:(maxage-1)) Nt[age+1,1] <- Nt[age,1] * surv
   Nt[maxage+1,1] <- (Nt[maxage,1] * surv)/(1-surv)
+  B0 = sum(aam * wata * Nt[,1])
   for (yr in 2:nyrs1) {  # yr=2
-    spb <- SpB(Nt[,(yr-1)],aam,aaw)
-    exb <- ExB(Nt[,(yr-1)],sel,aaw)
-    Nt[1,yr] <- bh(spb,R0,B0,inglb$steep)
-    fishery[yr,"recruit"] <- Nt[1,yr]
-    yrF <- findFs(catch[yr],Nt[,yr-1],sel,aaw,M,reps=reps)
-    sF <- sel * yrF
+    spb = sum(aam * wata * Nt[,(yr-1)])
+    exb = sum(sel * wata * Nt[,(yr-1)])
+    spawnB[(yr-1)] = spb
+    exploitB[(yr-1)] = exb
+    Nt[1,yr] <- ((4*steep*R0*spb)/((1-steep)*B0+(5*steep-1)*spb))
+    recruit[yr] <- Nt[1,yr]
+    fsF <- findFs(catch[yr],Nt[,yr-1],sel,aaw,M,reps=reps)
+    sF <- sel * fsF
     psF <- sF[2:nages]
     msF <- sF[nages]
     catchN <- (sF/(M + sF)) * (Nt[,yr-1] * (1 - exp(-(M + sF))))  
-    fishery[yr,"predC"] <- sum(catchN * aaw)/1000.0
-    fishery[yr,"fullF"] <- yrF
+    predC[yr] <- sum(catchN * wata)    
+    fullF[yr] <- fsF
     Nt[2:nages,yr] <- (Nt[1:(nages-1),(yr-1)] * exp(-(M + psF)))
     Nt[nages,yr] <- Nt[nages,yr] + (Nt[nages,yr-1] * exp(-(M + msF)))
-    fishery[(yr-1),c("spawnB","exploitB")] <- c(spb,exb)
-    fishery[yr,"fullH"] <- 1-exp(-yrF)
   }
-  spb <- SpB(Nt[,yr],aam,aaw)   # to complete final year
-  exb <- ExB(Nt[,yr],sel,aaw)
-  fishery[yr,c("spawnB","exploitB")] <- c(spb,exb)
-  fishery[,"deplete"] <- fishery[,"spawnB"]/B0
-  calcdiffC <- sum((catch[pickC] - fishery[pickC,"predC"])^2)/(nyrs*100) 
-  ExpB <- fishery[1:nyrs1,"exploitB"]
-  fishery[1:nyrs1,"predCE"] <- ExpB * avq
-  negLL <- -sum(dnorm(log(fishery[pickCE,"cpue"]),log(fishery[pickCE,"predCE"]),
-                      sigCE,log=TRUE)) + calcdiffC
+  spb = sum(aam * wata * Nt[,yr]) # to complete the final year
+  exb = sum(sel * wata * Nt[,yr])
+  spawnB[yr] = spb
+  exploitB[yr] = exb
+  penaltyC <- sum((catch[pickC] - predC[pickC])^2)/(nyrs*10) 
+  predCE[2:nyrs1] <- exploitB[2:nyrs1] * avq # no catch no cpue
+  negLL <- -sum(dnorm(log(cpue[pickCE]),log(predCE[pickCE]),
+                      sigCE,log=TRUE)) + penaltyC
   if (full) {
+    fishery <- cbind(year=infish$year,catch=catch,predC=predC,spawnB=spawnB,
+                     exploitB=exploitB,cpue=cpue,predCE=predCE,
+                     deplete=spawnB/B0,recruit=recruit,
+                     fullF=fullF,fullH=1-exp(-fullF))
+    rownames(fishery) <- 0:nyrs
+    fishery[1,c("predC","predCE")] <- c(NA,NA)
     out <- list(fishery=as.data.frame(fishery),Nt=Nt,B0=B0,R0=R0,avq=avq,
-                LL=negLL,diffC=calcdiffC)
+                LL=negLL,penaltyC=penaltyC)
     return(out)
   } else {
     return(negLL)
@@ -457,15 +459,15 @@ dynamicsF <- function(pars,infish,inglb,inprops,
   exb <- ExB(Nt[,yr],sel,aaw)
   fishery[yr,c("spawnB","exploitB")] <- c(spb,exb)
   fishery[,"deplete"] <- fishery[,"spawnB"]/B0
-  calcdiffC <- sum((catch[pickC] - fishery[pickC,"predC"])^2)/(nyrs*100) 
+  penaltyC <- sum((catch[pickC] - fishery[pickC,"predC"])^2)/(nyrs*10) 
   ExpB <- fishery[2:nyrs1,"exploitB"]
   fishery[2:nyrs1,"predCE"] <- ExpB * avq
   f <- -sum(dnorm(log(fishery[pickCE,"cpue"]),log(fishery[pickCE,"predCE"]),
                   sigCE,log=TRUE))
-  if (diffC) f <- f + calcdiffC
+  if (diffC) f <- f + penaltyC
   if (full) {
     out <- list(fishery=as.data.frame(fishery),Nt=Nt,B0=B0,R0=R0,avq=avq,
-                LL=f,diffC=calcdiffC)
+                LL=f,diffC=penaltyC)
     return(out)
   } else {
     return(f)
@@ -580,17 +582,17 @@ dynamicsH <- function(pars,infish,inglb,inprops,
   exb <- ExB(Nt[,yr]*hS,sel,aaw)
   fishery[yr,c("spawnB","exploitB")] <- c(spb,exb)
   fishery[,"deplete"] <- fishery[,"spawnB"]/B0
-  calcdiffC <- sum((fishery[pickC,"catch"] - fishery[pickC,"predC"])^2)/(nyrs*100) 
+  penaltyC <- sum((fishery[pickC,"catch"] - fishery[pickC,"predC"])^2)/(nyrs*10) 
   ExpB <- fishery[2:nyrs1,"exploitB"]  # calculate predicted CPUE
   fishery[2:nyrs1,"predCE"] <- ExpB * avq
   # calculate -ve log-likelihood
   f <- -sum(dnorm(log(fishery[pickCE,"cpue"]),log(fishery[pickCE,"predCE"]),
                   sigCE,log=TRUE)) # log-Normal errors
-  if (diffC) f <- f + calcdiffC
+  if (diffC) f <- f + penaltyC
   if (full) {  # output everything or only -ve log-likelihood
     absdiffC <- sum(abs(fishery[,"catch"] - fishery[,"predC"]),na.rm=TRUE)
     out <- list(fishery=as.data.frame(fishery),Nt=Nt,B0=B0,R0=R0,avq=avq,
-                LL=f,diffC=calcdiffC)
+                LL=f,diffC=penaltyC)
     return(out)
   } else {
     return(f)
@@ -982,6 +984,8 @@ matchC <- function(f,M,cyr,Nyr,sel,waa) {
 #' @param scenario default = '', but if a file is to be saved then this should\
 #'     be given a name for the file, if left as '', then it will be called 
 #'     ASPM.png
+#' @param maxy default = 0, which means use the data to set ymax. If maxy > 0
+#'     the ymax will be set to that value. Used to allow details to be seen
 #'
 #' @return Nothing, but it does plot six graphs in a single plot.
 #' @export
@@ -999,9 +1003,10 @@ matchC <- function(f,M,cyr,Nyr,sel,waa) {
 #' plotASPM(out$fishery, console=TRUE)
 #' ceCI <- getLNCI(out$fishery[,"predCE"],exp(bestaspm$estimate[2]))
 #' plotASPM(out$fishery,CI=ceCI, console=TRUE)
-#' # infish=outH$fishery; CI=ceCI;defineplot=TRUE; target=0.48; usef=7;png=""
+#' # infish=fishery; CI=ceCI;defineplot=TRUE; target=0.48; usef=7;rundir=""
+#' # console=TRUE; scenario=""; maxy=10
 plotASPM <- function(infish,CI=NA,target=0.48,usef=7,
-                     rundir="",console=TRUE,scenario="") { 
+                     rundir="",console=TRUE,scenario="",maxy=0) { 
    filen <- ""
    if (!console) {
       if (nchar(scenario) == 0) scenario <- "ASPM" 
@@ -1009,8 +1014,6 @@ plotASPM <- function(infish,CI=NA,target=0.48,usef=7,
    }
    plotprep(width=7, height=5.5,filename=filen,verbose=FALSE)
    parset(plots=c(3,2),margin=c(0.25,0.4,0.1,0.05),cex=0.85,font=usef)
-   # par(mfrow=c(3,2),mai=c(0.25,0.4,0.1,0.05),oma=c(0.0,0,0.0,0.0),tck=-0.02) 
-   # par(cex=0.85,mgp=c(1.35,0.35,0),font.axis=usef,font=usef,font.lab=usef)
    yrs <- infish$year
    nyrs <- length(yrs)
    # plot catches
@@ -1024,6 +1027,7 @@ plotASPM <- function(infish,CI=NA,target=0.48,usef=7,
    # plot CPUE
    ymax <- getmax(c(infish$cpue,infish$predCE))
    if ("matrix" %in% class(CI)) ymax <- getmax(CI[,"upper"]) 
+   if (maxy > 0) ymax <- maxy
    plot(yrs,infish$cpue,type="p",pch=16,col=2,cex=1.0,ylim=c(0,ymax),yaxs="i",
         xlab="",panel.first=grid(),ylab="Relative Abundance Index")
    lines(yrs,infish$predCE,lwd=2,col=1)
@@ -1032,20 +1036,25 @@ plotASPM <- function(infish,CI=NA,target=0.48,usef=7,
    }
    # plot harvest rate
    ymax <- getmax(infish$fullH)
+   if (!is.null(infish$fullF)) ymax <- getmax(c(infish$fullH,infish$fullF))   
    plot(yrs,infish$fullH,type="l",lwd=2,ylim=c(0,ymax),yaxs="i",xlab="",
-        panel.first=grid(),ylab="Annual Harvest Rate")
+        panel.first=grid(),ylab="Annual Rate")
+   if (!is.null(infish$fullF)) {
+     lines(yrs,infish$fullF,lwd=2,col=2)
+     legend("topleft",c("Harvest","InstantF"),col=c(1,2),lwd=3,bty="n",cex=1.0)
+   }   
    # plot the residuals
    pickCE <- which(infish[,"cpue"] > 0)
-   resid <- infish[pickCE,"cpue"]/infish[pickCE,"predCE"]
+   resid <- log(infish[pickCE,"cpue"]/infish[pickCE,"predCE"])
    nresid <- length(resid)
    ymax <- getmax(resid);    ymin <- getmin(resid,mult=1.1)
    plot(yrs[pickCE],resid,"n",ylim=c(ymin,ymax),ylab="LogN Residuals",xlab="")
    grid()
-   abline(h=1.0,col=1)
-   segments(x0=yrs[pickCE],y0=rep(1.0,nresid),x1=yrs[pickCE],y1=resid,lwd=2,col=2)
+   abline(h=0.0,col=1)
+   segments(x0=yrs[pickCE],y0=rep(0.0,nresid),x1=yrs[pickCE],y1=resid,lwd=2,col=2)
    points(yrs[pickCE],resid,pch=16,col=1,cex=1.0)
    rmseresid <- sqrt(sum(resid^2)/nresid)
-   text(min(yrs[pickCE]),ymin*1.05,paste("rmse = ",round(rmseresid,3),sep=""),
+   text(min(yrs[pickCE]),ymin*0.85,paste("rmse = ",round(rmseresid,3),sep=""),
         font=7,cex=1.0,pos=4)
    # plot the depletion level
    ymax <- getmax(infish$deplete)

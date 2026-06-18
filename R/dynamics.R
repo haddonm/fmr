@@ -76,3 +76,39 @@ findFs <- function(cyr,Nyr,sel,aaw,M,reps=8) {
   fFyr <- Zadj * fFyr
   return(fFyr) 
 } # end of findFs
+
+#' @title plottmbprof a wrapper function for the tmbprofile plot
+#' 
+#' @description plottmbprof provides a simplified interface to the RTMB 
+#'     tmbprofile plot. It plots the profile values and adds the optimum and
+#'     CI valued confidence intervals.
+#'
+#' @param inmod the RTMB model from MakeADFun
+#' @param parname the character name of the parameter from the model, the
+#'     column name of the variable of parameter being profiled
+#' @param CI default = 0.95 the probability level of the Confidence intervals
+#' @param adjust by how much should the labels be adjusted down and up, 
+#'     default = 0.05 = 5% of the y-scale
+#'
+#' @returns the CI
+#' @export
+#'
+#' @examples
+#' print("wait on examples")
+#' # syntax:  plottmbprof(model,"logR0",CI=0.95,adjust=0.05)
+#' # inmod=model; parname="logR0"; CI=0.95
+plottmbprof <- function(inmod,parname,CI=0.95,adjust=0.05) { 
+  prof <- tmbprofile(inmod,parname,trace=F)
+  maxy <- getmax(prof$value,mult=1)
+  miny <- which.min(prof$value)
+  plot(prof,lwd=2,panel.first=grid(),ylim=c(min(prof$value),maxy),yaxs="i")
+  optval <- prof[miny,parname]
+  abline(v=optval,lwd=3,col=2)
+  text(x=optval,y=(1-adjust)*maxy,round(optval,3),cex=1.0,pos=4)
+  CI <- confint(prof,level=CI)
+  ymin <- prof$value[miny]
+  text(x=CI[1],y=(1+adjust)*ymin,round(CI[1],3),cex=1,pos=4)
+  text(x=CI[2],y=(1+adjust)*ymin,round(CI[2],3),cex=1,pos=2)
+  return(CI)
+} # end of plottmbprof
+

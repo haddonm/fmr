@@ -11,7 +11,8 @@ plotASPM(
   usef = 7,
   rundir = "",
   console = TRUE,
-  scenario = ""
+  scenario = "",
+  maxy = 0
 )
 }
 \arguments{
@@ -32,6 +33,9 @@ set TRUE it will save pathtopath(rundir,'scenario.png')}
 \item{scenario}{default = '', but if a file is to be saved then this should\
 be given a name for the file, if left as '', then it will be called
 ASPM.png}
+
+\item{maxy}{default = 0, which means use the data to set ymax. If maxy > 0
+the ymax will be set to that value. Used to allow details to be seen}
 }
 \value{
 Nothing, but it does plot six graphs in a single plot.
@@ -57,5 +61,6 @@ out <- dynamicsH(bestaspm$estimate,fish,glb,props,full=TRUE)
 plotASPM(out$fishery, console=TRUE)
 ceCI <- getLNCI(out$fishery[,"predCE"],exp(bestaspm$estimate[2]))
 plotASPM(out$fishery,CI=ceCI, console=TRUE)
-# infish=outH$fishery; CI=ceCI;defineplot=TRUE; target=0.48; usef=7;png=""
+# infish=fishery; CI=ceCI;defineplot=TRUE; target=0.48; usef=7;rundir=""
+# console=TRUE; scenario=""; maxy=10
 }

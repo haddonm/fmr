@@ -1,7 +1,7 @@
 Package: fmr
 Title: Functions and Example Data-Sets for More Fisheries Modelling using R
-Version: 0.0.10
-Date: 2026-05-29
+Version: 0.0.12
+Date: 2026-06-18
 Author: Malcolm Haddon
 Maintainer: Malcolm Haddon <Malcolm.Haddon@gmail.com>
 Description: The new book More Fisheries Modelling using R illustrates an array of
@@ -13,7 +13,8 @@ License: MIT + file LICENSE
 Imports: 
     codeutils,
     hplot,
-    makehtml
+    makehtml,
+    TMB
 Depends: R (>= 3.5.0)
 Encoding: UTF-8
 LazyData: true

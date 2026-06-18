@@ -337,6 +337,7 @@
 #'  str(robustness)
 #'  countLL <- table((round(robustness[,"-veLL"],6)))
 #'  countLL
+#'  range(robustness[,"-veLL"]) # should be 6.248774 7.039229
 "robustness"
 
 # robustnessF-------------------
