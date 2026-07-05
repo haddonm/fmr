@@ -90,7 +90,7 @@ findFs <- function(cyr,Nyr,sel,aaw,M,reps=8) {
 #' @param adjust by how much should the labels be adjusted down and up, 
 #'     default = 0.05 = 5% of the y-scale
 #'
-#' @returns the CI
+#' @returns the CI invisibly
 #' @export
 #'
 #' @examples
@@ -109,6 +109,6 @@ plottmbprof <- function(inmod,parname,CI=0.95,adjust=0.05) {
   ymin <- prof$value[miny]
   text(x=CI[1],y=(1+adjust)*ymin,round(CI[1],3),cex=1,pos=4)
   text(x=CI[2],y=(1+adjust)*ymin,round(CI[2],3),cex=1,pos=2)
-  return(CI)
+  return(invisible(CI))
 } # end of plottmbprof
 

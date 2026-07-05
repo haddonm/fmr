@@ -18,7 +18,7 @@ column name of the variable of parameter being profiled}
 default = 0.05 = 5\% of the y-scale}
 }
 \value{
-the CI
+the CI invisibly
 }
 \description{
 plottmbprof provides a simplified interface to the RTMB

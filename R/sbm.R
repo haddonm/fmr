@@ -334,48 +334,6 @@ getabSBMproduction <- function(LML,optpar,glb,biol,G,nyrs=100,
 } # end of getabSBMproduction
 
 
-#' @title getConst extracts 'nb' numbers from a line of text
-#'
-#' @description getConst parses a line of text and extracts 'nb' pieces of
-#'     text as numbers. If there are missing values this will stop the 
-#'     function with a warning. If RStudio drops into debug, toggle 'message
-#'     only' under Debug/on Error to avoid that, and put NA where the data
-#'     are missing
-#'
-#' @param inline text line to be parsed, usually obtained using readLines
-#' @param nb the number of numbers to extract
-#' @param index which non-empty object to begin extracting from?
-#'
-#' @return a vector of length 'nb'
-#' @export
-#'
-#' @examples
-#'   inline <- "name , 31,32,33"
-#'   getConst(inline=inline,nb=3,index=2)
-#'   inline <- "anothername , 31,32,NA"
-#'   getConst(inline=inline,nb=3,index=2)
-#'   inline <- "finalname , 31,32,"  # missing values not allowed   
-#'  # getConst(inline=inline,nb=3,index=2) # unhash and try to see error
-getConst <- function(inline,nb,index=2) { # inline=dat[linenum];nb=3;index=2
-  ans <- numeric(nb)
-  tmp <- removeEmpty(unlist(strsplit(inline,",")))
-  if (length(tmp) < (nb+(index-1))) {
-    stop(paste("possible problem with data",tmp[1],
-               "missing comma or missing NA/data?",sep=" "),"\n")
-  } else {
-    count <- 0
-    for (j in index:(nb+index-1)) {  # j=4
-      count <- count + 1
-      if (tmp[j] == "NA") {
-        ans[count] <- NA
-      } else {
-        ans[count] <- as.numeric(tmp[j])
-      }
-    }
-  }
-  return(ans)
-}   # end getConst
-
 #' @title getrmse calculates the rmse of the input 'cpue' series
 #'
 #' @description getrmse calculates the root mean square error (rmse) of the 

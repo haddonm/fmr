@@ -1461,7 +1461,7 @@ SpB <- function(invect, MatureA, WeightA) {
    return(ans)
 }
 
-#' @title unfished generates the numbers at age for an unfished population
+#' @title unfishedorig generates the numbers at age for an unfished population
 #'
 #' @description unfished generates the numbers at age for an unfished
 #'     population, and determines the recruitment dynamics. It requires the
@@ -1481,7 +1481,7 @@ SpB <- function(invect, MatureA, WeightA) {
 #' props <- westroughy$props
 #' unfish <- unfished(glob=glb,props=props,inR0=glb$R0)
 #' print(unfish)
-unfished <- function(glob,props,inR0) {
+unfishedorig <- function(glob,props,inR0) {
    R0 <- exp(inR0)
    maxage <- glob$maxage
    hsurv <- exp(-glob$M/2)
