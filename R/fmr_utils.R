@@ -119,61 +119,6 @@ calcrmse <- function(obs,pred){ # obs=fishery[,"CPUE"]; pred=fishery[,"PredCE"]
   return(rmse)
 }
 
-#' @title rowfreqboot generates a bootstrap sample of a matrix of counts
-#' 
-#' @description rowfreqboot in fisheries biology it is common to have a matrix
-#'     of counts or ages or sizes or some other integer numeric property. It
-#'     would also, often be useful to be able to generate a bootstrap sample of
-#'     such data, either for simulation or to obtain bootstrap estimates of 
-#'     variability. rowfreqboot expects the integer numeric values to be used
-#'     as the column headings (ages, sizes) and the rows to the separate sample
-#'     counts of the different column categories. It will then generate a matrix
-#'     of the same dimension as that input that contains an empirical bootstrap
-#'     sample of size n for each row
-#'
-#' @param x a matrix or data.frame of sample counts of a set of integer 
-#'     categories, such as ages or sizes, that are used as column headings.
-#' @param n the bootstrap sample size for each row
-#'
-#' @returns a matrix the same dimensions as x containing a bootstrap sample of x
-#' @export
-#'
-#' @examples
-#' dat <- c(400,1000,600,200,300,50,10,20,5,2,1000,236,556,304,91,125,19,4,7,2,
-#'           700,595,135,297,151,43,55,8,2,3)
-#' inmat <- matrix(dat, nrow=3,ncol=10,byrow=TRUE,dimnames=list(c(1:3),c(4:13)))
-#' rowfreqboot(x=inmat,n=200)
-#' rowfreqboot(x=inmat,n=200)
-rowfreqboot <- function(x,n) {  # x =x; n = 200
-  if (!is.matrix(x) && !is.data.frame(x)) {
-    stop("Input x must be a matrix or data.frame")
-  }
-  if (!is.numeric(n) || n <= 0 || n != as.integer(n)) {
-    stop("Input n must be a positive integer")
-  }
-  if (any(x < 0)) {
-    stop("All values in x must be non-negative")
-  }
-  out <- matrix(0,nrow(x),ncol(x),dimnames=dimnames(x))
-  values <- as.numeric(colnames(x))
-  vlength <- length(values)
-  nr <- nrow(x)
-  for (i in 1:nr) {  #  i = 1
-    totrow <- sum(x[i,],na.rm=TRUE)
-    if (totrow < n) 
-      warning(cat("In rowfreqboot, row ",i," contains < ",n," observations \n"))
-    if (sum(x[i,],na.rm=TRUE) > 0) {
-      vect <- rep(values,times=x[i,])
-      tmp <- table(sample(vect,n,replace=TRUE))
-      pick <- match(as.numeric(names(tmp)),values)
-      out[i,pick] <- tmp
-    } else {
-      out[i,] <- rep(0,vlength)
-    }
-  }
-  return(out)
-} # end of rowfreqboot
-
 #' @title getLNCI gets the log-normal confidence intervals
 #' 
 #' @description getLNCI takes the mean and the standard deviation and produces
@@ -396,35 +341,6 @@ grsearch <- function(f, interval, tol = 1e-09, ...) {#.Machine$double.eps^0.25) 
 
 
 
-#' @title incol is a utility to determine is a column is present in a matrix
-#'
-#' @description incol is a utility to determine whether a names columns is
-#'     present in a given matrix or data.frame. If the input is neither a 
-#'     matrix or a data.frame an error and warning will be thrown.
-#'
-#' @param incol the name of the column being looked for.
-#' @param inmat the matrix or data.frame within which to search for incol
-#'
-#' @return TRUE or FALSE
-#' @export
-#'
-#' @examples
-#' \dontrun{
-#' test <- matrix(c(1,2,3,4),nrow=2,ncol=2,dimnames=list(1:2,c("year","Catch")))
-#' print(test)
-#' iscol("year",test)
-#' iscol("Catch",test)
-#' iscol("catch",test)
-#' iscol("ages",test)
-#' }
-iscol <- function(incol,inmat) { # incol="ages"; inmat=pnaa
-  if (class(inmat)[1] %in% c("matrix","data.frame")) { 
-    if (length(grep(incol,colnames(inmat))) < 1) return(FALSE)
-    else return(TRUE) 
-  } else {
-    stop(cat("input is neither a matrix nor a data.frame \n"))
-  }
-} # end of iscol
 
 #' @title logistic standard selectivity function
 #'

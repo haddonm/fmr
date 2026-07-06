@@ -432,59 +432,6 @@ getSBMinit <- function(inR0,glb,biol,sex) { # assumes glb inR0 = par["R0"]
   return(list(B0=B0,N0=initN))
 } # end of getSBMB0
 
-
-
-#' @title getsingleNum find a line of text and extracts a single number
-#'
-#' @description getsingleNum uses grep to find an input line. If the variable
-#'     being searched for fails then NULL is returned
-#'
-#' @param varname the name of the variable to get from intxt
-#' @param intxt text to be parsed, usually obtained using readLines
-#'
-#' @return a single number or, if no value is in the data file a NULL
-#' @export
-#'
-#' @examples
-#' \dontrun{
-#'  txtlines <- c("replicates, 100","Some_other_text, 52")
-#'  getsingleNum("replicates",txtlines)
-#'  getsingleNum("eeplicates",txtlines)
-#'  getsingleNum("other",txtlines)
-#' }
-getsingleNum <- function(varname,intxt) {
-  begin <- grep(varname,intxt)
-  if (length(begin) > 0) {
-    return(as.numeric(getConst(intxt[begin],1)))
-  } else {
-    return(NULL)
-  }
-}
-
-#' @title getStr obtains a string from an input text line
-#'
-#' @description  getStr obtains a string from an input text line in
-#'     which any parts are separated by ','. Then, after ignoring the
-#'     first component, assumed to be a label, it returns the first
-#'     nb parts.
-#'
-#' @param inline input text line with components separated by ','
-#' @param nb number of parts to return
-#' @param index which part to start returning to the program, default=2
-#'
-#' @return a vector of character string(s)
-#' @export
-#'
-#' @examples
-#'   txt <- "runlabel, development_run, label for this particular run"
-#'   getStr(txt,1)
-getStr <- function(inline,nb,index=2) { # inline=indat[begin];nb=4;start=1
-  tmp <- removeEmpty(unlist(strsplit(inline,",")))
-  finish <- nb + (index - 1)
-  outconst <- as.character(tmp[index:finish])
-  return(outconst)
-} # end of getStr
-
 #' @title getvcov calculates the hessian and the variance covariance matrix
 #' 
 #' @description getvcov uses optim and the optimal parameter set to estimate
