@@ -25,4 +25,5 @@ the length-at-age, maturity-at-age, weight-at-age, and selectivity-at-age
 \examples{
 data("westroughy")
 plotprops(rundir="",westroughy$props,console=TRUE)
+# rundir=rundir; props=props; console=TRUE
 }

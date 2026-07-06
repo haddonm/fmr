@@ -1,7 +1,7 @@
 Package: fmr
 Title: Functions and Example Data-Sets for More Fisheries Modelling using R
-Version: 0.0.12
-Date: 2026-06-18
+Version: 0.0.13
+Date: 2026-07-06
 Author: Malcolm Haddon
 Maintainer: Malcolm Haddon <Malcolm.Haddon@gmail.com>
 Description: The new book More Fisheries Modelling using R illustrates an array of

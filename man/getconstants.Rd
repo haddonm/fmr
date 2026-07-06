@@ -12,8 +12,8 @@ getconstants(infile = "constants.csv")
 }}
 }
 \value{
-a list of two vectors 'biology' and 'fishery' plus a list of two
-vectors of lengths and ages
+a list of vectors 'biology' and 'fish' plus a lists of 'fishbiol',
+'fishery', and 'glb'
 }
 \description{
 getconstants - reads the input constants that condition the
@@ -24,8 +24,10 @@ must contain sections entitled: BIOLOGY, FISHERY, STRUCTURE, and
 HISTORICALCATCH
 }
 \examples{
-require(agestruct)
-data(const)
-str(const)
-# infile <- pathtopath(rundir,"constants.csv")
+\dontrun{
+  rundir <- tempdir()
+  template2F1S(rundir,filename="Flt2Stock1.csv")
+  const2 <- getconstants(infile=paste0(rundir,"//Flt2Stock1.csv"))
+  str(const2)
+}
 }

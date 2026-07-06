@@ -8,9 +8,9 @@
 #' @importFrom stats pnorm cor optimize cov2cor nlminb qt confint
 #' @importFrom utils tail head str
 #' @importFrom codeutils which.closest getmax getmin magnitude pathtopath
-#' @importFrom codeutils removeEmpty makeUnit
+#' @importFrom codeutils removeEmpty makeUnit getConst makelist
 #' @importFrom hplot plotprep parset plot1 pickbound
-#' @importFrom makehtml addplot addtable
+#' @importFrom makehtml addplot addtable dirExists
 #' @importFrom TMB tmbprofile
 NULL
 

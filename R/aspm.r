@@ -197,7 +197,7 @@ doDepletion <- function(inR0,indepl,inprops,inglb,inc=0.02,Numyrs=50) {
                 dimnames=list(seq(0,maxage,1),seq(0,(Numyrs-1),1)))
    Frange <- seq(0.02,2*M,inc)
    NF <- length(Frange)
-   unfish <- unfished(inglb,inprops,inR0)
+   unfish <- unfished(inglb)
    B0 <- unfish$B0
    naa <- unfish$N0
    for (hr in 1:NF) {  # hr=1
@@ -1134,19 +1134,34 @@ plotceASPM <- function(infish,CI=NA,defineplot=TRUE) {
 #' @examples
 #' data("westroughy")
 #' plotprops(rundir="",westroughy$props,console=TRUE)
+#' # rundir=rundir; props=props; console=TRUE
 plotprops <- function(rundir,props,console=TRUE) {
   filen <- "" 
   if (!console)  filen <- pathtopath(rundir,"fishery_properties.png")
   label <- c("Length-at-Age","Weight-at-Age","Maturity-at-Age",
-             "Selectivity-at-Age")
-  ages <- props[,1]
+             "Selectivity-at-Age")  
+  numcol <- ncol(props)
+  ages <- props[,"age"]
   plotprep(width=9, height=7,filename=filen,verbose=FALSE)
   parset(plots=c(2,2),margin=c(0.25,0.5,0.1,0.1),outmargin=c(1,0,0,0))
-  for (i in 2:5) {
-    plot(ages,props[,i],type="l",lwd=3,xlab="",ylab=label[i-1],
-         panel.first=grid())
+  for (i in 2:4) {
+    maxy <- getmax(props[,i])
+    plot(ages,props[,i],type="l",lwd=3,xlab="",ylab=label[i-1],ylim=c(0,maxy),
+         yaxs="i",panel.first=grid())
   }
   mtext("Age Years",side=1,line=-0.1,outer=TRUE,cex=1.1)
+  if (numcol == 5) {
+    plot(ages,props[,numcol],type="l",lwd=3,xlab="",ylab=label[4],
+         panel.first=grid())
+  } else {
+    fleets <- colnames(props)
+      maxy <- getmax(props[,5])
+      plot(ages,props[,5],type="l",lwd=3,xlab="",ylab=label[4],
+           ylim=c(0,maxy),yaxs="i",panel.first=grid())
+      for (flt in 6:numcol) lines(ages,props[,flt],lwd=3,col=(flt-4))
+      legend("bottomright",fleets[5:numcol],col=c(1:(numcol-4)),lwd=3,
+             cex=1.2,bty="n")
+  }
   return(invisible(filen))
 } # end of plotprops
 
