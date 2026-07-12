@@ -4,7 +4,7 @@
 \alias{findF}
 \title{findF uses an iterative strategy for finding each year's F value}
 \usage{
-findF(cyr, Nyr, sel, aaw, M, Fmax = 3, reps = 8)
+findF(cyr, Nyr, sel, wata, M, Fmax = 3, reps = 8)
 }
 \arguments{
 \item{cyr}{the known catch in a given year}
@@ -14,22 +14,44 @@ year before}
 
 \item{sel}{the selectivity of the fishing gear}
 
-\item{aaw}{the weight-at-age}
+\item{wata}{the weight-at-age as tonnes = aaw/1000}
 
 \item{M}{the instantaneous natural mortality rate}
 
-\item{Fmax}{the limit on themaximum F allowed, default = 3.0 ~H = 0.95}
+\item{Fmax}{a limit on the maximum F allowed, default = 3.0 ~H = 0.95}
 
-\item{reps}{how many internal loops to use finding each F, default = 6}
+\item{reps}{how many internal loops to use finding each F, default = 8}
 }
 \value{
-the fully selected fishing mortality rate
+the fully selected fishing mortality rate for a single fleet
 }
 \description{
 findF is used when searching for the instantaneous F that will
 produce the required catch in a given year in an age-structured model. It
-needs generalizing to operate with multiple gears.
+needs generalizing to operate with multiple gears. The method derives
+from a description given on page 7 of Methot & Wetzel (2013, suppl
+material). This function is only used by the function dynF.
 }
 \examples{
-print("wait on example data sets")
+library(fmr); library(codeutils); library(hplot)
+data("westroughy") # contains following 3 components see str(westroughy)
+fish <- westroughy$fish; glb <- westroughy$glb; props <- westroughy$props
+ pars <- c(7,-0.4,-6.7)  
+ bestFD <- fitASPM(initpar=pars,minfun=dynF,infish=fish,inglb=glb,
+                   inprops=props,gradtol=1e-05,stepmax=0.1,steptol=1e-07,
+                   hessian=TRUE,reps=6)
+ outfit(bestFD,digits=7,title="Instantaneous Rates 2",
+        parnames=c("LnR0","Ln(sigCE)","Ln(q)")) 
+}
+\references{
+Methot, R.D. and C.R. Wetzel (2013) Stock synthesis: A biological
+and statistical framework for fish stock assessment and fishery
+management. Supplementary Material: Appendix A: Technical Description of
+the Stock Synthesis assessment program \emph{Fisherie Research} 142:
+86-99. http://dx.doi.org/10.1016/j.fishres.2012.10.012
+}
+\seealso{
+{
+\link{dynF}
+}
 }

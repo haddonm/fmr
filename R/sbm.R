@@ -1266,7 +1266,7 @@ readSBMdata <- function(rundir,infile) {
   title <- dat[linenum+1]
   linenum <- grep("FISHERY",dat)
   dimen <- getConst(dat[linenum],nb=2,index=2)
-  columns <- getStr(dat[linenum+1],nb=dimen[2],index=1)
+  columns <- getStr(dat[linenum+1])
   fish <- matrix(0,nrow=dimen[1],ncol=dimen[2]); colnames(fish) <- columns
   numline <- linenum + 2
   for (i in 1:dimen[1]) { # i = 1

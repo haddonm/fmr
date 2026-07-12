@@ -16,6 +16,7 @@ Table 1 from Fournier and Archibald, 1982, p1200 containing the
 actual numbers-at-age in a simulated population.
 }
 \examples{
+require(fmr)
 data(fournarch82)
 fournarch82
 rowfreqboot(x=fournarch82,n=250)

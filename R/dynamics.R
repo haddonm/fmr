@@ -29,11 +29,9 @@
 #'     86-99. http://dx.doi.org/10.1016/j.fishres.2012.10.012 
 #'
 #' @examples
-#' \dontrun{
 #'   require(fmr)
 #'  library(codeutils)
 #'  library(hplot)
-#'  library(knitr)
 #'  data("westroughy")
 #'  fish <- westroughy$fish
 #'  glb <- westroughy$glb
@@ -41,21 +39,20 @@
 #'  pars <- c(7,-0.4,-6.7)  
 #'  bestFD <- fitASPM(initpar=pars,minfun=dynF,infish=fish,inglb=glb,
 #'                    inprops=props,gradtol=1e-05,stepmax=0.1,steptol=1e-07,
-#'                    hessian=TRUE,reps=9)
+#'                    hessian=TRUE,reps=6)
 #'  outfit(bestFD,digits=7,title="Instantaneous Rates 2",
 #'         parnames=c("LnR0","Ln(sigCE)","Ln(q)"))   
-#' }                
 findFs <- function(cyr,Nyr,sel,aaw,M,reps=8) {
   sel <- as.matrix(sel)
   nages <- length(sel[,1]) # uses selectivity by age
   nfleet <- ncol(sel)      # separate selectivity by fleet
   predCyr <- numeric(nfleet)
   wata <- aaw/1000
-  Byr <- sum((Nyr*sel*wata)) # exploitable biomass by fleet in year yr
+  Byr <- sum((Nyr*sel*wata)) # exploitable biomass x fleet at start of year yr
   temp1 <- cyr / (Byr + 0.1*cyr)  # next 4 lines = Pope's approximation
   join1 <- 1/(1 + exp(30*(temp1 - 0.95))) # join keeps it differentiable
   tempyr <- (join1 * temp1) + (0.95 * (1 - join1)) #approx mid-yr harvest rate
-  fFyr <- -log(1 - tempyr)
+  fFyr <- -log(1 - tempyr)  # harvest rate transformed to F
   wtNyr <- wata * Nyr
   sF <- matrix(0,nrow=nages,ncol=nfleet)
   for (ft in 1:nfleet) {

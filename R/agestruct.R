@@ -109,11 +109,11 @@ domedsel <- function(p,L) {
   return(sel)
 } # end of domedsel
 
-#' @title getconstants - reads the input constants that condition the model
+#' @title readASPMdata - reads the input constants that condition the model
 #'
-#' @description getconstants - reads the input constants that condition the
+#' @description readASPMdata - reads the input constants that condition the
 #'     model. The constants include all those produced by the function
-#'     constantfileTemplate: M, surv, Linf, K, t0, growCV, Wta, Wtb, steep,
+#'     template2F1S: M, surv, Linf, K, t0, growCV, Wta, Wtb, steep,
 #'     age50M, deltaM, B0, sigmaR, etc. The data are read in from 'infile' and
 #'     must contain sections entitled: BIOLOGY, FISHERY, STRUCTURE, and
 #'     HISTORICALCATCH
@@ -127,26 +127,21 @@ domedsel <- function(p,L) {
 #' \dontrun{
 #'   rundir <- tempdir()
 #'   template2F1S(rundir,filename="Flt2Stock1.csv")
-#'   const2 <- getconstants(infile=paste0(rundir,"//Flt2Stock1.csv"))
+#'   const2 <- readASPMdata(infile=paste0(rundir,"//Flt2Stock1.csv"))
 #'   str(const2)
 #' }
-getconstants <- function(infile="constants.csv") { #  infile=filen
-  #  infile=pathtopath(datraw,"test2F1S.csv")
+readASPMdata <- function(infile="constants.csv") { #  infile=filen
+  #  infile=pathtopath(rundir,"test2F1S.csv")
   datain <- readLines(con = infile)
   # structure------
   randseed <- getsingleNum("randseed",datain)
   set.seed(randseed)
-  nregion <- getsingleNum("nregion",datain)
-  linenum <- grep("regname",datain) # get fleetnames
-  tmp <- removeEmpty(unlist(strsplit(datain[linenum],",",fixed=TRUE))) 
-  regions <- tmp[2:(2+nregion-1)]
-  nsex <- getsingleNum("nsex",datain)
-  lens <- getvect("LFstruct",datain,n=3)
+  #lens <- getvect("LFstruct",datain,n=3)
   age <- getvect("agestruct",datain,n=3)
-  lengths <- seq(lens[1],lens[2],lens[3])
+ # lengths <- seq(lens[1],lens[2],lens[3])
   ages <- seq(age[1],age[2],age[3])  
-  nfleet <- getsingleNum("fleets",datain)
-  linenum <- grep("fleetname",datain) # get fleetnames
+  nfleet <- getsingleNum("nfleet",datain)
+  linenum <- grep("fleets",datain) # get fleetnames
   tmp <- removeEmpty(unlist(strsplit(datain[linenum],",",fixed=TRUE)))
   fleets <- tmp[2:length(tmp)]
   linenum <- grep("selecttype",datain) # get selectivity type by fleet
@@ -167,27 +162,26 @@ getconstants <- function(infile="constants.csv") { #  infile=filen
                                "selmax") 
     }
   }
-  if (nsex == 1) {
-    sexes <- c("c")
-  } else {
-    sexes <- c("f","m")
-  }
-  if (nregion == 1) {
-    sexreg <- paste(regions,sexes,sep="_")
-    fltreg <- paste(fleets,regions,sep="_")
-  } else {
-    sexreg <- c(paste(regions[1],sexes,sep="_"),
-                paste(regions[2],sexes,sep="_"))
-    fltreg <- c(paste(fleets,regions[1],sep="_"),
-                paste(fleets,regions[2],sep="_"))
-  }
+  # if (nsex == 1) {
+  #   sexes <- c("c")
+  # } else {
+  #   sexes <- c("f","m")
+  # }
+  # if (nregion == 1) {
+  #   sexreg <- paste(regions,sexes,sep="_")
+  #   fltreg <- paste(fleets,regions,sep="_")
+  # } else {
+  #   sexreg <- c(paste(regions[1],sexes,sep="_"),
+  #               paste(regions[2],sexes,sep="_"))
+  #   fltreg <- c(paste(fleets,regions[1],sep="_"),
+  #               paste(fleets,regions[2],sep="_"))
+  # }
   # biology------
-  rows <- c("M","surv","Linf","K","t0","growCV","Wta","Wtb","age50M","deltaM")
+  rows <- c("Linf","K","t0","growCV","Wta","Wtb","age50M","deltaM")
   nrows <- length(rows)
-  ncols <- length(sexreg)
-  biology <- matrix(0,nrow=nrows,ncol=ncols,dimnames=list(rows,sexreg))
-  biology["M",] <- getvect("M",datain,ncols)
-  biology["surv",] <- exp(-biology["M",])
+#  ncols <- length(sexreg)
+  ncols=1
+  biology <- matrix(0,nrow=nrows,ncol=ncols,dimnames=list(rows,"mixed"))
   biology["Linf",] <- getvect("Linf",datain,ncols)
   biology["K",] <- getvect("K",datain,ncols)
   biology["t0",] <- getvect("t0",datain,ncols)
@@ -196,46 +190,37 @@ getconstants <- function(infile="constants.csv") { #  infile=filen
   biology["Wtb",] <- getvect("WaLb",datain,ncols)
   biology["age50M",] <- getvect("Age50M",datain,ncols)
   biology["deltaM",] <- getvect("deltaM",datain,ncols)
-  # rec
-  R0    <- getsingleNum("R0",datain)
-  sigmaR <- getsingleNum("sigmaR",datain)
-  origsigR <- sigmaR
+  M <- getsingleNum("M",datain)
   steep <- getsingleNum("steepness",datain)
-  rec=c(R0=R0,sigmaR=sigmaR,origsigR=origsigR,steep=steep)
-  splitR <- getvect("R0split",datain,nregion)
   setup <- grep("HISTORICALCATCH", datain)  # histcatch------
   ncat <- getsingleNum("HISTORICALCATCH",datain)
-  columns <- c(fleets,"year")
+  columns <- c("year",fleets,paste0(fleets,"CE"))
   numcol <- length(columns)
   fish <- matrix(0,nrow=ncat,ncol=numcol)
   for (i in 1:ncat) 
     fish[i,] <- getConst(datain[(setup + i)],nb=numcol,index=1)
   colnames(fish) <- columns
   rownames(fish) <- fish[,"year"]
-  fish[which(fish == 0)] <- NA
+  for (i in 1:numcol) fish[which(fish[,i] == 0),i] <- NA
+  cenames <- paste0(fleets,"CE")
+  outrmse <- makelist(cenames)
+  for (flt in 1:nfleet) 
+    outrmse[[cenames[flt]]] <- getrmse(fish,invar=cenames[flt])
+  sigCE <- sapply(outrmse,"[[","rmse")
+  
+    
   nyrs <- ncat
-  if (nregion > 1) {
-   Rsplit <- rep(1,nyrs)   # this allows for process error in the recruitment
-   if (nregion > 1) {      # split between regions
-     Rsplit <- rnorm(nyrs,mean=splitR[1],sd=splitR[2])
-     Rsplit[1] <- splitR[1]
-   }
-  }
-  sigmaCE <- getvect("sigmaCE",datain,nregion)
-  initdepl <- getvect("initdepl",datain,nregion)
+  initdepl <- getvect("initdepl",datain,1)
   startyr <- fish[1,"year"]
   endyr <- fish[ncat,"year"]
-  fishbiol <- list(rec=rec,Rsplit=splitR,initdepl=initdepl,sigmaCE=sigmaCE)
-  glb <- list(lengths,length(lengths),ages,length(ages),nyrs,startyr,endyr,
-              fleets,nfleet,seltype,nregion,regions,nsex,sexes,sexreg,fltreg,
-              rec,initdepl,sigmaCE)
-  names(glb) <- c("sizes","nsizes","ages","nages","nyrs","startyr","endyr",
-                  "fleets","nfleet","selecttype","nregion","regions",
-                  "nsex","sexes","sexreg","fltreg","rec","initdepl","sigmaCE")
-  ans <- list(biology,fishbiol,fishery,glb,fish)
-  names(ans) <- c("biology","fishbiol","fishery","glb","fish")
+  glb <- list(ages,length(ages),nyrs,startyr,endyr,fleets,nfleet,
+              seltype,initdepl,M,steep,initdepl,sigCE)
+  names(glb) <- c("ages","nages","nyrs","startyr","endyr","fleets","nfleet",
+                  "selecttype","initdepl","M","steep","initdepl","sigCE")
+  ans <- list(biology,fishery,glb,fish,outrmse)
+  names(ans) <- c("biology","fishery","glb","fish","outrmse")
   return(ans)
-} # end of getconstants
+} # end of readASPMdata
 
 #' @title getvect extracts 'n' numbers from an identified line of text
 #'
@@ -514,14 +499,14 @@ template2F1S <- function(rundir,filename="Fleet2Region1.csv") {
       file=filename,append=FALSE)
   cat("#STRUCTURE,,, \n",file=filename,append=FALSE)
   cat("randseed, 8684569, for repeatability \n",file=filename,append=TRUE)
-  cat("nregion, 1,,, number of regions, imples 1 stock  \n",
-      file=filename,append=TRUE)
-  cat("regname, east,,, labels for region  \n",file=filename,append=TRUE)
-  cat("nsex, 1,,, number of sexes \n",file=filename,append=TRUE)
-  cat("LFstruct,0,72,1, sequence for lengths \n",file=filename,append=TRUE)
+  # cat("nregion, 1,,, number of regions, imples 1 stock  \n",
+  #     file=filename,append=TRUE)
+  # cat("regname, east,,, labels for region  \n",file=filename,append=TRUE)
+  # cat("nsex, 1,,, number of sexes \n",file=filename,append=TRUE)
+ #  cat("LFstruct,0,72,1, sequence for lengths \n",file=filename,append=TRUE)
   cat("agestruct,0,30,1, sequence for ages \n",file=filename,append=TRUE)
-  cat("fleets,2,,, number of fleets \n",file=filename,append=TRUE)
-  cat("fleetname, twl, auln,  \n",file=filename,append=TRUE)
+  cat("nfleet,2,,, fleetnumbers \n",file=filename,append=TRUE)
+  cat("fleets, twl, auln,  \n",file=filename,append=TRUE)
   cat("selecttype, logistic, domed,  # currently only logistic or domed \n",
       file=filename,append=TRUE)
   cat("initdepl, 1.0,, the initial depletion level \n",
@@ -546,57 +531,53 @@ template2F1S <- function(rundir,filename="Fleet2Region1.csv") {
   cat("steepness, 0.7,,, \n",file=filename, append=TRUE)
   cat("Age50M,	   3,,, \n",file=filename, append=TRUE)
   cat("deltaM,	   0.75,,, \n",file=filename, append=TRUE)
-  cat("R0,	    1000000,,, \n",file=filename, append=TRUE)
-  cat("sigmaR,	   0.5,,, \n",file=filename, append=TRUE)
-  cat("sigmaCE,	 0.25,,, \n",file=filename, append=TRUE)
-  cat("R0split,	 1,,, \n",file=filename, append=TRUE)
   cat("\n\n",file=filename, append=TRUE)
   cat("#HISTORICALCATCH,45,,, \n",file=filename, append=TRUE)
-  cat("9,0,1976,  catch_and_year \n",file=filename, append=TRUE)
-  cat("20,0,1977,  catch_and_year \n",file=filename, append=TRUE)
-  cat("29,0,1978,  catch_and_year \n",file=filename, append=TRUE)
-  cat("58,0,1979,  catch_and_year \n",file=filename, append=TRUE)
-  cat("75,0,1980,  catch_and_year \n",file=filename, append=TRUE)
-  cat("82,0,1981,  catch_and_year \n",file=filename, append=TRUE)
-  cat("108,0,1982,  catch_and_year \n",file=filename, append=TRUE)
-  cat("133,0,1983,  catch_and_year \n",file=filename, append=TRUE)
-  cat("163,0,1984,  catch_and_year \n",file=filename, append=TRUE)
-  cat("167,0,1985,  catch_and_year \n",file=filename, append=TRUE)
-  cat("208,0,1986,  catch_and_year \n",file=filename, append=TRUE)
-  cat("271,0,1987,  catch_and_year \n",file=filename, append=TRUE)
-  cat("271,0,1988,  catch_and_year \n",file=filename, append=TRUE)
-  cat("285,0,1989,  catch_and_year \n",file=filename, append=TRUE)
-  cat("289,0,1990,  catch_and_year \n",file=filename, append=TRUE)
-  cat("297,0,1991,  catch_and_year \n",file=filename, append=TRUE)
-  cat("291,0,1992,  catch_and_year \n",file=filename, append=TRUE)
-  cat("280,0,1993,  catch_and_year \n",file=filename, append=TRUE)
-  cat("298,13,1994,  catch_and_year \n",file=filename, append=TRUE)
-  cat("308,28,1995,  catch_and_year \n",file=filename, append=TRUE)
-  cat("316,46,1996,  catch_and_year \n",file=filename, append=TRUE)
-  cat("330,60,1997,  catch_and_year \n",file=filename, append=TRUE)
-  cat("363,89,1998,  catch_and_year \n",file=filename, append=TRUE)
-  cat("430,111,1999,  catch_and_year \n",file=filename, append=TRUE)
-  cat("445,145,2000,  catch_and_year \n",file=filename, append=TRUE)
-  cat("510,156,2001,  catch_and_year \n",file=filename, append=TRUE)
-  cat("525,156,2002,  catch_and_year \n",file=filename, append=TRUE)
-  cat("500,155,2003,  catch_and_year \n",file=filename, append=TRUE)
-  cat("460,175,2004,  catch_and_year \n",file=filename, append=TRUE)
-  cat("410,168,2005,  catch_and_year \n",file=filename, append=TRUE)
-  cat("394,145,2006,  catch_and_year \n",file=filename, append=TRUE)
-  cat("355,128,2007,  catch_and_year \n",file=filename, append=TRUE)
-  cat("320,124,2008,  catch_and_year \n",file=filename, append=TRUE)
-  cat("304,123,2009,  catch_and_year \n",file=filename, append=TRUE)
-  cat("275,120,2010,  catch_and_year \n",file=filename, append=TRUE)
-  cat("271,118,2011,  catch_and_year \n",file=filename, append=TRUE)
-  cat("262,110,2012,  catch_and_year \n",file=filename, append=TRUE)
-  cat("246,99,2013,  catch_and_year \n",file=filename, append=TRUE)
-  cat("146,54,2014,  catch_and_year \n",file=filename, append=TRUE)
-  cat("146,54,2015,  catch_and_year \n",file=filename, append=TRUE)
-  cat("146,54,2016, \n",file=filename, append=TRUE)
-  cat("146,54,2017, \n",file=filename, append=TRUE)
-  cat("146,54,2018, \n",file=filename, append=TRUE)
-  cat("146,54,2019, \n",file=filename, append=TRUE)
-  cat("146,54,2020, \n",file=filename, append=TRUE)
+  cat("1975,0,0,0,0,yr-tc-ac, \n",file=filename,append=TRUE)
+  cat("1976,8,0,1.817950618,0,yr-tc-ac, \n",file=filename,append=TRUE)
+  cat("1977,18,0,1.879496675,0,yr-tc-ac, \n",file=filename,append=TRUE)
+  cat("1978,26,0,1.59365282,0,yr-tc-ac, \n",file=filename,append=TRUE)
+  cat("1979,52,0,1.800166222,0,yr-tc-ac, \n",file=filename,append=TRUE)
+  cat("1980,68,0,1.897771455,0,yr-tc-ac, \n",file=filename,append=TRUE)
+  cat("1981,74,0,1.751619141,0,yr-tc-ac, \n",file=filename,append=TRUE)
+  cat("1982,97,0,1.818011726,0,yr-tc-ac, \n",file=filename,append=TRUE)
+  cat("1983,120,0,1.72671127,0,yr-tc-ac, \n",file=filename,append=TRUE)
+  cat("1984,147,0,1.585619174,0,yr-tc-ac, \n",file=filename,append=TRUE)
+  cat("1985,150,0,1.822948399,0,yr-tc-ac, \n",file=filename,append=TRUE)
+  cat("1986,187,0,1.502407019,0,yr-tc-ac, \n",file=filename,append=TRUE)
+  cat("1987,244,0,1.53118141,0,yr-tc-ac, \n",file=filename,append=TRUE)
+  cat("1988,244,0,1.681680949,0,yr-tc-ac, \n",file=filename,append=TRUE)
+  cat("1989,256,0,1.372333195,0,yr-tc-ac, \n",file=filename,append=TRUE)
+  cat("1990,260,0,1.487280263,0,yr-tc-ac, \n",file=filename,append=TRUE)
+  cat("1991,267,0,1.427421894,0,yr-tc-ac, \n",file=filename,append=TRUE)
+  cat("1992,262,0,1.260075269,0,yr-tc-ac, \n",file=filename,append=TRUE)
+  cat("1993,252,0,1.38153378,0,yr-tc-ac, \n",file=filename,append=TRUE)
+  cat("1994,268,12,1.240763546,2.48431198,abov, \n",file=filename,append=TRUE)
+  cat("1995,277,25,1.231613821,2.197692164,abov, \n",file=filename,append=TRUE)
+  cat("1996,284,41,1.282217138,2.639122034,abov, \n",file=filename,append=TRUE)
+  cat("1997,297,54,1.286378001,2.230568499,abov, \n",file=filename,append=TRUE)
+  cat("1998,327,80,1.085279131,2.154980718,abov, \n",file=filename,append=TRUE)
+  cat("1999,387,100,1.047047386,1.946129626,abov, \n",file=filename,append=TRUE)
+  cat("2000,400,130,0.832557651,2.009846266,abov, \n",file=filename,append=TRUE)
+  cat("2001,459,140,0.760019702,1.414459913,abov, \n",file=filename,append=TRUE)
+  cat("2002,472,140,0.483588224,1.210468368,abov, \n",file=filename,append=TRUE)
+  cat("2003,450,140,0.641863502,1.135852524,abov, \n",file=filename,append=TRUE)
+  cat("2004,414,158,0.55298688,0.952771825,abov, \n",file=filename,append=TRUE)
+  cat("2005,369,151,0.576119575,0.670068941,abov, \n",file=filename,append=TRUE)
+  cat("2006,355,130,0.468798891,0.342674742,abov, \n",file=filename,append=TRUE)
+  cat("2007,320,115,0.342799012,0.641914919,abov, \n",file=filename,append=TRUE)
+  cat("2008,288,112,0.364003382,0.397247141,abov, \n",file=filename,append=TRUE)
+  cat("2009,274,111,0.425092835,0.181578642,abov, \n",file=filename,append=TRUE)
+  cat("2010,248,108,0.314242866,0.663728398,abov, \n",file=filename,append=TRUE)
+  cat("2011,244,106,0.306935687,0.250832979,abov, \n",file=filename,append=TRUE)
+  cat("2012,236,99,0.315813651,0.460257868,abov, \n",file=filename,append=TRUE)
+  cat("2013,221,89,0.243150639,0.363334106,abov, \n",file=filename,append=TRUE)
+  cat("2014,110,44,0.147133082,0.228131383,abov, \n",file=filename,append=TRUE)
+  cat("2015,110,44,0.215242012,0.535650776,abov, \n",file=filename,append=TRUE)
+  cat("2016,110,44,0.263228871,0.38243359,abov, \n",file=filename,append=TRUE)
+  cat("2017,110,44,0.122266773,0.323630679,abov, \n",file=filename,append=TRUE)
+  cat("2018,110,44,0.453325032,0.275539674,abov, \n",file=filename,append=TRUE)
+  cat("2019,110,44,0.260213502,0.747151256,abov, \n",file=filename,append=TRUE)
   return(invisible(filename))
 } # end of template2F1S
 

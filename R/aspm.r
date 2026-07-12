@@ -314,7 +314,7 @@ dynF <- function(pars,infish,inglb,inprops,
     exploitB[(yr-1)] = exb
     Nt[1,yr] <- ((4*steep*R0*spb)/((1-steep)*B0+(5*steep-1)*spb))
     recruit[yr] <- Nt[1,yr]
-    fsF <- findFs(catch[yr],Nt[,yr-1],sel,aaw,M,reps=reps)
+    fsF <- findF(catch[yr],Nt[,yr-1],sel,aaw/1000.0,M,reps=reps)
     sF <- sel * fsF
     psF <- sF[2:nages]
     msF <- sF[nages]
@@ -346,6 +346,172 @@ dynF <- function(pars,infish,inglb,inprops,
     return(negLL)
   }
 } # end of dynF
+
+#' @title dynF2 describe the ASPM dynamics for a two-fleet model
+#'
+#' @description dynF2 summarizes the dynamics of an Age-Structured
+#'     Integrated Production Model (ASPM). Fishing mortality is implemented as 
+#'     instantaneous rates. Nt is the numbers-at-age at 
+#'     the start (or end) of a year, catchN is the predicted numbers-at-age in 
+#'     the catch of each fleet, NumC is the total numbers-at-age in the catch, 
+#'     Lt is the predicted numbers-at-size at the start of each year, Gtran*Nt, 
+#'     LCflt is the numbers-at-size in the catch for each fleet, Gtran*catchN,
+#'     at the end of each year, and LC is the total numbers-at-size in the 
+#'     catch, which is Gtran * NumC. These numbers-at-size ignore the fact that 
+#'     larger fish are differentially taken by size due to selectivity (a weak 
+#'     assumption in purely age-structured models.
+#'
+#' @param pars the initial parameter values lnR0, lnq1, lnq2
+#' @param infish the fishery statistics as in year, catches, CPUE, year, twl, 
+#'     auln, twlCE, aulnCE, with NA instead of zeros, from readASPMdata
+#' @param inglb the glb data.frame from readASPMdata or built in dataset const2.
+#' @param inprops matrix of properties, age, then length-, weight-, maturity,
+#'     and selectivity-at-age for each fleet, from readASPMdata  
+#' @param waa name used for weight-at-age in inprops, default='waa'
+#' @param maa name used for maturity-at-age in inprops, default='waa'
+#' @param sela name used for maturity-at-age in inprops,a vector of the 
+#'     names of each fleet, usually=glb$fleets
+#' @param full should all outputs from dynamics be given. When fitting the 
+#'     model, set this to FALSE. Once fitted, change this to TRUE to get all
+#'     the required outputs.      
+#' @param reps how many iterations to use in findFs, default = 6
+#' 
+#' @seealso{
+#'  \link{template2F1S}, \link{readASPMdata}
+#' } 
+#' 
+#' @return if !full then a data.frame containing the fishery dynamics. This
+#'     includes year, catch-by-fleet, PredC-by-fleet, cpue-by-fleet, 
+#'     predCE-bt-fleet, start of year exploitB-by-fleet, total spawning 
+#'     biomass, spawning biomass depletion, recruitment, predictedF-by-fleet. 
+#' @export
+#'
+#' @examples
+#' \dontrun{
+#'  library(fmr)
+#'  library(codeutils)
+#'  library(hplot)
+#'  rundir <- "c:/run2F1S/" # OBVIOUSLY DEFINE YOUR OWN DIRRECTORY STRUCTURE
+#'  dirExists(rundir,verbose=FALSE)  # this will create rundir if required
+#'  always be very careful when using R to manipulate files and directories
+#'  template2F1S(rundir,filename="test2F1S.csv")  # generates test2F1S.csv 
+#'  const2 <- readASPMdata(pathtopath(rundir,"test2F1S.csv"))
+#'  fish <- const2$fish
+#'  glb <- const2$glb
+#'  props <- makeprops(const2,selabove=1)
+#'  pars <- log(c(R0=1825000, qc1=0.0003, qc2=0.00088))
+#'  outdyn <- dynF2(pars=pars,infish=fish,inglb=glb,inprops=props,
+#'                  waa="waa",maa="maa",sela=glb$fleets,full=FALSE,reps=6) 
+#'  print(outdyn)  # should be ~ 26.8              
+#'  outdyn <- dynF2(pars=pars,infish=fish,inglb=glb,inprops=props,
+#'                  waa="waa",maa="maa",sela=glb$fleets,full=TRUE,reps=6) 
+#'  str(outdyn)
+#' }
+dynF2 <- function(pars,infish,inglb,inprops,
+                  waa="waa",maa="maa",sela=fleets,full=FALSE,reps=6) { 
+  nfleet <- inglb$nfleet
+  fleets <- inglb$fleets
+  years <- inglb$startyr:inglb$endyr
+  nyrs1 <- length(years)
+  nyrs <- nyrs1 - 1   
+  nages <- inglb$nages
+  ages <- inglb$ages
+  maxage <- tail(ages,1)
+  aaw <- inprops$waa
+  wata <- aaw/1000.0
+  aam <- inprops$maa
+  sel <- as.matrix(inprops[,fleets])
+  epars <- exp(pars)
+  R0 <- epars[1]  
+  avq <- epars[2:(nfleet+1)]
+  Nt <- matrix(0,nrow=nages,ncol=nyrs1,dimnames=list(ages,0:nyrs))
+  NumC <- Nt
+  spawnB = recruit = deplsB = numeric(nyrs1)
+  steep <- inglb$steep
+  catch <- as.matrix(infish[,fleets]);
+  colnames(catch) <- c("twlC","aulnC")
+  cenames <- paste0(fleets,"CE")
+  cpue <- as.matrix(infish[,cenames]) 
+  colnames(cpue) <- cenames
+  sigCE <- inglb$sigCE   
+  M <- inglb$M
+  surv <- exp(-M)
+  Nt[1,1] <- R0   # get unfished (yr=1) Numbers-at-age index 0 - maxage
+  for (age in 1:(maxage-1)) Nt[age+1,1] <- Nt[age,1] * surv
+  Nt[maxage+1,1] <- (Nt[maxage,1] * surv)/(1-surv)
+  B0 = sum(aam * wata * Nt[,1])
+  spawnB[1] <- B0
+  recruit[1] <- R0
+  deplsB[1] <- 1.0
+  predCN <- matrix(NA,nrow=nages,ncol=nfleet,dimnames=list(ages,fleets))
+  catchN <- array(NA,dim=c(nages,nyrs1,nfleet),
+                  dimnames=list(ages,years,fleets))
+  exploitB <- predC <- predCE <- predF <- matrix(0,nrow=nyrs1,ncol=nfleet,
+                                                 dimnames=list(years,fleets))
+  colnames(predC) <- paste0(fleets,"PC")
+  colnames(predCE) <- paste0(fleets,"PCE")
+  colnames(predF) <- paste0(fleets,"PF")
+  colnames(exploitB) <- paste0(fleets,"eB")
+  for (ft in 1:nfleet) exploitB[1,ft] <- sum(sel[,ft] * wata * Nt[,1])
+  for (yr in 1:nyrs) {  # yr=1
+    yrF <- numeric(nfleet)  
+    predCN <- matrix(NA,nrow=nages,ncol=nfleet,dimnames=list(ages,fleets))
+    obsC <- catch[(yr+1),]
+    spb <- spawnB[yr]  #SpB(Nt[,(yr-1)],aam,aaw)
+    Nt[1,(yr+1)] <- bh(spb,R0,B0,steep) # deviates all = 1.0
+    recruit[yr+1] <- Nt[1,(yr+1)]
+    pflt <- which(obsC > 0)
+    yrF[pflt] <- findFs(obsC[pflt],Nyr=Nt[,yr],sel=sel[,pflt],
+                        aaw=aaw,M=M,reps=reps)
+    numflt <- length(pflt)
+    for (i in 1:numflt) { # i = 1
+      predCN[,pflt[i]] <- ((sel[,pflt[i]] * 
+                              yrF[pflt[i]])/(M + (sel[,pflt[i]] * yrF[pflt[i]]))) * 
+        Nt[,yr] * (1 - exp(-(M + sel[,pflt[i]] * yrF[pflt[i]]))) 
+      predC[(yr+1),pflt[i]] <- sum(predCN[,pflt[i]] * wata)
+      predF[(yr+1),pflt[i]] <- yrF[pflt[i]]
+    }
+    catchN[,yr,pflt] <- predCN[,pflt]    # now remove any age 0- catches
+    Nt[1,(yr+1)] <- Nt[1,(yr+1)] - sum(catchN[1,yr,],na.rm=TRUE)
+    # main dynamics
+    nextNt <- numeric(nages) 
+    mult1 <- matrix(exp(-M),nrow=29,ncol=1,
+                    dimnames=list((2:(nages-1)),"allsurv"))
+    mult2 <- exp(-M)
+    for (ft in 1:numflt) { # add extra mortality terms for each fleet
+      mult1 <- mult1 * exp(-sel[2:(nages-1),pflt[ft]] * yrF[pflt[ft]])
+      mult2 <- mult2 * exp(-sel[nages,pflt[ft]] * yrF[pflt[ft]])
+    }     
+    nextNt[2:(nages-1)] <- (Nt[1:(nages-2),yr] * mult1)
+    nextNt[nages] <- (Nt[nages,yr] + Nt[(nages-1),yr]) * mult2   
+    Nt[2:nages,(yr+1)] <- nextNt[2:nages]     
+    spawnB[yr+1] <- sum(aam * wata * Nt[,(yr+1)])
+    NumC[,(yr+1)] <- rowSums(catchN[,yr,],na.rm=TRUE)
+    for (ft in 1:nfleet) 
+      exploitB[(yr+1),ft] <- sum(sel[,ft] * wata * Nt[,(yr+1)])
+  } # end of yr loop    
+  deplsB <- spawnB/spawnB[1]
+  penC <- 0
+  negLL <- 0
+  for (ft in 1:nfleet) {  # ft=2
+    pickC <- which(catch[,ft]>0)
+    penaltyC = sum((catch[pickC,ft] - predC[pickC,ft])^2)/(nyrs*10) 
+    penC <- penC + penaltyC
+    predCE[2:nyrs1,ft] <- exploitB[2:nyrs1,ft] * avq[ft]
+    pickCE <- which(cpue[,ft] > 0)
+    negLL <- negLL - sum(dnorm(log(cpue[pickCE,ft]),log(predCE[pickCE,ft]),
+                               sigCE[ft],log=TRUE)) + penaltyC
+  }
+  if (full) {
+    fishery <- cbind(year=years,catch,predC,cpue,predCE,exploitB,spawnB,
+                     deplsB,recruit,predF)
+    out <- list(fishery=as.data.frame(fishery),Nt=Nt,NumC=NumC,catchN=catchN,
+                pars=pars,penC=penC,negLL=negLL)
+    return(out)
+  } else {
+    return(negLL)
+  }
+} # end of dynF2
 
 #' @title dynamicsF describe the ASPM dynamics using instantaneous F
 #'
@@ -631,42 +797,61 @@ ExB <- function(invect, SelA, WeightA) {
 #' 
 #' @description findF is used when searching for the instantaneous F that will
 #'     produce the required catch in a given year in an age-structured model. It
-#'     needs generalizing to operate with multiple gears.
+#'     needs generalizing to operate with multiple gears. The method derives 
+#'     from a description given on page 7 of Methot & Wetzel (2013, suppl
+#'     material). This function is only used by the function dynF.
 #'
 #' @param cyr the known catch in a given year
 #' @param Nyr the numbers at size at the start of the given year or end of the 
 #'     year before
 #' @param sel the selectivity of the fishing gear
-#' @param aaw the weight-at-age
+#' @param wata the weight-at-age as tonnes = aaw/1000
 #' @param M the instantaneous natural mortality rate
-#' @param Fmax the limit on themaximum F allowed, default = 3.0 ~H = 0.95
-#' @param reps how many internal loops to use finding each F, default = 6
+#' @param Fmax a limit on the maximum F allowed, default = 3.0 ~H = 0.95
+#' @param reps how many internal loops to use finding each F, default = 8
+#' 
+#' @seealso{
+#'    \link{dynF}
+#' } 
 #'
-#' @returns the fully selected fishing mortality rate
+#' @returns the fully selected fishing mortality rate for a single fleet
 #' @export
+#' 
+#' @references Methot, R.D. and C.R. Wetzel (2013) Stock synthesis: A biological 
+#'     and statistical framework for fish stock assessment and fishery 
+#'     management. Supplementary Material: Appendix A: Technical Description of 
+#'     the Stock Synthesis assessment program \emph{Fisherie Research} 142:
+#'     86-99. http://dx.doi.org/10.1016/j.fishres.2012.10.012 
 #'
 #' @examples
-#' print("wait on example data sets")
-findF <- function(cyr,Nyr,sel,aaw,M,Fmax=3.0,reps=8) {
-  # cyr=catch[yr]; Nyr <- Nt[,yr-1]; sel=sel; aaw=aaw  
-  wata <- aaw/1000
-  Byr <- sum((Nyr*sel*wata))
-  temp1 <- cyr / Byr
-  join1 <- 1/(1 + exp(30*(temp1 - 0.95)))
-  tempyr <- (join1 * temp1) + (0.95 * (1 - join1))
-  fFyr <- -log(1 - tempyr)
+#' library(fmr); library(codeutils); library(hplot)
+#' data("westroughy") # contains following 3 components see str(westroughy)
+#' fish <- westroughy$fish; glb <- westroughy$glb; props <- westroughy$props
+#'  pars <- c(7,-0.4,-6.7)  
+#'  bestFD <- fitASPM(initpar=pars,minfun=dynF,infish=fish,inglb=glb,
+#'                    inprops=props,gradtol=1e-05,stepmax=0.1,steptol=1e-07,
+#'                    hessian=TRUE,reps=6)
+#'  outfit(bestFD,digits=7,title="Instantaneous Rates 2",
+#'         parnames=c("LnR0","Ln(sigCE)","Ln(q)")) 
+findF <- function(cyr,Nyr,sel,wata,M,Fmax=3.0,reps=8) {
+  # cyr=catch[yr]; Nyr <- Nt[,yr-1]; sel=sel; wata=aaw/1000 
+  Byr <- sum((Nyr*sel*wata)) # exploitable biomass      at start of year yr
+  temp1 <- cyr / (Byr + 0.1*cyr)  # next 4 lines a version of Pope's approx
+  join1 <- 1/(1 + exp(30*(temp1 - 0.95))) # join keeps it differentiable
+  tempyr <- (join1 * temp1) + (0.95 * (1 - join1)) #approx harvest rate
+  fFyr <- -log(1 - tempyr)  # harvest rate transformed to F
   sF <- sel * fFyr
-  Zyr <- sF + M
+  Zyr <- sF + M  # predCyr line is Baranov catch equation
   predCyr <- sum((sF/Zyr) * (wata * Nyr) * (1 - exp(-Zyr)))
   for (i in 1:reps) {
-    Zadj <- cyr/(predCyr + 0.00001)
-    cat(Zadj,"\n")
+    Zadj <- cyr/(predCyr + 0.0000001)
     fFyr <- Zadj * fFyr
     sF <- sel * fFyr
     Zyr <- sF + M
     predCyr <- sum((sF/Zyr) * (wata * Nyr) * (1 - exp(-Zyr)))
   }
-  cat("\n")
+  Zadj <- cyr/(predCyr + 0.0000001)  # limits how precise one can get
+  fFyr <- Zadj * fFyr
   return(fFyr) 
 } # end of findF
 

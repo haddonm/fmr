@@ -162,11 +162,10 @@ NULL
 #'    Aquatic Sciences} \emph{39}: 1195-1207.
 #'     
 #' @examples
+#' require(fmr)
 #' data(fournarch82)
 #' fournarch82
-#' rowfreqboot(x=fournarch82,n=250)
 "fournarch82"
-
 
 # outlike-------------------------------------------------
 
