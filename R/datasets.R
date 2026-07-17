@@ -79,6 +79,31 @@
 #' @name const
 NULL
 
+# F2robustness -----------------------------
+
+#' @title F2robustness are robustness outputs for 2 Fleet 1 region fishery
+#'
+#' @description F2robustness a data.frame containing the results of running
+#'     a robustness test on the two fleet one region/stock fishery example.
+#'     This uses the dynF2 funciton to describe the stock dynamics using the
+#'     two fishing gears with different selctivity and instantaneous 
+#'     fishing mortlaity rates. It constitutes a 200 x 15 data.frame with c
+#'     olumns iLnR0, iqc1, iqc2, -veLL, LnR0, Lqc1, Lqc2, gradR0, gradqc1, 
+#'     gradqc2, R0, qc1, qc2, pardist, and Iters. Where pardist is the 
+#'     Euclidean distance between the initial parameters and the original 
+#'     optimum. Each nominal parameter can be changed by up to 10 percent.
+#'     The results are sorted from teh smallest to the largest -veLL.
+#'     
+#' @format A data.frame of 15 columns and 200 rows  
+#'     
+#' @examples
+#'  data(F2robustness)
+#'  str(F2robustness)
+#'  countLL <- table((round(F2robustness[,"-veLL"],6)))
+#'  countLL
+#'  range(F2robustness[,"-veLL"]) # should be 6.248774 7.039229
+"F2robustness"
+
 # fish --------------------
 
 #' @title fish fishery data for the plaice example from Beverton and Holt, 1957
@@ -387,6 +412,31 @@ NULL
 #'  countLL
 "robustnessF"
 
+# simconst2------------------------
+
+#' @title simconst2 is the output of getconstants 
+#'
+#' @description simconst2 is a list contianing matrices, lists, and a scalar
+#'     value. It is the outptu from teh getconstants function. See the 
+#'     description in the Simulation MOdel Appendix in \emph{More Fisheries
+#'     Modelling using R}.
+#'     
+#' @format A list of siz objects
+#' \describe{
+#'   \item{biology}{ a 1 clumn matrix of biological properties, eg M}
+#'   \item{fishbiol}{ a list of rec = c(B0, sigmaR, origsigR, steep), Rsplit,
+#'         which will be 1 if only one region, initdepl, and sigmaCE }
+#'   \item{fishery}{ a list of the selectivity parameters for each fleet}
+#'   \item{strucure}{details the structural form of the model, years, ages, 
+#'         sizes, fleets, selecttype}
+#'   \item{histC}{a 45 year x 3 matrix of twl catches, auln catches, and year}
+#'   \item{randseed}{ a random seed to allow for repeatability}
+#' }
+#'     
+#' @examples
+#'  data(simconst2)
+#'  str(simconst2)
+"simconst2"
 
 # sizecomp -----------------------
 

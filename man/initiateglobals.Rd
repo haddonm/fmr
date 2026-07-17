@@ -4,10 +4,12 @@
 \alias{initiateglobals}
 \title{initiateglobals - calculates fishery constants as vectors}
 \usage{
-initiateglobals(consts, selabove = 0)
+initiateglobals(consts, agesorsizes, selabove = 0)
 }
 \arguments{
 \item{consts}{the output from 'getconstants'}
+
+\item{agesorsizes}{is selectivity by 'ages' or 'sizes', default = 'ages'}
 
 \item{selabove}{are there ages or sizes that are never selected. Identify
 the upper index in the outsel vector here. eg. if age 0 is never selected
@@ -23,7 +25,9 @@ including length-at-age, weight-at-age, selectivity-a-age, length-at
 includes sex, fleets, and regions as partitions of the model.
 }
 \examples{
-data(const)
-globals <- initiateglobals(const)
+\dontrun{
+data(simconst2)
+globals <- initiateglobals(simconst2,agesorsizes="ages",selabove=1)
 str(globals,max.level=1)
+}
 }

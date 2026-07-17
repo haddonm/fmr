@@ -21,7 +21,7 @@ population, and determines the recruitment dynamics
 }
 \examples{
 \dontrun{
-library(agestruct)
+library(fmr)
 datafileTemplate(filename="C:/A_CSIRO/Rcode/agestructrun/constants.csv")
 const <- getconstants("C:/A_CSIRO/Rcode/agestructrun/constants.csv")
 globals <- initiateglobals(const)

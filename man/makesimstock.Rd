@@ -21,9 +21,11 @@ functions so the dynamics can be followed easily without using the
 global environment and remembering all the particular variables.
 }
 \examples{
-library(fmr)
-data(const)
-globals <- initiateglobals(const)
-stock <- makesimstock(globals)
-str(stock)
+\dontrun{
+ library(fmr)
+ data(const)
+ globals <- initiateglobals(const)
+ stock <- makesimstock(globals)
+ str(stock)
+}
 }

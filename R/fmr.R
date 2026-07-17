@@ -9,7 +9,7 @@
 #' @importFrom utils tail head str
 #' @importFrom codeutils which.closest getmax getmin magnitude pathtopath
 #' @importFrom codeutils removeEmpty makeUnit getConst makelist getStr
-#' @importFrom codeutils getsingleNum iscol rowfreqboot
+#' @importFrom codeutils getsingleNum iscol rowfreqboot countgtzero
 #' @importFrom hplot plotprep parset plot1 pickbound
 #' @importFrom makehtml addplot addtable dirExists
 #' @importFrom TMB tmbprofile

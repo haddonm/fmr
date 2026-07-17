@@ -41,7 +41,8 @@
 #'                    inprops=props,gradtol=1e-05,stepmax=0.1,steptol=1e-07,
 #'                    hessian=TRUE,reps=6)
 #'  outfit(bestFD,digits=7,title="Instantaneous Rates 2",
-#'         parnames=c("LnR0","Ln(sigCE)","Ln(q)"))   
+#'         parnames=c("LnR0","Ln(sigCE)","Ln(q)")) 
+#'  # cyr=obsC[1];Nyr=Nt[,yr];sel=sel;aaw=aaw;M=M;reps=reps  
 findFs <- function(cyr,Nyr,sel,aaw,M,reps=8) {
   sel <- as.matrix(sel)
   nages <- length(sel[,1]) # uses selectivity by age

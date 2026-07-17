@@ -19,7 +19,6 @@ actual numbers-at-age in a simulated population.
 require(fmr)
 data(fournarch82)
 fournarch82
-rowfreqboot(x=fournarch82,n=250)
 }
 \references{
 Fournier, D. and C.P. Archibald (1982) A general theory for

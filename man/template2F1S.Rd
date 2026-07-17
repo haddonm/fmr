@@ -4,7 +4,7 @@
 \alias{template2F1S}
 \title{template2F1S data template for a 2 fleet 1 region/stock fishery}
 \usage{
-template2F1S(rundir, filename = "Fleet2Region1.csv")
+template2F1S(rundir, filename = "F2S1.csv")
 }
 \arguments{
 \item{rundir}{directory in which to find the data file and run the analysis}

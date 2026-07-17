@@ -1661,9 +1661,9 @@ SpB <- function(invect, MatureA, WeightA) {
    return(ans)
 }
 
-#' @title unfishedorig generates the numbers at age for an unfished population
+#' @title unfishedstk generates the numbers at age for an unfished population
 #'
-#' @description unfished generates the numbers at age for an unfished
+#' @description unfishedstk generates the numbers at age for an unfished
 #'     population, and determines the recruitment dynamics. It requires the
 #'     input of R0. The output includes the unfished numbers-at-age N0 plus 
 #'     B0, A0, and R0.
@@ -1679,9 +1679,9 @@ SpB <- function(invect, MatureA, WeightA) {
 #' data("westroughy")
 #' glb <- westroughy$glb  # contains a guess at log(R0)
 #' props <- westroughy$props
-#' unfish <- unfished(glob=glb,props=props,inR0=glb$R0)
+#' unfish <- unfishedstk(glob=glb,props=props,inR0=glb$R0)
 #' print(unfish)
-unfishedorig <- function(glob,props,inR0) {
+unfishedstk <- function(glob,props,inR0) {
    R0 <- exp(inR0)
    maxage <- glob$maxage
    hsurv <- exp(-glob$M/2)
@@ -1700,7 +1700,7 @@ unfishedorig <- function(glob,props,inR0) {
    N0 <- R0*Nt
    res <- list(N0=N0, B0=B0, R0=R0, A0=A0)
    return(res)
-}  # end of unfished
+}  # end of unfishedstk
 
 
 
