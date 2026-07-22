@@ -624,11 +624,13 @@ makeprops <- function(const,selabove=1) {  # const = const2; selabove=1
   vbpars <- c(linf=biol["Linf",],K=biol["K",],t0=biol["t0",])
   props[,"laa"] <- vB(vbpars,glb$ages)
   props[,"waa"] <- biol["Wta",] * (props[,"laa"] ^ biol["Wtb",])
-  props[,"maa"] <- logist(inL50=biol["age50M",],delta=biol["deltaM",],depend=ages)
+  props[,"maa"] <- logist(inL50=biol["age50M",],delta=biol["deltaM",],
+                          depend=ages)
   for (flt in 1:nfleet) {
     propfish <- fishery[[flt]]
     props[,fleets[flt]] <- calcsel(ageorlen=ages,fishprop=propfish,
-                                   typeselect=glb$selecttype[flt],zerocomps=selabove)
+                                   typeselect=glb$selecttype[flt],
+                                   zerocomps=selabove)
   }
   return(props=props)
 } # end of makeprops
@@ -715,6 +717,138 @@ makesimstock <- function(glb) {  # glb=glb
   return(stk)
 }  # end of makesimstock
 
+#' @title plotdynfish generates a plot of a fisheries dynamics
+#' 
+#' @description plotdynfish generates a plot of a fisheries dynamics. This 
+#'     includes plots of predicted CPUE vs observed CPUE, the residuals for the
+#'     same (separate plots for different gears), the spawning biomass 
+#'     depletion, the recruitment levels, the catches, and the instantaneous
+#'     F levels
+#'
+#' @param outfish a data.frame of the fishery dynamics, as a minimum it must 
+#'     obviously include observed and predicted catches and CPUE, spawning
+#'     biomass depletion, recruitment, and instantaneous F values. The column
+#'     headings of which can be identified in teh columns argument, in which
+#'     the order is important.
+#' @param console should the plot go to the console, default = TRUE
+#' @param prepplot should the plotprep function be used? default = TRUE
+#' @param addtitle The default filename if 'fishery_dynamics.png' use addtitle
+#'     to add text in front of that. eg addtitle='Speciesname_'
+#' @param rundir the directory into which to save the file if console=FALSE,
+#'     default = ''
+#' @param width the width of the plot within plotprep if used, default=8
+#' @param height the height of the plot within plotprep if used, default=7
+#' @param nfleet default = 2, determines how many gears are expected can only
+#'     be 1 or 2. If nfleet = 1 consider reducing height
+#' @param columns column headings identifying the components to be plotted. The
+#'     default is: columns=c('year','twlC','aulnC','twlCE','aulnCE', 'twlPCE',
+#'     'aulnPCE','deplsB','recruit','twlPF','aulnPF','Trawl','Autoline'), which
+#'     identify the year column, the catch columns, the observed CPUE columns, 
+#'     the predicted CE cols, the depletion and recruitment cols, then the
+#'     instantaneous F estimates by gear, and finally the gear names. If nfleet
+#'     = 1 then, obviously one only lists the single gear.
+#'
+#' @returns nothing but it does generate a plot
+#' @export
+#'
+#' @examples
+#' print("Wait on example data - again")
+plotdynfish <- function(outfish,console=TRUE,addtitle="",prepplot=TRUE,
+                        rundir="",width=8,height=7,nfleet=2,
+                        columns=c("year","twlC","aulnC","twlCE","aulnCE",
+                                  "twlPCE","aulnPCE","deplsB","recruit",
+                                  "twlPF","aulnPF","Trawl","Autoline")) {
+  oldpar <- par(no.readonly=TRUE)
+  on.exit(par(oldpar))
+  numcol <- length(columns)
+  year <- columns[1]
+  catch <- columns[2:(2+nfleet-1)]
+  obsCE <- columns[(nfleet+2):(2*nfleet+1)]
+  predCE <- columns[(2*nfleet+2):(3*nfleet+1)]
+  depl <- columns[(3*nfleet+2)]
+  recruit <- columns[(3*nfleet+3)]
+  instF <- columns[(3*nfleet+4):(4*nfleet+3)]
+  gears <- tail(columns,nfleet)
+  fishery <- replacezeros(outfish)
+  yrs <- fishery[,"year"]
+  if (console & prepplot) {
+    plotprep(width=width,height=height,cex=1.0,filename="",verbose=FALSE)
+  } else {
+    filen <- pathtopath(rundir,paste0(addtitle,"fishery_dynamics.png"))
+    plotprep(width=width,height=height,cex=1.0,newdev=TRUE,filename=filen,
+             verbose=FALSE)
+  }
+  if (nfleet == 1) {
+    parset(plots=c(3,2),margin=c(0.3,0.4,0.05,0.05),byrow=FALSE)
+  } else {
+    parset(plots=c(4,2),margin=c(0.3,0.4,0.05,0.05),byrow=FALSE)
+  }
+  
+  maxy <- getmax(fishery[,c(obsCE[1],predCE[1])])
+  plot(yrs,fishery[,predCE[1]],type="l",lwd=2,col=1,
+       ylab=paste0(gears[1]," CPUE"),ylim=c(0,maxy),yaxs="i",xlab="",
+       panel.first=grid())
+  points(yrs,fishery[,obsCE[1]],pch=16,cex=1.25,col=2)
+  lines(yrs,fishery[,obsCE[1]],lwd=1,col=2,lty=3)
+  if (nfleet > 1) {
+    legend("topright",c("Predicted","Observed"),col=c(1:nfleet),lwd=3,bty="n",
+           cex=1.2)
+  }
+  if (nfleet == 2) {
+    maxy <- getmax(fishery[,c(obsCE[2],predCE[2])])
+    plot(yrs,fishery[,predCE[2]],type="l",lwd=2,col=1,
+         ylab=paste0(gears[2]," CPUE"),
+         ylim=c(0,maxy),yaxs="i",xlab="",panel.first=grid())
+    points(yrs,fishery[,obsCE[2]],pch=16,cex=1.25,col=2)
+    lines(yrs,fishery[,obsCE[2]],lwd=1,col=2,lty=3)
+  }
+  maxy <- getmax(fishery[,depl])
+  plot(yrs,fishery[,depl],type="l",lwd=2,col=1,ylab="Spawning Depletion",
+       ylim=c(0,maxy),yaxs="i",xlab="",panel.first=grid())
+  abline(h=c(0.4,0.2),lwd=c(1,1),col=c(3,2))
+  maxy <- getmax(fishery[,recruit])
+  plot(yrs,fishery[,recruit],type="l",lwd=2,col=1,ylab="Recruitment",
+       ylim=c(0,maxy),yaxs="i",xlab="",panel.first=grid())
+  twlresid <- fishery[,obsCE[1]]/fishery[,predCE[1]]
+  maxy <- getmax(twlresid); miny <- getmin(twlresid)
+  plot(yrs,twlresid,type="p",pch=16,col=1,cex=1,
+       ylab=paste0(gears[1]," CPUE Residuals"),
+       ylim=c(miny,maxy),yaxs="i",xlab="",panel.first=grid())
+  lines(yrs,twlresid,lwd=1,col=2,lty=2)
+  abline(h=1,lwd=1,col=1)
+  if (nfleet == 2) {
+    aulnresid <- fishery[,obsCE[2]]/fishery[,predCE[2]]
+    maxy <- getmax(aulnresid); miny <- getmin(aulnresid)
+    plot(yrs,aulnresid,type="p",pch=16,col=1,cex=1,
+         ylab=paste0(gears[2]," CPUE Residuals"),
+         ylim=c(miny,maxy),yaxs="i",xlab="",panel.first=grid())
+    lines(yrs,aulnresid,lwd=1,col=2,lty=2)
+    abline(h=1,lwd=1,col=1)
+  }
+  if (nfleet == 2) {
+    totC <- rowSums(fishery[,c(catch)],na.rm=TRUE)
+    totC[which(totC == 0)] <- NA
+    maxy <- getmax(totC)
+  } else {
+    maxy <- getmax(fishery[,catch[1]])
+  }
+  plot(yrs,fishery[,catch[1]],type="l",lwd=2,col=4,ylab="Catches (t)",
+       ylim=c(0,maxy),yaxs="i",xlab="",panel.first=grid())
+  if (nfleet == 2) {
+    lines(yrs,fishery[,catch[2]],lwd=2,col=2)
+    lines(yrs,totC,lwd=2,col=4)
+    legend("topleft",c(gears,"Total"),col=c(1,2,4),lwd=3,bty="n",
+           cex=1.1)
+  }
+  maxy <- getmax(fishery[,c(instF)])
+  plot(yrs,fishery[,instF[1]],type="l",lwd=2,col=1,ylab="Instantaneous F",
+       ylim=c(0,maxy),yaxs="i",xlab="",panel.first=grid())
+  if (nfleet == 2) {
+    lines(yrs,fishery[,instF[2]],lwd=2,col=2)
+    legend("topleft",c(gears),col=c(1:nfleet),lwd=3,bty="n",cex=1.1)
+  }
+} # end of plotdynfish
+
 
 #' @title samplefishery generates catcges and CPUE with-without errors
 #' 
@@ -748,15 +882,15 @@ samplefishery <- function(out,glb,
   fleets <- glb$fleets
   nflet <- glb$nfleet
   fishery <- out$fishery
-  catchnames <- paste0(fleets,"_Ct")
+  catchnames <- paste0(fleets,"C")
   catches <- fishery[,catchnames]
   nobs <- nrow(catches) * ncol(catches)
   catches <- round(catches * rnorm(nobs,1,sd=errors["catchSD"]))
-  cpuenames <- paste0(fleets,"_pCE")
+  cpuenames <- paste0(fleets,"PCE")
   cpue <- fishery[,cpuenames]
   nobs <- nrow(cpue) * ncol(cpue)
   cpue <- cpue * rnorm(nobs,1,sd=errors["cpueSD"])
-  histcatch <- as.matrix(cbind(year=fishery[,"Year"],catches,cpue))
+  histcatch <- as.matrix(cbind(year=fishery[,"year"],catches,cpue))
   return(invisible(histcatch))
 } # end of samplefishery
 
@@ -821,11 +955,12 @@ simdynF <- function(glb,stk,reps=6,full=FALSE) {
   ages <- glb$ages
   nages <- glb$nages
   maxage <- glb$maxage
-  catchcol <- paste0(fleets,"_Ct")
-  predCcol <- paste0(fleets,"_pC")
-  exBcols <- paste0(fleets,"_exB")
-  predCEcols <- paste0(fleets,"_pCE")
-  yrFcols <- paste0(fleets,"_F") 
+  catchcol <- paste0(fleets,"C")
+  predCcol <- paste0(fleets,"PC")
+  exBcols <- paste0(fleets,"eB")
+  CEcols <- paste0(fleets,"CE")
+  predCEcols <- paste0(fleets,"PCE")
+  yrFcols <- paste0(fleets,"PF") 
   Nt <- matrix(0,nrow=nages,ncol=nyr1,dimnames=list(ages,allyrs))
   NumC <- Nt
   sizes <- glb$sizes
@@ -833,16 +968,16 @@ simdynF <- function(glb,stk,reps=6,full=FALSE) {
   Lt <- LC <- matrix(0,nrow=nsizes,ncol=nyr1,dimnames=list(sizes,allyrs))
   LCflt <- array(0,dim=c(nsizes,nyrs,nfleet),dimnames=list(sizes,years,fleets))
   Gtran <- glb$growtran[,,1,1]
-  columns <- c("Year",catchcol,predCcol,exBcols,yrFcols,
-               predCEcols,"SpawnB","deplsB","Recruit")
+  columns <- c("year",catchcol,predCcol,CEcols,predCEcols,exBcols,
+               "spawnB","deplsB","recruit",yrFcols)
   fishery <- matrix(NA,nrow=nyr1,ncol=length(columns),
                     dimnames=list(0:nyrs,columns))
-  fishery[,"Year"] <- as.numeric(rownames(stk$catchB))
-  fishery[,paste0(fleets,"_Ct")] <- stk$catchB
-  fishery[1,paste0(fleets,"_exB")] <- stk$ExpB[1,]
-  fishery[1,"SpawnB"] <- stk$Bsp[1]
+  fishery[,"year"] <- as.numeric(rownames(stk$catchB))
+  fishery[,catchcol] <- stk$catchB
+  fishery[1,exBcols] <- stk$ExpB[1,]
+  fishery[1,"spawnB"] <- stk$Bsp[1]
   fishery[1,"deplsB"] <- glb$initdepl
-  fishery[1,"Recruit"] <- stk$R0
+  fishery[1,"recruit"] <- stk$R0
   hS <- exp(-M/2)   # for midyear CPUE
   surv <- exp(-M)
   Nt[,1] <- stk$NaA[,1]
@@ -856,9 +991,9 @@ simdynF <- function(glb,stk,reps=6,full=FALSE) {
   #for (yr in 1:18) { #nyr1) {  # yr=40
   for (yr in 1:nyrs) {  # yr=1
     obsC <- obscatch[(yr+1),]
-    spb <- fishery[yr,"SpawnB"]  #SpB(Nt[,(yr-1)],aam,aaw)
+    spb <- fishery[yr,"spawnB"]  #SpB(Nt[,(yr-1)],aam,aaw)
     Nt[1,(yr+1)] <- bhsim(spb,R0,B0,steep,sigmaR=sigR)
-    fishery[(yr+1),"Recruit"] <- Nt[1,(yr+1)]
+    fishery[(yr+1),"recruit"] <- Nt[1,(yr+1)]
     nextEN <- nextNT <- numeric(nages)  # exploitable and spawning NaA
     if (nfleet == 1) {  # Single fleet
       yrF <- findFs(obsC,Nyr=Nt[,yr],sel=sel,aaw=aaw,M=M,reps=reps)
@@ -923,7 +1058,7 @@ simdynF <- function(glb,stk,reps=6,full=FALSE) {
         nextEN[nages] <- (Nt[nages,yr] + Nt[(nages-1),yr]) * multe2
       } # end of all-fleets loop 
     } # end of multifleet loop
-    fishery[(yr+1),"SpawnB"] <- SpB(Nt[,(yr+1)],aam,aaw) 
+    fishery[(yr+1),"spawnB"] <- SpB(Nt[,(yr+1)],aam,aaw) 
     if (nfleet == 1) { 
       fishery[(yr+1),exBcols] <- ExB(nextEN,sel[,1],glb$WaA)
       NumC[,(yr+1)] <- catchN[,yr,] 
@@ -933,9 +1068,9 @@ simdynF <- function(glb,stk,reps=6,full=FALSE) {
       NumC[,(yr+1)] <- rowSums(catchN[,yr,],na.rm=TRUE)
     }    
   } # end of yr loop
-  fishery[,"deplsB"] <- fishery[,"SpawnB"]/B0
+  fishery[,"deplsB"] <- fishery[,"spawnB"]/B0
   ExpB <- as.matrix(fishery[,exBcols])
-  catchnames <- paste0(fleets,"_Ct")
+  catchnames <- catchcol
   for (ft in 1:nfleet) { # ft =1
     pickC <- which(fishery[,catchnames[ft]] > 0)
     tmp <- ExpB[pickC,ft] * glb$qc[ft]
@@ -960,7 +1095,7 @@ simdynF <- function(glb,stk,reps=6,full=FALSE) {
 #'
 #' @param rundir directory in which to find the data file and run the analysis
 #' @param filename the name of the data file to be produced, default=
-#'     'Fleet2Region1.csv'.
+#'     'F21S.csv'.
 #'
 #' @return the function write a data file to rundir and returns the filename
 #' @export
@@ -977,7 +1112,7 @@ template2F1S <- function(rundir,filename="F2S1.csv") {
   cat("Data for a 2 Fleet 1 Region 1 Stock model  \n\n",
       file=filename,append=FALSE)
   cat("#STRUCTURE,,, \n",file=filename,append=FALSE)
-  cat("randseed, 8684569, for repeatability \n",file=filename,append=TRUE)
+  cat("randseed, 6924062, for repeatability \n",file=filename,append=TRUE)
   # cat("nregion, 1,,, number of regions, imples 1 stock  \n",
   #     file=filename,append=TRUE)
   # cat("regname, east,,, labels for region  \n",file=filename,append=TRUE)
@@ -1013,52 +1148,53 @@ template2F1S <- function(rundir,filename="F2S1.csv") {
   cat("Age50M,	   3,,, \n",file=filename, append=TRUE)
   cat("deltaM,	   0.75,,, \n",file=filename, append=TRUE)
   cat("\n\n",file=filename, append=TRUE)
-  cat("#HISTORICALCATCH,45,,, \n",file=filename, append=TRUE)
+  cat("#HISTORICALCATCH,46,,, \n",file=filename, append=TRUE)
   cat("1975,NA,NA,NA,NA,yr_tc_ac, \n",file=filename,append=TRUE)
-  cat("1976,8,NA,1.4261,NA,yr_tc_ac, \n",file=filename,append=TRUE)
-  cat("1977,18,NA,1.997,NA,yr_tc_ac, \n",file=filename,append=TRUE)
-  cat("1978,26,NA,1.6505,NA,yr_tc_ac, \n",file=filename,append=TRUE)
-  cat("1979,52,NA,1.9368,NA,yr_tc_ac, \n",file=filename,append=TRUE)
-  cat("1980,68,NA,2.3061,NA,yr_tc_ac, \n",file=filename,append=TRUE)
-  cat("1981,74,NA,1.6764,NA,yr_tc_ac, \n",file=filename,append=TRUE)
-  cat("1982,97,NA,2.0675,NA,yr_tc_ac, \n",file=filename,append=TRUE)
-  cat("1983,120,NA,1.7817,NA,yr_tc_ac, \n",file=filename,append=TRUE)
-  cat("1984,147,NA,1.6613,NA,yr_tc_ac, \n",file=filename,append=TRUE)
-  cat("1985,150,NA,1.9732,NA,yr_tc_ac, \n",file=filename,append=TRUE)
-  cat("1986,187,NA,1.769,NA,yr_tc_ac, \n",file=filename,append=TRUE)
-  cat("1987,244,NA,1.1148,NA,yr_tc_ac, \n",file=filename,append=TRUE)
-  cat("1988,244,NA,1.7877,NA,yr_tc_ac, \n",file=filename,append=TRUE)
-  cat("1989,256,NA,1.6929,NA,yr_tc_ac, \n",file=filename,append=TRUE)
-  cat("1990,260,NA,1.524,NA,yr_tc_ac, \n",file=filename,append=TRUE)
-  cat("1991,267,NA,1.6437,NA,yr_tc_ac, \n",file=filename,append=TRUE)
-  cat("1992,262,NA,1.3055,NA,yr_tc_ac, \n",file=filename,append=TRUE)
-  cat("1993,252,NA,1.1705,NA,yr_tc_ac, \n",file=filename,append=TRUE)
-  cat("1994,268,12,1.5762,2.6555,yr_tc_ac, \n",file=filename,append=TRUE)
-  cat("1995,277,25,0.9837,2.6677,yr_tc_ac, \n",file=filename,append=TRUE)
-  cat("1996,284,41,1.1521,2.0347,yr_tc_ac, \n",file=filename,append=TRUE)
-  cat("1997,297,54,1.553,2.3705,yr_tc_ac, \n",file=filename,append=TRUE)
-  cat("1998,327,80,0.847,1.7469,yr_tc_ac, \n",file=filename,append=TRUE)
-  cat("1999,387,100,1.0717,1.9595,yr_tc_ac, \n",file=filename,append=TRUE)
-  cat("2000,400,130,0.8202,2.2537,yr_tc_ac, \n",file=filename,append=TRUE)
-  cat("2001,459,140,0.5849,1.4069,yr_tc_ac, \n",file=filename,append=TRUE)
-  cat("2002,472,140,0.4875,1.1611,yr_tc_ac, \n",file=filename,append=TRUE)
-  cat("2003,450,140,0.5666,1.3786,yr_tc_ac, \n",file=filename,append=TRUE)
-  cat("2004,414,158,0.5199,0.8369,yr_tc_ac, \n",file=filename,append=TRUE)
-  cat("2005,369,151,0.6313,0.6245,yr_tc_ac, \n",file=filename,append=TRUE)
-  cat("2006,355,130,0.552,0.2946,yr_tc_ac, \n",file=filename,append=TRUE)
-  cat("2007,320,115,0.3247,0.5798,yr_tc_ac, \n",file=filename,append=TRUE)
-  cat("2008,288,112,0.3652,0.4314,yr_tc_ac, \n",file=filename,append=TRUE)
-  cat("2009,274,111,0.3386,0.176,yr_tc_ac, \n",file=filename,append=TRUE)
-  cat("2010,248,108,0.263,0.6225,yr_tc_ac, \n",file=filename,append=TRUE)
-  cat("2011,244,106,0.1714,0.2066,yr_tc_ac, \n",file=filename,append=TRUE)
-  cat("2012,236,99,0.3043,0.4532,yr_tc_ac, \n",file=filename,append=TRUE)
-  cat("2013,221,89,0.2334,0.4054,yr_tc_ac, \n",file=filename,append=TRUE)
-  cat("2014,110,44,0.1634,0.2239,yr_tc_ac, \n",file=filename,append=TRUE)
-  cat("2015,110,44,0.2223,0.5729,yr_tc_ac, \n",file=filename,append=TRUE)
-  cat("2016,110,44,0.2388,0.4003,yr_tc_ac, \n",file=filename,append=TRUE)
-  cat("2017,110,44,0.122,0.2855,yr_tc_ac, \n",file=filename,append=TRUE)
-  cat("2018,110,44,0.5196,0.3137,yr_tc_ac, \n",file=filename,append=TRUE)
-  cat("2019,110,44,0.264,0.9197,yr_tc_ac, \n",file=filename,append=TRUE)
+  cat("1976,9,NA,2.2648,NA,yr_tc_ac, \n",file=filename,append=TRUE)
+  cat("1977,20,NA,1.7314,NA,yr_tc_ac, \n",file=filename,append=TRUE)
+  cat("1978,29,NA,1.7318,NA,yr_tc_ac, \n",file=filename,append=TRUE)
+  cat("1979,58,NA,1.4174,NA,yr_tc_ac, \n",file=filename,append=TRUE)
+  cat("1980,75,NA,1.3511,NA,yr_tc_ac, \n",file=filename,append=TRUE)
+  cat("1981,82,NA,1.8418,NA,yr_tc_ac, \n",file=filename,append=TRUE)
+  cat("1982,108,NA,1.9532,NA,yr_tc_ac, \n",file=filename,append=TRUE)
+  cat("1983,133,NA,1.8696,NA,yr_tc_ac, \n",file=filename,append=TRUE)
+  cat("1984,163,NA,1.9487,NA,yr_tc_ac, \n",file=filename,append=TRUE)
+  cat("1985,167,NA,1.5997,NA,yr_tc_ac, \n",file=filename,append=TRUE)
+  cat("1986,208,NA,1.8995,NA,yr_tc_ac, \n",file=filename,append=TRUE)
+  cat("1987,271,NA,1.429,NA,yr_tc_ac, \n",file=filename,append=TRUE)
+  cat("1988,271,NA,1.2055,NA,yr_tc_ac, \n",file=filename,append=TRUE)
+  cat("1989,285,NA,1.4616,NA,yr_tc_ac, \n",file=filename,append=TRUE)
+  cat("1990,289,NA,1.649,NA,yr_tc_ac, \n",file=filename,append=TRUE)
+  cat("1991,297,NA,1.8187,NA,yr_tc_ac, \n",file=filename,append=TRUE)
+  cat("1992,291,NA,1.5823,NA,yr_tc_ac, \n",file=filename,append=TRUE)
+  cat("1993,280,NA,1.8183,NA,yr_tc_ac, \n",file=filename,append=TRUE)
+  cat("1994,298,13,1.6311,3.9495,yr_tc_ac, \n",file=filename,append=TRUE)
+  cat("1995,308,28,1.3231,2.2962,yr_tc_ac, \n",file=filename,append=TRUE)
+  cat("1996,316,46,1.2011,2.1636,yr_tc_ac, \n",file=filename,append=TRUE)
+  cat("1997,330,60,0.7488,2.251,yr_tc_ac, \n",file=filename,append=TRUE)
+  cat("1998,363,89,1.3769,2.1577,yr_tc_ac, \n",file=filename,append=TRUE)
+  cat("1999,430,111,1.3956,2.1396,yr_tc_ac, \n",file=filename,append=TRUE)
+  cat("2000,445,145,1.1556,1.4165,yr_tc_ac, \n",file=filename,append=TRUE)
+  cat("2001,510,156,0.4726,1.7317,yr_tc_ac, \n",file=filename,append=TRUE)
+  cat("2002,525,156,0.7709,1.0261,yr_tc_ac, \n",file=filename,append=TRUE)
+  cat("2003,500,155,0.5209,1.2184,yr_tc_ac, \n",file=filename,append=TRUE)
+  cat("2004,460,175,0.7361,0.8835,yr_tc_ac, \n",file=filename,append=TRUE)
+  cat("2005,410,168,0.465,0.5055,yr_tc_ac, \n",file=filename,append=TRUE)
+  cat("2006,394,145,0.4892,0.7799,yr_tc_ac, \n",file=filename,append=TRUE)
+  cat("2007,355,128,0.4421,0.4345,yr_tc_ac, \n",file=filename,append=TRUE)
+  cat("2008,320,124,0.3189,0.5281,yr_tc_ac, \n",file=filename,append=TRUE)
+  cat("2009,304,123,0.3249,0.3872,yr_tc_ac, \n",file=filename,append=TRUE)
+  cat("2010,275,120,0.3362,0.2824,yr_tc_ac, \n",file=filename,append=TRUE)
+  cat("2011,271,118,0.1487,0.3024,yr_tc_ac, \n",file=filename,append=TRUE)
+  cat("2012,262,110,0.1654,0.1923,yr_tc_ac, \n",file=filename,append=TRUE)
+  cat("2013,246,99,0.2291,0.1788,yr_tc_ac, \n",file=filename,append=TRUE)
+  cat("2014,146,54,0.2392,0.2359,yr_tc_ac, \n",file=filename,append=TRUE)
+  cat("2015,146,54,0.2898,0.2093,yr_tc_ac, \n",file=filename,append=TRUE)
+  cat("2016,146,54,0.3255,0.2273,yr_tc_ac, \n",file=filename,append=TRUE)
+  cat("2017,146,54,0.2036,0.3024,yr_tc_ac, \n",file=filename,append=TRUE)
+  cat("2018,146,54,0.2552,0.3559,yr_tc_ac, \n",file=filename,append=TRUE)
+  cat("2019,146,54,0.3104,0.316,yr_tc_ac, \n",file=filename,append=TRUE)
+  cat("2020,146,54,0.2797,0.301,yr_tc_ac, \n",file=filename,append=TRUE)
   return(invisible(filename))
 } # end of template2F1S
 

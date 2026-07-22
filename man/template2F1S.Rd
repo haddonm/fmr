@@ -10,7 +10,7 @@ template2F1S(rundir, filename = "F2S1.csv")
 \item{rundir}{directory in which to find the data file and run the analysis}
 
 \item{filename}{the name of the data file to be produced, default=
-'Fleet2Region1.csv'.}
+'F21S.csv'.}
 }
 \value{
 the function write a data file to rundir and returns the filename

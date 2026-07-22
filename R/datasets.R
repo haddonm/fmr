@@ -85,14 +85,16 @@ NULL
 #'
 #' @description F2robustness a data.frame containing the results of running
 #'     a robustness test on the two fleet one region/stock fishery example.
-#'     This uses the dynF2 funciton to describe the stock dynamics using the
-#'     two fishing gears with different selctivity and instantaneous 
-#'     fishing mortlaity rates. It constitutes a 200 x 15 data.frame with c
-#'     olumns iLnR0, iqc1, iqc2, -veLL, LnR0, Lqc1, Lqc2, gradR0, gradqc1, 
+#'     This uses the dynF2 function to describe the stock dynamics using the
+#'     two fishing gears with different selectivity and instantaneous 
+#'     fishing mortality rates. It constitutes a 200 x 15 data.frame with
+#'     columns iLnR0, iqc1, iqc2, -veLL, LnR0, Lqc1, Lqc2, gradR0, gradqc1, 
 #'     gradqc2, R0, qc1, qc2, pardist, and Iters. Where pardist is the 
 #'     Euclidean distance between the initial parameters and the original 
 #'     optimum. Each nominal parameter can be changed by up to 10 percent.
-#'     The results are sorted from teh smallest to the largest -veLL.
+#'     The results are sorted from the smallest to the largest -veLL, although
+#'     the biggest difference is only 0.00027 likelihood units. This is a
+#'     robust result.
 #'     
 #' @format A data.frame of 15 columns and 200 rows  
 #'     
@@ -101,7 +103,7 @@ NULL
 #'  str(F2robustness)
 #'  countLL <- table((round(F2robustness[,"-veLL"],6)))
 #'  countLL
-#'  range(F2robustness[,"-veLL"]) # should be 6.248774 7.039229
+#'  range(F2robustness[,"-veLL"]) # should be -11.35589 -11.35562
 "F2robustness"
 
 # fish --------------------
