@@ -19,10 +19,11 @@ fishing mortality rates. It constitutes a 200 x 15 data.frame with
 columns iLnR0, iqc1, iqc2, -veLL, LnR0, Lqc1, Lqc2, gradR0, gradqc1,
 gradqc2, R0, qc1, qc2, pardist, and Iters. Where pardist is the
 Euclidean distance between the initial parameters and the original
-optimum. Each nominal parameter can be changed by up to 10 percent.
-The results are sorted from the smallest to the largest -veLL, although
-the biggest difference is only 0.00027 likelihood units. This is a
-robust result.
+optimum. Each nominal parameter can be changed by up to 10 percent. In
+practice LnR0 was changed by up to 4.99 percent, Lnq1 by up to 8.90
+percent, and Lnq2 buy up to 10.32 percent. The results are sorted from
+the smallest to the largest -veLL, although the biggest difference is
+only 0.00082 likelihood units. This is a robust result.
 }
 \examples{
  data(F2robustness)

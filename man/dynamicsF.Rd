@@ -9,9 +9,12 @@ dynamicsF(
   infish,
   inglb,
   inprops,
+  year = "year",
+  catch = "twl",
+  cpue = "twlCE",
   waa = "waa",
   maa = "maa",
-  sela = "sela",
+  sela = "twl",
   full = FALSE,
   diffC = TRUE,
   maxF = 4,
@@ -34,6 +37,12 @@ present this would be the log of the initail depletion.}
 \item{inglb}{the glb data.frame from readdata or built in dataset}
 
 \item{inprops}{the props data.frame from readdata or built in dataset}
+
+\item{year}{the character name of time-step, default='year'}
+
+\item{catch}{character name of catches, default='twl'}
+
+\item{cpue}{character name of CPUE, default = 'twlCE'}
 
 \item{waa}{the character name of the weight-at-age}
 
@@ -73,11 +82,12 @@ fish <- westroughy$fish
 glb <- westroughy$glb
 props <- westroughy$props
 pars <- c(7.0,0.3,-7.7) # logR0, sigCE, estimate avq
-fishery <- dynamicsF(pars,fish,glb,props,full=TRUE) 
+fishery <- dynamicsF(pars,fish,glb,props,full=TRUE,sela=TRUE) 
 bestL <- optim(pars,dynamicsF,method="Nelder-Mead",infish=fish,inglb=glb,
-               inprops=props,control=list(maxit = 1000,parscale = c(10,0.1)))
+               inprops=props,sela="twl",
+               control=list(maxit = 1000,parscale = c(10,0.1,10)))
 str(bestL)
-fishery <- dynamicsF(bestL$par,fish,glb,props)
+fishery <- dynamicsF(bestL$par,fish,glb,props,full=TRUE,sela="twl")
 print(round(fishery,4)) 
 }
 }

@@ -246,7 +246,10 @@ doDepletion <- function(inR0,indepl,inprops,inglb,inc=0.02,Numyrs=50) {
 #' @param inprops the props data.frame from readdata or built in dataset
 #' @param waa the character name of the weight-at-age
 #' @param maa the character name of the maturity-at-age
-#' @param sela the character name of the selectivity-at-age
+#' @param sela the character name of the selectivity-at-age,default='twl'
+#' @param year the character name of the year column in fish, default='year'
+#' @param catch the character name of the catch column in fish, default='twl'
+#' @param cpue the character name of the cpue column in fish, default='twlCE'
 #' @param full should all outputs from dynamics be given. When fitting the 
 #'     model, set this to FALSE. Once fitted, change this to TRUE to get all
 #'     the required outputs.
@@ -279,8 +282,8 @@ doDepletion <- function(inR0,indepl,inprops,inglb,inc=0.02,Numyrs=50) {
 #' }
 #' # pars=pars <- c(7.0,-0.7,-6.7) ;infish=fish;inglb=glb;inprops=props
 #' # waa="waa";maa="maa";sela="sela"; full=TRUE; reps=5
-dynF <- function(pars,infish,inglb,inprops,
-                  waa="waa",maa="maa",sela="sela",full=FALSE,reps=5) { 
+dynF <- function(pars,infish,inglb,inprops,waa="waa",maa="maa",sela="twl",
+                 year="year",catch="twl",cpue="twlCE",full=FALSE,reps=5) { 
   aaw <- inprops[,waa]
   wata <- aaw/1000.0
   aam <- inprops[,maa]
@@ -290,15 +293,15 @@ dynF <- function(pars,infish,inglb,inprops,
   steep <- inglb$steep
   sigCE <- epars[2]
   avq <- epars[3]
-  nyrs1 <- length(infish[,"year"])
+  nyrs1 <- length(infish[,year])
   nyrs <- nyrs1 - 1
   nages <- inglb$nages
   maxage <- inglb$maxage
   Nt <- matrix(0,nrow=nages,ncol=nyrs1,dimnames=list(0:maxage,0:nyrs))
   spawnB = exploitB = recruit = fullF = predC = predCE = numeric(nyrs1)
   recruit[1] <- R0
-  catch <- infish[,"catch"]
-  cpue <- infish[,"cpue"]
+  catch <- infish[,catch]
+  cpue <- infish[,cpue]
   pickC <- which(catch > 0)
   pickCE <- which(cpue > 0)
   M <- inglb$M
@@ -409,6 +412,8 @@ dynF <- function(pars,infish,inglb,inprops,
 #' }
 dynF2 <- function(pars,infish,inglb,inprops,
                   waa="waa",maa="maa",sela=fleets,full=FALSE,reps=6) { 
+# pars=pars;infish=fish;inglb=glb;inprops=props;full=TRUE;reps=6 
+# waa="waa";maa="maa";sela=glb$fleets
   nfleet <- inglb$nfleet
   fleets <- inglb$fleets
   years <- inglb$startyr:inglb$endyr
@@ -429,7 +434,7 @@ dynF2 <- function(pars,infish,inglb,inprops,
   spawnB = recruit = deplsB = numeric(nyrs1)
   steep <- inglb$steep
   catch <- as.matrix(infish[,fleets]);
-  colnames(catch) <- c("twlC","aulnC")
+  colnames(catch) <- fleets
   cenames <- paste0(fleets,"CE")
   cpue <- as.matrix(infish[,cenames]) 
   colnames(cpue) <- cenames
@@ -465,14 +470,17 @@ dynF2 <- function(pars,infish,inglb,inprops,
                         aaw=aaw,M=M,reps=reps)
     numflt <- length(pflt)
     for (i in 1:numflt) { # i = 1
-      predCN[,pflt[i]] <- ((sel[,pflt[i]] * 
-                              yrF[pflt[i]])/(M + (sel[,pflt[i]] * yrF[pflt[i]]))) * 
-        Nt[,yr] * (1 - exp(-(M + sel[,pflt[i]] * yrF[pflt[i]]))) 
+      sFt <- sel[,pflt[i]]
+      yrFt <- yrF[pflt[i]]
+      predCN[,pflt[i]] <- ((sFt * yrFt)/(M + (sFt * yrFt))) * 
+                            Nt[,yr] * (1 - exp(-(M + sFt * yrFt))) 
       predC[(yr+1),pflt[i]] <- sum(predCN[,pflt[i]] * wata)
-      predF[(yr+1),pflt[i]] <- yrF[pflt[i]]
+      predF[(yr+1),pflt[i]] <- yrFt
     }
     catchN[,yr,pflt] <- predCN[,pflt]    # now remove any age 0- catches
-    Nt[1,(yr+1)] <- Nt[1,(yr+1)] - sum(catchN[1,yr,],na.rm=TRUE)
+    catch0 <- 0
+    for (i in 1:nfleet) catch0 <- sum(catch0 + catchN[1,yr,i],na.rm=TRUE)
+    Nt[1,(yr+1)] <- Nt[1,(yr+1)] - catch0
     # main dynamics
     nextNt <- numeric(nages) 
     mult1 <- matrix(exp(-M),nrow=29,ncol=1,
@@ -486,8 +494,12 @@ dynF2 <- function(pars,infish,inglb,inprops,
     nextNt[nages] <- (Nt[nages,yr] + Nt[(nages-1),yr]) * mult2   
     Nt[2:nages,(yr+1)] <- nextNt[2:nages]     
     spawnB[yr+1] <- sum(aam * wata * Nt[,(yr+1)])
-    NumC[,(yr+1)] <- rowSums(catchN[,yr,],na.rm=TRUE)
-    for (ft in 1:nfleet) 
+    yrcatch <- numeric(nages)
+    for (i in 1:nfleet) {
+      yrcatch <- yrcatch + replace(catchN[,yr,i], is.na(catchN[,yr,i]), 0)
+    }
+    NumC[,(yr+1)] <- yrcatch # allows for single fleets
+    for (ft in 1:nfleet) # start of next yr exploitB
       exploitB[(yr+1),ft] <- sum(sel[,ft] * wata * Nt[,(yr+1)])
   } # end of yr loop    
   deplsB <- spawnB/spawnB[1]
@@ -536,6 +548,9 @@ dynF2 <- function(pars,infish,inglb,inprops,
 #' @param infish the fish data.frame from readdata or built in dataset
 #' @param inglb the glb data.frame from readdata or built in dataset
 #' @param inprops the props data.frame from readdata or built in dataset
+#' @param year the character name of time-step, default='year'
+#' @param catch character name of catches, default='twl'
+#' @param cpue character name of CPUE, default = 'twlCE'
 #' @param waa the character name of the weight-at-age
 #' @param maa the character name of the maturity-at-age
 #' @param sela the character name of the selectivity-at-age
@@ -562,17 +577,20 @@ dynF2 <- function(pars,infish,inglb,inprops,
 #' glb <- westroughy$glb
 #' props <- westroughy$props
 #' pars <- c(7.0,0.3,-7.7) # logR0, sigCE, estimate avq
-#' fishery <- dynamicsF(pars,fish,glb,props,full=TRUE) 
+#' fishery <- dynamicsF(pars,fish,glb,props,full=TRUE,sela=TRUE) 
 #' bestL <- optim(pars,dynamicsF,method="Nelder-Mead",infish=fish,inglb=glb,
-#'                inprops=props,control=list(maxit = 1000,parscale = c(10,0.1)))
+#'                inprops=props,sela="twl",
+#'                control=list(maxit = 1000,parscale = c(10,0.1,10)))
 #' str(bestL)
-#' fishery <- dynamicsF(bestL$par,fish,glb,props)
+#' fishery <- dynamicsF(bestL$par,fish,glb,props,full=TRUE,sela="twl")
 #' print(round(fishery,4)) 
 #' }
-dynamicsF <- function(pars,infish,inglb,inprops,
-                      waa="waa",maa="maa",sela="sela",full=FALSE,diffC=TRUE,
-                      maxF=4.0,...) { 
-  # pars=pars;infish=fish;inglb=glb;inprops=props;waa="waa";maa="maa";sela="sela";maxF=1.0
+dynamicsF <- function(pars,infish,inglb,inprops,year="year",catch="twl",
+                      cpue="twlCE",waa="waa",maa="maa",sela="twl",
+                      full=FALSE,diffC=TRUE,maxF=4.0,...) { 
+  # pars=pars;infish=fish;inglb=glb;inprops=props;waa="waa";maa="maa";sela="twl";
+  # maxF=1.0;diffC=TRUE; year="year";catch="twl";cpue="twlCE"
+  inprops <- as.data.frame(inprops)
   aaw <- inprops[,waa]
   aam <- inprops[,maa]
   sel <- inprops[,sela]
@@ -581,7 +599,7 @@ dynamicsF <- function(pars,infish,inglb,inprops,
   sigCE <- epars[2]
   avq <- epars[3]
   B0 <- getB0(R0,inglb,inprops)   
-  nyrs1 <- length(infish[,"year"])
+  nyrs1 <- length(infish[,year])
   nyrs <- nyrs1 - 1
   nages <- inglb$nages
   maxage <- inglb$maxage
@@ -592,9 +610,9 @@ dynamicsF <- function(pars,infish,inglb,inprops,
                "predCE","deplete","recruit","fullF","fullH")
   fishery <- matrix(NA,nrow=nyrs1,ncol=length(columns),
                     dimnames=list(0:nyrs,columns))
-  fishery[,"year"] <- infish$year
-  fishery[,"catch"] <- infish$catch
-  fishery[,"cpue"] <- infish$cpue
+  fishery[,"year"] <- infish[,year]
+  fishery[,"catch"] <- infish[,catch]
+  fishery[,"cpue"] <- infish[,cpue]
   fishery[1,"recruit"] <- R0  
   catch <- fishery[,"catch"]
   pickC <- which(catch > 0)
@@ -666,9 +684,12 @@ dynamicsF <- function(pars,infish,inglb,inprops,
 #' @param infish the fish data.frame from readdata or an internal dataset
 #' @param inglb the glb data.frame from readdata or an internal dataset
 #' @param inprops the props data.frame from readdata or an internal dataset
+#' @param year the character name of time-step, default='year'
+#' @param catch character name of catches, default='twl'
+#' @param cpue character name of CPUE, default = 'twlCE'
 #' @param waa the character name of the weight-at-age
 #' @param maa the character name of the maturity-at-age
-#' @param sela the character name of the selectivity-at-age
+#' @param sela the character name of the selectivity-at-age,default='twl'
 #' @param full should all outputs from dynamics be given. When fitting the 
 #'     model, set this to FALSE. Once fitted, change this to TRUE to get all
 #'     the required outputs.
@@ -697,10 +718,14 @@ dynamicsF <- function(pars,infish,inglb,inprops,
 #' out <- dynamicsH(bestL$par,infish=fish,inglb=glb,inprops=props,full=TRUE)
 #' print(round(out$fishery,4))
 #' # pars=c(7.064324,-1.257487,-7.694248);infish=fish;inglb=glb;
-#' # inprops=props;full=TRUE; waa="waa";maa="maa";sela="sela"
-dynamicsH <- function(pars,infish,inglb,inprops,
-                      waa="waa",maa="maa",sela="sela",full=FALSE,
+#' # inprops=props;full=TRUE; waa="waa";maa="maa";sela="twl"
+dynamicsH <- function(pars,infish,inglb,inprops,year="year",catch="twl",
+                      cpue="twlCE",waa="waa",maa="maa",sela="twl",full=FALSE,
                       diffC=TRUE,...) {  
+#  pars=pars;infish=fish;inglb=glb;inprops=props;sela="twl";
+#  catch="twl";cpue="twlCE";full=TRUE;year="year";waa="waa";maa="maa"
+  
+  
   aaw <- inprops[,waa]  # setup the model structure 
   aam <- inprops[,maa]
   sel <- inprops[,sela]
@@ -720,9 +745,9 @@ dynamicsH <- function(pars,infish,inglb,inprops,
                "predCE","deplete","recruit","fullF","fullH")
   fishery <- matrix(NA,nrow=nyrs1,ncol=length(columns),
                     dimnames=list(0:nyrs,columns))
-  fishery[,"year"] <- infish$year # include year 0
-  fishery[,"catch"] <- infish$catch
-  fishery[,"cpue"] <- infish$cpue
+  fishery[,"year"] <- infish[,year] # include year 0
+  fishery[,"catch"] <- infish[,catch]
+  fishery[,"cpue"] <- infish[,cpue]
   pickC <- which(fishery[,"catch"] > 0)
   pickCE <- which(fishery[,"cpue"] > 0)
   # calculate unfished numbers-at-age given inR0 over next 3 lines
@@ -1001,9 +1026,10 @@ getB0 <- function(inR0,inglb,inprops) { # assumes glb inR0 = par["R0"]
 #' }
 getProduction <- function(inR0,infish,inglb,inprops,Hrg=c(0.025,0.4,0.025),
                           nyr=50,maxiter=3) {
+  inprops <- as.data.frame(inprops)
   maxage <- inglb$maxage; M <- inglb$M;  steep <- inglb$steep
   nages <- inglb$nages; aam <- inprops$maa; aaw <- inprops$waa
-  sel <- inprops$sela
+  sel <- inprops$twl
   surv <- exp(-M)
   hS <- exp(-M/2)
   B0 <- getB0(inR0,inglb,inprops)   
@@ -1129,17 +1155,15 @@ MaA <- function(ina,inb,depend) {
 #' data(westroughy)
 #' fish <- westroughy$fish
 #' glb <- westroughy$glb
-#' props <- westroughy$props
-#' sel <- props$sela
+#' props <- as.data.frame(westroughy$props)
+#' sel <- props$twl
 #' pars <- c(7.15,-1,-7.7) # logR0, sigCE, estimate avq
 #' out <- dynamicsF(pars,fish,glb,props,full=TRUE)  
-#' matchC(f=0.3,M=0.05,cyr=15340,Nyr=out$Nt[,2],sel=sel,props$waa)
+#' matchC(f=0.3,M=0.05,cyr=3924.912,Nyr=out$Nt[,2],sel=sel,props$waa)
 #' matchC(f=0.35,M=0.05,cyr=15340,Nyr=out$Nt[,2],sel=sel,props$waa)
 #' out2 <- optimize(matchC,interval=c(0,1),M=0.05,cyr=3924,Nyr=out$Nt[,2],
 #'                 sel=sel,props$waa)
 #' out2
-#' f <- out2$minimum
-#' (397388.66 * (1 - exp(-(0.05 + f))) * f/(0.05 + f))
 #' # f=0.2679;M=0.0036;cyr=3924;Nyr=Nt[,yr-1];sel=sel;waa=props$waa
 matchC <- function(f,M,cyr,Nyr,sel,waa) {
   sF <- sel * f 

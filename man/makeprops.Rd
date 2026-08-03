@@ -10,7 +10,7 @@ makeprops(const, selabove = 1)
 \item{const}{a structured data file in the format defined by template2F1S}
 
 \item{selabove}{a vector of ages or sizes that are never selected. Identify
-their indices in the selecitivyt vector here. eg. if age 0 is never
+their indices in the selecitivity vector here. eg. if age 0 is never
 selected then set zerocomps = 1, if ages 1-2 then zerocomps = c(1,2).}
 }
 \value{

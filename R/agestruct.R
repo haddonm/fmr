@@ -64,6 +64,174 @@ calcsel <- function(ageorlen,fishprop,typeselect,zerocomps=NULL) {
   return(outsel)
 } # end of calcsel
 
+#' @title datatemplate data template for a 2 fleet 1 region/stock fishery
+#' 
+#' @description datatemplate write a data file for either a 1- or 2-fleet stock
+#'
+#' @param rundir directory in which to find the data file and run the analysis
+#' @param filename the name of the data file to be produced, default=
+#'     'F21S.csv'.
+#' @param nfleet the number of fleets for which data will be generated,
+#'     default = 2
+#'
+#' @return the function write a data file to rundir and returns the filename
+#' @export
+#'
+#' @examples
+#' \dontrun{
+#'   rundir <- tempdir()
+#'   dirExists(rundir,verbose=TRUE)
+#'   datatemplate(rundir,filename="Flt2Stock1.csv")
+#'   dir(rundir)
+#' }
+datatemplate <- function(rundir,filename="F2S1.csv",nfleet=2) {
+  filename <- pathtopath(rundir,filename)
+  cat(paste0("Data for a ",nfleet," Fleet 1 Region 1 Stock model  \n\n"),
+      file=filename,append=FALSE)
+  cat("#STRUCTURE,,, \n",file=filename,append=FALSE)
+  cat("randseed, 6924062, for repeatability \n",file=filename,append=TRUE)
+  cat("nregion, 1,,, number of regions, imples 1 stock  \n",
+      file=filename,append=TRUE)
+  cat("regname, east,,, labels for region  \n",file=filename,append=TRUE)
+  cat("nsex, 1,,, number of sexes \n",file=filename,append=TRUE)
+  #  cat("LFstruct,0,72,1, sequence for lengths \n",file=filename,append=TRUE)
+  cat("agestruct,0,30,1, sequence for ages \n",file=filename,append=TRUE)
+  cat(paste0("nfleet,",nfleet,",,, fleetnumbers \n"),file=filename,append=TRUE)
+      fleets <- "twl"
+      typesel <- "logistic"
+      if (nfleet == 2) {
+        fleets <- c("twl", "auln")
+        typesel <- c("logistic", "domed")
+      }
+      cat(paste0("fleets, ",paste0(fleets,collapse=","),",  \n"),
+                 file=filename,append=TRUE)
+          cat(paste0("selecttype, ",paste0(typesel,collapse=","),", \n"),  
+              file=filename,append=TRUE)    # currently only logistic or domed",
+          cat("initdepl, 1.0,, the initial depletion level \n",
+              file=filename,append=TRUE)
+          cat("\n\n",file=filename, append=TRUE)
+          selnames <- paste0(fleets,"S")
+          cat("#FISHERY,    qc,     sel50,   deltas,  \n",file=filename, append=TRUE)
+          cat(selnames[1],",  1.4E-04,    4.5,    0.75, \n",file=filename, append=TRUE)
+          if (nfleet == 2) {
+            cat(selnames[2],",  9.0E-05,    10,  15,    10,  30,   -7,   0.5,  \n",
+                file=filename, append=TRUE)
+            cat("#         qc         peak1 peak2  asc  dsc  selmin selmax \n",
+                file=filename, append=TRUE)
+          }
+          cat("\n\n",file=filename, append=TRUE)
+          cat("#BIOLOGY,,, \n",
+              file=filename, append=TRUE)
+          cat("M,         0.21 ,,, \n",file=filename, append=TRUE)
+          cat("Linf,	    56,,, \n",file=filename, append=TRUE)
+          cat("K,	       0.20,,, \n",file=filename, append=TRUE)
+          cat("t0,	      -0.1,,, \n",file=filename, append=TRUE)
+          cat("growCV,	   0.075,,, \n",file=filename, append=TRUE)
+          cat("Wta,	      5.88E-06,,, \n",file=filename, append=TRUE)
+          cat("Wtb,	      3.31,,, \n",file=filename, append=TRUE)
+          cat("steep,      0.7,,, \n",file=filename, append=TRUE)
+          cat("Age50M,	   3,,, \n",file=filename, append=TRUE)
+          cat("deltaM,	   0.75,,, \n",file=filename, append=TRUE)
+          cat("\n\n",file=filename, append=TRUE)
+          cat("#HISTORICALCATCH,46,,, \n",file=filename, append=TRUE)
+          if (nfleet == 2) {
+            cat("1975,NA,NA,NA,NA,yr_tc_ac, \n",file=filename,append=TRUE)
+            cat("1976,9,NA,2.2648,NA,yr_tc_ac, \n",file=filename,append=TRUE)
+            cat("1977,20,NA,1.7314,NA,yr_tc_ac, \n",file=filename,append=TRUE)
+            cat("1978,29,NA,1.7318,NA,yr_tc_ac, \n",file=filename,append=TRUE)
+            cat("1979,58,NA,1.4174,NA,yr_tc_ac, \n",file=filename,append=TRUE)
+            cat("1980,75,NA,1.3511,NA,yr_tc_ac, \n",file=filename,append=TRUE)
+            cat("1981,82,NA,1.8418,NA,yr_tc_ac, \n",file=filename,append=TRUE)
+            cat("1982,108,NA,1.9532,NA,yr_tc_ac, \n",file=filename,append=TRUE)
+            cat("1983,133,NA,1.8696,NA,yr_tc_ac, \n",file=filename,append=TRUE)
+            cat("1984,163,NA,1.9487,NA,yr_tc_ac, \n",file=filename,append=TRUE)
+            cat("1985,167,NA,1.5997,NA,yr_tc_ac, \n",file=filename,append=TRUE)
+            cat("1986,208,NA,1.8995,NA,yr_tc_ac, \n",file=filename,append=TRUE)
+            cat("1987,271,NA,1.429,NA,yr_tc_ac, \n",file=filename,append=TRUE)
+            cat("1988,271,NA,1.2055,NA,yr_tc_ac, \n",file=filename,append=TRUE)
+            cat("1989,285,NA,1.4616,NA,yr_tc_ac, \n",file=filename,append=TRUE)
+            cat("1990,289,NA,1.649,NA,yr_tc_ac, \n",file=filename,append=TRUE)
+            cat("1991,297,NA,1.8187,NA,yr_tc_ac, \n",file=filename,append=TRUE)
+            cat("1992,291,NA,1.5823,NA,yr_tc_ac, \n",file=filename,append=TRUE)
+            cat("1993,280,NA,1.8183,NA,yr_tc_ac, \n",file=filename,append=TRUE)
+            cat("1994,298,13,1.6311,3.9495,yr_tc_ac, \n",file=filename,append=TRUE)
+            cat("1995,308,28,1.3231,2.2962,yr_tc_ac, \n",file=filename,append=TRUE)
+            cat("1996,316,46,1.2011,2.1636,yr_tc_ac, \n",file=filename,append=TRUE)
+            cat("1997,330,60,0.7488,2.251,yr_tc_ac, \n",file=filename,append=TRUE)
+            cat("1998,363,89,1.3769,2.1577,yr_tc_ac, \n",file=filename,append=TRUE)
+            cat("1999,430,111,1.3956,2.1396,yr_tc_ac, \n",file=filename,append=TRUE)
+            cat("2000,445,145,1.1556,1.4165,yr_tc_ac, \n",file=filename,append=TRUE)
+            cat("2001,510,156,0.4726,1.7317,yr_tc_ac, \n",file=filename,append=TRUE)
+            cat("2002,525,156,0.7709,1.0261,yr_tc_ac, \n",file=filename,append=TRUE)
+            cat("2003,500,155,0.5209,1.2184,yr_tc_ac, \n",file=filename,append=TRUE)
+            cat("2004,460,175,0.7361,0.8835,yr_tc_ac, \n",file=filename,append=TRUE)
+            cat("2005,410,168,0.465,0.5055,yr_tc_ac, \n",file=filename,append=TRUE)
+            cat("2006,394,145,0.4892,0.7799,yr_tc_ac, \n",file=filename,append=TRUE)
+            cat("2007,355,128,0.4421,0.4345,yr_tc_ac, \n",file=filename,append=TRUE)
+            cat("2008,320,124,0.3189,0.5281,yr_tc_ac, \n",file=filename,append=TRUE)
+            cat("2009,304,123,0.3249,0.3872,yr_tc_ac, \n",file=filename,append=TRUE)
+            cat("2010,275,120,0.3362,0.2824,yr_tc_ac, \n",file=filename,append=TRUE)
+            cat("2011,271,118,0.1487,0.3024,yr_tc_ac, \n",file=filename,append=TRUE)
+            cat("2012,262,110,0.1654,0.1923,yr_tc_ac, \n",file=filename,append=TRUE)
+            cat("2013,246,99,0.2291,0.1788,yr_tc_ac, \n",file=filename,append=TRUE)
+            cat("2014,146,54,0.2392,0.2359,yr_tc_ac, \n",file=filename,append=TRUE)
+            cat("2015,146,54,0.2898,0.2093,yr_tc_ac, \n",file=filename,append=TRUE)
+            cat("2016,146,54,0.3255,0.2273,yr_tc_ac, \n",file=filename,append=TRUE)
+            cat("2017,146,54,0.2036,0.3024,yr_tc_ac, \n",file=filename,append=TRUE)
+            cat("2018,146,54,0.2552,0.3559,yr_tc_ac, \n",file=filename,append=TRUE)
+            cat("2019,146,54,0.3104,0.316,yr_tc_ac, \n",file=filename,append=TRUE)
+            cat("2020,146,54,0.2797,0.301,yr_tc_ac, \n",file=filename,append=TRUE)
+          } else {
+            cat("1975,NA,NA, fishdat, \n",file=filename,append=TRUE) 
+            cat("1976,8,2.2, fishdat, \n",file=filename,append=TRUE) 
+            cat("1977,18,1.8494, fishdat, \n",file=filename,append=TRUE) 
+            cat("1978,26,1.7802, fishdat, \n",file=filename,append=TRUE) 
+            cat("1979,53,2.0749, fishdat, \n",file=filename,append=TRUE) 
+            cat("1980,68,1.6783, fishdat, \n",file=filename,append=TRUE) 
+            cat("1981,75,2.2619, fishdat, \n",file=filename,append=TRUE) 
+            cat("1982,98,1.3329, fishdat, \n",file=filename,append=TRUE) 
+            cat("1983,121,1.9876, fishdat, \n",file=filename,append=TRUE) 
+            cat("1984,148,1.8665, fishdat, \n",file=filename,append=TRUE) 
+            cat("1985,152,1.0652, fishdat, \n",file=filename,append=TRUE) 
+            cat("1986,189,0.9883, fishdat, \n",file=filename,append=TRUE) 
+            cat("1987,246,1.1272, fishdat, \n",file=filename,append=TRUE) 
+            cat("1988,247,0.7513, fishdat, \n",file=filename,append=TRUE) 
+            cat("1989,260,1.3074, fishdat, \n",file=filename,append=TRUE) 
+            cat("1990,203,1.1064, fishdat, \n",file=filename,append=TRUE) 
+            cat("1991,223,1.3149, fishdat, \n",file=filename,append=TRUE) 
+            cat("1992,238,1.2082, fishdat, \n",file=filename,append=TRUE) 
+            cat("1993,188,0.9304, fishdat, \n",file=filename,append=TRUE) 
+            cat("1994,171,1.016, fishdat, \n",file=filename,append=TRUE) 
+            cat("1995,180,0.7178, fishdat, \n",file=filename,append=TRUE) 
+            cat("1996,188,1.1744, fishdat, \n",file=filename,append=TRUE) 
+            cat("1997,236,0.8932, fishdat, \n",file=filename,append=TRUE) 
+            cat("1998,331,1.0148, fishdat, \n",file=filename,append=TRUE) 
+            cat("1999,392,1.2336, fishdat, \n",file=filename,append=TRUE) 
+            cat("2000,495,1.0862, fishdat, \n",file=filename,append=TRUE) 
+            cat("2001,560,1.1048, fishdat, \n",file=filename,append=TRUE) 
+            cat("2002,588,0.7521, fishdat, \n",file=filename,append=TRUE) 
+            cat("2003,576,0.7785, fishdat, \n",file=filename,append=TRUE) 
+            cat("2004,542,0.3684, fishdat, \n",file=filename,append=TRUE) 
+            cat("2005,484,0.7397, fishdat, \n",file=filename,append=TRUE) 
+            cat("2006,399,0.4503, fishdat, \n",file=filename,append=TRUE) 
+            cat("2007,365,0.4203, fishdat, \n",file=filename,append=TRUE) 
+            cat("2008,264,0.4181, fishdat, \n",file=filename,append=TRUE) 
+            cat("2009,250,0.3865, fishdat, \n",file=filename,append=TRUE) 
+            cat("2010,250,0.3365, fishdat, \n",file=filename,append=TRUE) 
+            cat("2011,241,0.2516, fishdat, \n",file=filename,append=TRUE) 
+            cat("2012,240,0.4041, fishdat, \n",file=filename,append=TRUE) 
+            cat("2013,150,0.3811, fishdat, \n",file=filename,append=TRUE) 
+            cat("2014,150,0.196, fishdat, \n",file=filename,append=TRUE) 
+            cat("2015,120,0.2092, fishdat, \n",file=filename,append=TRUE) 
+            cat("2016,110,0.3514, fishdat, \n",file=filename,append=TRUE) 
+            cat("2017,105,0.3575, fishdat, \n",file=filename,append=TRUE) 
+            cat("2018,105,0.4411, fishdat, \n",file=filename,append=TRUE) 
+            cat("2019,100,0.2754, fishdat, \n",file=filename,append=TRUE) 
+            cat("2020,100,0.2732, fishdat, \n",file=filename,append=TRUE)
+          }
+          return(invisible(filename))
+} # end of template2F1S
+
 #' @title domedsel calculates domed selectivity curves
 #' 
 #' @description domedsel uses 6 parameters and a set of mean size or age classes 
@@ -162,7 +330,7 @@ domedsel <- function(p,L) {
 #'   str(const2)
 #' }
 readASPMdata <- function(infile="constants.csv") { #  infile=filen
-  #  infile=pathtopath(rundir,"F21S.csv")
+  #  infile=pathtopath(rundir,"F21Snew.csv")
   # infile=pathtopath(rundir,"test2F1S.csv")
   datain <- readLines(con = infile)
   # structure------
@@ -171,7 +339,8 @@ readASPMdata <- function(infile="constants.csv") { #  infile=filen
   #lens <- getvect("LFstruct",datain,n=3)
   age <- getvect("agestruct",datain,n=3)
  # lengths <- seq(lens[1],lens[2],lens[3])
-  ages <- seq(age[1],age[2],age[3])  
+  ages <- seq(age[1],age[2],age[3]) 
+  maxage <- max(ages,na.rm=TRUE)
   nfleet <- getsingleNum("nfleet",datain)
   linenum <- grep("fleets",datain) # get fleetnames
   tmp <- removeEmpty(unlist(strsplit(datain[linenum],",",fixed=TRUE)))
@@ -245,9 +414,9 @@ readASPMdata <- function(infile="constants.csv") { #  infile=filen
   initdepl <- getvect("initdepl",datain,1)
   startyr <- fish[1,"year"]
   endyr <- fish[ncat,"year"]
-  glb <- list(ages,length(ages),nyrs,startyr,endyr,fleets,nfleet,
+  glb <- list(ages,length(ages),maxage,nyrs,startyr,endyr,fleets,nfleet,
               seltype,initdepl,M,steep,initdepl,sigCE)
-  names(glb) <- c("ages","nages","nyrs","startyr","endyr","fleets","nfleet",
+  names(glb) <- c("ages","nages","maxage","nyrs","startyr","endyr","fleets","nfleet",
                   "selecttype","initdepl","M","steep","initdepl","sigCE")
   ans <- list(biology,fishery,glb,fish,outrmse)
   names(ans) <- c("biology","fishery","glb","fish","outrmse")
@@ -262,7 +431,9 @@ readASPMdata <- function(infile="constants.csv") { #  infile=filen
 #'     age50M, deltaM, B0, sigmaR, etc. The data are read in from 'infile' and
 #'     must contain sections entitled: BIOLOGY, FISHERY, STRUCTURE, and
 #'     HISTORICALCATCH
-#' @param infile - defaults to 'constants.csv'. Needs to be a csv file
+#' @param infile defaults to 'constants.csv'. Needs to be a csv file
+#' @param matsel should the selectivity-at-age match the maturity-at-age,
+#'     default = TRUE
 #' 
 #' @return a list of two vectors 'biology' and 'fishery' plus a list of two
 #'     vectors of lengths and ages
@@ -272,8 +443,9 @@ readASPMdata <- function(infile="constants.csv") { #  infile=filen
 #' require(fmr)
 #' data(const)
 #' str(const)
-#' # infile=pathtopath(datraw,"F2-A1-S1.csv")
-getconstants <- function(infile="constants.csv") { #  infile=filen
+#' # infile=pathtopath(datraw,"F2-A1-S1.csv"); matsel=TRUE
+#' # infile=pathtopath(datraw,"F1-A1-S1.csv")
+getconstants <- function(infile="constants.csv",matsel=TRUE) { #  infile=filen
   datain <- readLines(con = infile)
   # structure------
   randseed <- getsingleNum("randseed",datain)
@@ -338,6 +510,9 @@ getconstants <- function(infile="constants.csv") { #  infile=filen
   biology["Wtb",] <- getvect("Wtb",datain,ncols)
   biology["age50M",] <- getvect("Age50M",datain,ncols)
   biology["deltaM",] <- getvect("deltaM",datain,ncols)
+  if (matsel) {
+    fishery[["twlS"]][2:3] <- c(biology["age50M",1],biology["deltaM",1])
+  }
   # rec
   B0    <- getsingleNum("B0",datain)
   sigmaR <- getsingleNum("sigmaR",datain)
@@ -377,6 +552,51 @@ getconstants <- function(infile="constants.csv") { #  infile=filen
   return(ans)
 } # end of getconstants
 
+#' @title getfltcatchsamp makes bootstrap samples of length and age composition
+#' 
+#' @description getfltcatchsamp is used to generate bootstrap samples from 
+#'     given years of age-composition or length-composition data out of 
+#'     simdynF. By default is samples for all years in which composition data
+#'     are available. If samples are assumed to be taken less frequently, it is
+#'     up to teh user to thin the output. The output data (and input data) can
+#'     be visualized using plotcompdata from codeutils. getfltcatchsamp uses
+#'     the rowfreqboot function from codeutils. The function works on the 
+#'     composition data (age or length) for a single fleet. The function first
+#'     reduces the number of observed composition numbers in each year as the
+#'     originals can be 100s of thousands, which would slow the bootstrap
+#'     process.
+#'
+#' @param fltcatchN the predicted catch as numbers-at-age out$catchN<,,flt> or 
+#'     numbers-at-length LCflt<,,flt> from the out list produced by simdynF.  
+#' @param nyrs the total number of years in the dynamics produced by simdynF.
+#' @param n the expected sample size
+#' @param randsd the variation in sample size used by rowfreqboot
+#' @param maxsamp the maximum sample size possible (> n)
+#' @param sampvar the variation in how much each catch numbers are reduced
+#'     prior to bootstrapping.
+#'
+#' @returns an invisible matrix of nages or nsizes x nyrs, of counts by age or 
+#'     length by year
+#' @export
+#'
+#' @examples
+#' print("wait on data sets")
+getfltcatchsamp <- function(fltcatchN,nyrs,n=500,randsd=40,
+                            maxsamp=2000,sampvar=50) {
+  reduceN <- catchsamp <- fltcatchN
+  tots <- colSums(fltcatchN,na.rm=TRUE)
+  for (yr in 1:nyrs) {
+    if (tots[yr] < maxsamp) {  
+      reduceN[,yr] <- fltcatchN[,yr]
+    } else {
+      reduceN[,yr] <- 
+        trunc(fltcatchN[,yr]/(tots[yr]/rnorm(1,mean=maxsamp,sd=sampvar)))
+    }
+  } # end year loop
+  tmp <- rowfreqboot(t(reduceN),n=n,randsd=randsd)
+  catchsamp <- t(tmp)
+  return(invisible(catchsamp))
+} # end of getfltcatchsamp
 
 #' @title getvect extracts 'n' numbers from an identified line of text
 #'
@@ -544,6 +764,20 @@ initiateglobals <- function(consts,agesorsizes,selabove=0) {
 #'     catches. default = 1e-08, effectively no variation
 #' @param cpueSD standard deviation of normal variation imposed on reported
 #'     CPUE. default = 1e-08, effectively no variation
+#' @param getA default=FALSE, sampling includes age-composition of catches. If
+#'     getA==TRUE, then next four params are active
+#' @param sampnA expected booststrap age sample = 500
+#' @param sampsdA sample size sd used by rowfreqboot default=50
+#' @param maxnA the maximum sample size possible (> n), default = 1000
+#' @param redvarA sd for how much each column of catch numbers are reduced
+#'     prior to bootstrapping, deault =50
+#' @param getL default=FALSE, sampling includes age-composition of catches. If
+#'     getA==TRUE, then next four params are active
+#' @param sampnL expected booststrap age sample = 800
+#' @param sampsdL sample size sd used by rowfreqboot default=50
+#' @param maxnL the maximum sample size possible (> n), default = 2000
+#' @param redvarL sd for how much each column of catch numbers are reduced
+#'     prior to bootstrapping, deault =50
 #'     
 #' @seealso{
 #'    \link{getconstants}, \link{initiateglobals}. \link{simdynF}
@@ -568,14 +802,40 @@ initiateglobals <- function(consts,agesorsizes,selabove=0) {
 #'  # now open 'F21S.csv
 #' }
 makedataset <- function(const,glb,out,filename,rundir='',datatitle="",
-                        catchSD=1e-08,cpueSD=1e-08) {
+                        catchSD=1e-08,cpueSD=1e-08,
+                        getA=FALSE,sampnA=500,sampsdA=50,maxnA=1000,redvarA=50,
+                        getL=FALSE,sampnL=800,sampsdL=50,maxnL=2000,redvarL=50) {
   
-  # const=const2;glb=glb;out=out;stock=stock;filename="F2S1new.csv";
+  # const=simconst1;glb=glb;out=out;stock=stock;filename="F1S1new.csv";
   # rundir=rundir;datatitle="";
-  # catchSD=1e-08;cpueSD=1e-08
+  # catchSD=1e-08;cpueSD=0.2
   
   histC <- samplefishery(out,glb,
                          errors=c(catchSD=catchSD,cpueSD=cpueSD))
+  if (getA) { # get age-composition
+    # agecomp <- catchN <- out$catchN
+    # nfleet <- glb$nfleet
+    # flt <- 1
+    # fltcatchN <- trunc(out$catchN[,,flt])
+    # if (nfleet == 1) {
+    #   agecomp[,,] <- getfltcatchsamp(fltcatchN,glb$nyrs,n=300,randsd=50,
+    #                                  maxsamp=500,sampvar=50)
+    # }  
+    # 
+    # for (flt in 1:nfleet) {
+    #   
+    #   agecomp[,,flt]
+    # }
+    # 
+    # 
+    # catchsamp <- 
+    # catchsamp <- catchsamp[,which(colSums(catchsamp) > 0)]
+    # 
+    
+  }
+  if (getL) { # get length-composition data
+    
+  }
   writedatafile(const,glb,histC,rundir,filename,datatitle)
 } # end of makedataset
 
@@ -589,7 +849,7 @@ makedataset <- function(const,glb,out,filename,rundir='',datatitle="",
 #'
 #' @param const a structured data file in the format defined by template2F1S
 #' @param selabove a vector of ages or sizes that are never selected. Identify 
-#'     their indices in the selecitivyt vector here. eg. if age 0 is never 
+#'     their indices in the selecitivity vector here. eg. if age 0 is never 
 #'     selected then set zerocomps = 1, if ages 1-2 then zerocomps = c(1,2).
 #'     
 #' @seealso{
@@ -624,8 +884,9 @@ makeprops <- function(const,selabove=1) {  # const = const2; selabove=1
   vbpars <- c(linf=biol["Linf",],K=biol["K",],t0=biol["t0",])
   props[,"laa"] <- vB(vbpars,glb$ages)
   props[,"waa"] <- biol["Wta",] * (props[,"laa"] ^ biol["Wtb",])
-  props[,"maa"] <- logist(inL50=biol["age50M",],delta=biol["deltaM",],
-                          depend=ages)
+  props[,"maa"] <- 1/(1+exp(-(ages - biol["age50M",])/biol["deltaM",]))
+    # logist(inL50=biol["age50M",],delta=biol["deltaM",],
+    #                       depend=ages)
   for (flt in 1:nfleet) {
     propfish <- fishery[[flt]]
     props[,fleets[flt]] <- calcsel(ageorlen=ages,fishprop=propfish,
@@ -740,6 +1001,9 @@ makesimstock <- function(glb) {  # glb=glb
 #' @param height the height of the plot within plotprep if used, default=7
 #' @param nfleet default = 2, determines how many gears are expected can only
 #'     be 1 or 2. If nfleet = 1 consider reducing height
+#' @param obsdata default = TRUE. To plot CPUE residuals the observed CPUE is 
+#'     required. When plotting simulated data there are no 'observed' so set
+#'     obsdata to FALSE, which omits the residual plots. 
 #' @param columns column headings identifying the components to be plotted. The
 #'     default is: columns=c('year','twlC','aulnC','twlCE','aulnCE', 'twlPCE',
 #'     'aulnPCE','deplsB','recruit','twlPF','aulnPF','Trawl','Autoline'), which
@@ -753,11 +1017,23 @@ makesimstock <- function(glb) {  # glb=glb
 #'
 #' @examples
 #' print("Wait on example data - again")
+#' print("Can now plot simulated dynamics")
 plotdynfish <- function(outfish,console=TRUE,addtitle="",prepplot=TRUE,
-                        rundir="",width=8,height=7,nfleet=2,
-                        columns=c("year","twlC","aulnC","twlCE","aulnCE",
+                        rundir="",width=8,height=7,nfleet=2,obsdata=TRUE,
+                        columns=c("year","twl","auln","twlCE","aulnCE",
                                   "twlPCE","aulnPCE","deplsB","recruit",
                                   "twlPF","aulnPF","Trawl","Autoline")) {
+#  outfish=outfish;console=TRUE;addtitle="";prepplot=TRUE
+#  rundir="";width=8;height=7;nfleet=2;obsdata=FALSE;
+#  columns=c("year","twlC","aulnC","twlCE","aulnCE","twlPCE",
+#            "aulnPCE","deplsB","recruit","twlPF","aulnPF","Trawl",
+#            "Autoline")
+  # 
+  # outfish=outFD$fishery;console=TRUE;addtitle="";prepplot=TRUE;
+  # rundir="";width=8;height=7;nfleet=1;obsdata=TRUE
+  # columns=c("year","twl","twlCE","twlPCE","deplsB","recruit","twlPF","Trawl")
+  # 
+  
   oldpar <- par(no.readonly=TRUE)
   on.exit(par(oldpar))
   numcol <- length(columns)
@@ -778,29 +1054,40 @@ plotdynfish <- function(outfish,console=TRUE,addtitle="",prepplot=TRUE,
     plotprep(width=width,height=height,cex=1.0,newdev=TRUE,filename=filen,
              verbose=FALSE)
   }
-  if (nfleet == 1) {
+  if ((nfleet == 1) || (!obsdata)) {
     parset(plots=c(3,2),margin=c(0.3,0.4,0.05,0.05),byrow=FALSE)
   } else {
     parset(plots=c(4,2),margin=c(0.3,0.4,0.05,0.05),byrow=FALSE)
   }
-  
-  maxy <- getmax(fishery[,c(obsCE[1],predCE[1])])
+  if (obsdata) { 
+    maxy <- getmax(fishery[,c(obsCE[1],predCE[1])])
+  } else { 
+    maxy <- getmax(fishery[,predCE[1]]) 
+  }
   plot(yrs,fishery[,predCE[1]],type="l",lwd=2,col=1,
        ylab=paste0(gears[1]," CPUE"),ylim=c(0,maxy),yaxs="i",xlab="",
        panel.first=grid())
-  points(yrs,fishery[,obsCE[1]],pch=16,cex=1.25,col=2)
-  lines(yrs,fishery[,obsCE[1]],lwd=1,col=2,lty=3)
-  if (nfleet > 1) {
+  if (obsdata) {
+     points(yrs,fishery[,obsCE[1]],pch=16,cex=1.1,col=2)
+     lines(yrs,fishery[,obsCE[1]],lwd=1,col=2,lty=3)
+  }
+  if ((nfleet > 1) & (obsdata)) {
     legend("topright",c("Predicted","Observed"),col=c(1:nfleet),lwd=3,bty="n",
            cex=1.2)
   }
   if (nfleet == 2) {
-    maxy <- getmax(fishery[,c(obsCE[2],predCE[2])])
+    if (obsdata) { 
+      maxy <- getmax(fishery[,c(obsCE[2],predCE[2])])
+    } else { 
+      maxy <- getmax(fishery[,predCE[2]]) 
+    }
     plot(yrs,fishery[,predCE[2]],type="l",lwd=2,col=1,
          ylab=paste0(gears[2]," CPUE"),
          ylim=c(0,maxy),yaxs="i",xlab="",panel.first=grid())
-    points(yrs,fishery[,obsCE[2]],pch=16,cex=1.25,col=2)
-    lines(yrs,fishery[,obsCE[2]],lwd=1,col=2,lty=3)
+    if (obsdata) {
+      points(yrs,fishery[,obsCE[2]],pch=16,cex=1.1,col=2)
+      lines(yrs,fishery[,obsCE[2]],lwd=1,col=2,lty=3)
+    }
   }
   maxy <- getmax(fishery[,depl])
   plot(yrs,fishery[,depl],type="l",lwd=2,col=1,ylab="Spawning Depletion",
@@ -809,14 +1096,16 @@ plotdynfish <- function(outfish,console=TRUE,addtitle="",prepplot=TRUE,
   maxy <- getmax(fishery[,recruit])
   plot(yrs,fishery[,recruit],type="l",lwd=2,col=1,ylab="Recruitment",
        ylim=c(0,maxy),yaxs="i",xlab="",panel.first=grid())
-  twlresid <- fishery[,obsCE[1]]/fishery[,predCE[1]]
-  maxy <- getmax(twlresid); miny <- getmin(twlresid)
-  plot(yrs,twlresid,type="p",pch=16,col=1,cex=1,
-       ylab=paste0(gears[1]," CPUE Residuals"),
-       ylim=c(miny,maxy),yaxs="i",xlab="",panel.first=grid())
-  lines(yrs,twlresid,lwd=1,col=2,lty=2)
-  abline(h=1,lwd=1,col=1)
-  if (nfleet == 2) {
+  if (obsdata) {
+    twlresid <- fishery[,obsCE[1]]/fishery[,predCE[1]]    
+    maxy <- getmax(twlresid); miny <- getmin(twlresid)
+    plot(yrs,twlresid,type="p",pch=16,col=1,cex=1,
+         ylab=paste0(gears[1]," CPUE Residuals"),
+         ylim=c(miny,maxy),yaxs="i",xlab="",panel.first=grid())
+    lines(yrs,twlresid,lwd=1,col=2,lty=2)
+    abline(h=1,lwd=1,col=1)
+  }
+  if ((nfleet == 2) & (obsdata)) {
     aulnresid <- fishery[,obsCE[2]]/fishery[,predCE[2]]
     maxy <- getmax(aulnresid); miny <- getmin(aulnresid)
     plot(yrs,aulnresid,type="p",pch=16,col=1,cex=1,
@@ -877,17 +1166,18 @@ plotdynfish <- function(outfish,console=TRUE,addtitle="",prepplot=TRUE,
 #'   histC <- samplefishery(out,glb)
 #'   print(histC)
 #' }
+#' # out=out;glb=glb;errors=c(catchSD=catchSD,cpueSD=cpueSD)
 samplefishery <- function(out,glb,
                           errors=c(catchSD=1e-08,cpueSD=1e-08)) {
   fleets <- glb$fleets
   nflet <- glb$nfleet
   fishery <- out$fishery
   catchnames <- paste0(fleets,"C")
-  catches <- fishery[,catchnames]
+  catches <- as.matrix(fishery[,catchnames])
   nobs <- nrow(catches) * ncol(catches)
   catches <- round(catches * rnorm(nobs,1,sd=errors["catchSD"]))
   cpuenames <- paste0(fleets,"PCE")
-  cpue <- fishery[,cpuenames]
+  cpue <- as.matrix(fishery[,cpuenames])
   nobs <- nrow(cpue) * ncol(cpue)
   cpue <- cpue * rnorm(nobs,1,sd=errors["cpueSD"])
   histcatch <- as.matrix(cbind(year=fishery[,"year"],catches,cpue))
@@ -956,7 +1246,7 @@ simdynF <- function(glb,stk,reps=6,full=FALSE) {
   nages <- glb$nages
   maxage <- glb$maxage
   catchcol <- paste0(fleets,"C")
-  predCcol <- paste0(fleets,"PC")
+  predCcol <- paste0(fleets,"CP")
   exBcols <- paste0(fleets,"eB")
   CEcols <- paste0(fleets,"CE")
   predCEcols <- paste0(fleets,"PCE")
@@ -987,7 +1277,7 @@ simdynF <- function(glb,stk,reps=6,full=FALSE) {
   predCN <- matrix(NA,nrow=nages,ncol=nfleet,dimnames=list(ages,fleets))
   catchN <- array(NA,dim=c(nages,nyrs,nfleet),
                   dimnames=list(ages,years,fleets))
-  set.seed(glb$randseed)
+  set.seed(glb$randseed) # give repeatable results
   #for (yr in 1:18) { #nyr1) {  # yr=40
   for (yr in 1:nyrs) {  # yr=1
     obsC <- obscatch[(yr+1),]
@@ -1304,7 +1594,7 @@ writedatafile <- function(const,glb,histC,rundir,filename,datatitle) {
   cat("\n\n",file=filename, append=TRUE)
   cat("#HISTORICALCATCH,45,,, \n",file=filename, append=TRUE)
   numrow <- nrow(histC)
-  for (i in 1:numrow) {
+  for (i in 1:numrow) { # i = 1
     dat <- paste0(round(histC[i,],4),collapse=",")
     label <- paste0(dat,", fishdat, \n")
     cat(label,file=filename, append=TRUE)

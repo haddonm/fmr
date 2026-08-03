@@ -9,9 +9,12 @@ dynamicsH(
   infish,
   inglb,
   inprops,
+  year = "year",
+  catch = "twl",
+  cpue = "twlCE",
   waa = "waa",
   maa = "maa",
-  sela = "sela",
+  sela = "twl",
   full = FALSE,
   diffC = TRUE,
   ...
@@ -34,11 +37,17 @@ present this would be the log of the initial depletion.}
 
 \item{inprops}{the props data.frame from readdata or an internal dataset}
 
+\item{year}{the character name of time-step, default='year'}
+
+\item{catch}{character name of catches, default='twl'}
+
+\item{cpue}{character name of CPUE, default = 'twlCE'}
+
 \item{waa}{the character name of the weight-at-age}
 
 \item{maa}{the character name of the maturity-at-age}
 
-\item{sela}{the character name of the selectivity-at-age}
+\item{sela}{the character name of the selectivity-at-age,default='twl'}
 
 \item{full}{should all outputs from dynamics be given. When fitting the
 model, set this to FALSE. Once fitted, change this to TRUE to get all
@@ -78,7 +87,7 @@ codeutils::outfit(bestL,digits=6)
 out <- dynamicsH(bestL$par,infish=fish,inglb=glb,inprops=props,full=TRUE)
 print(round(out$fishery,4))
 # pars=c(7.064324,-1.257487,-7.694248);infish=fish;inglb=glb;
-# inprops=props;full=TRUE; waa="waa";maa="maa";sela="sela"
+# inprops=props;full=TRUE; waa="waa";maa="maa";sela="twl"
 }
 \seealso{
 {

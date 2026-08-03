@@ -11,7 +11,10 @@ dynF(
   inprops,
   waa = "waa",
   maa = "maa",
-  sela = "sela",
+  sela = "twl",
+  year = "year",
+  catch = "twl",
+  cpue = "twlCE",
   full = FALSE,
   reps = 5
 )
@@ -37,7 +40,13 @@ present this would be the log of the initail depletion.}
 
 \item{maa}{the character name of the maturity-at-age}
 
-\item{sela}{the character name of the selectivity-at-age}
+\item{sela}{the character name of the selectivity-at-age,default='twl'}
+
+\item{year}{the character name of the year column in fish, default='year'}
+
+\item{catch}{the character name of the catch column in fish, default='twl'}
+
+\item{cpue}{the character name of the cpue column in fish, default='twlCE'}
 
 \item{full}{should all outputs from dynamics be given. When fitting the
 model, set this to FALSE. Once fitted, change this to TRUE to get all

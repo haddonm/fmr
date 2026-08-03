@@ -12,7 +12,17 @@ makedataset(
   rundir = "",
   datatitle = "",
   catchSD = 1e-08,
-  cpueSD = 1e-08
+  cpueSD = 1e-08,
+  getA = FALSE,
+  sampnA = 500,
+  sampsdA = 50,
+  maxnA = 1000,
+  redvarA = 50,
+  getL = FALSE,
+  sampnL = 800,
+  sampsdL = 50,
+  maxnL = 2000,
+  redvarL = 50
 )
 }
 \arguments{
@@ -34,6 +44,30 @@ catches. default = 1e-08, effectively no variation}
 
 \item{cpueSD}{standard deviation of normal variation imposed on reported
 CPUE. default = 1e-08, effectively no variation}
+
+\item{getA}{default=FALSE, sampling includes age-composition of catches. If
+getA==TRUE, then next four params are active}
+
+\item{sampnA}{expected booststrap age sample = 500}
+
+\item{sampsdA}{sample size sd used by rowfreqboot default=50}
+
+\item{maxnA}{the maximum sample size possible (> n), default = 1000}
+
+\item{redvarA}{sd for how much each column of catch numbers are reduced
+prior to bootstrapping, deault =50}
+
+\item{getL}{default=FALSE, sampling includes age-composition of catches. If
+getA==TRUE, then next four params are active}
+
+\item{sampnL}{expected booststrap age sample = 800}
+
+\item{sampsdL}{sample size sd used by rowfreqboot default=50}
+
+\item{maxnL}{the maximum sample size possible (> n), default = 2000}
+
+\item{redvarL}{sd for how much each column of catch numbers are reduced
+prior to bootstrapping, deault =50}
 }
 \value{
 nothing but it does write a data file to rundir/filename

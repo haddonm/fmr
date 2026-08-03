@@ -35,4 +35,5 @@ simulated fishery and can add error to both, as desired.
   histC <- samplefishery(out,glb)
   print(histC)
 }
+# out=out;glb=glb;errors=c(catchSD=catchSD,cpueSD=cpueSD)
 }

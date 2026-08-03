@@ -4,12 +4,13 @@
 \alias{getconstants}
 \title{getconstants - reads the input constants that condition the model}
 \usage{
-getconstants(infile = "constants.csv")
+getconstants(infile = "constants.csv", matsel = TRUE)
 }
 \arguments{
-\item{infile}{\itemize{
-\item defaults to 'constants.csv'. Needs to be a csv file
-}}
+\item{infile}{defaults to 'constants.csv'. Needs to be a csv file}
+
+\item{matsel}{should the selectivity-at-age match the maturity-at-age,
+default = TRUE}
 }
 \value{
 a list of two vectors 'biology' and 'fishery' plus a list of two
@@ -27,5 +28,6 @@ HISTORICALCATCH
 require(fmr)
 data(const)
 str(const)
-# infile=pathtopath(datraw,"F2-A1-S1.csv")
+# infile=pathtopath(datraw,"F2-A1-S1.csv"); matsel=TRUE
+# infile=pathtopath(datraw,"F1-A1-S1.csv")
 }

@@ -39,16 +39,14 @@ difference between the catch and the predicted catch.
 data(westroughy)
 fish <- westroughy$fish
 glb <- westroughy$glb
-props <- westroughy$props
-sel <- props$sela
+props <- as.data.frame(westroughy$props)
+sel <- props$twl
 pars <- c(7.15,-1,-7.7) # logR0, sigCE, estimate avq
 out <- dynamicsF(pars,fish,glb,props,full=TRUE)  
-matchC(f=0.3,M=0.05,cyr=15340,Nyr=out$Nt[,2],sel=sel,props$waa)
+matchC(f=0.3,M=0.05,cyr=3924.912,Nyr=out$Nt[,2],sel=sel,props$waa)
 matchC(f=0.35,M=0.05,cyr=15340,Nyr=out$Nt[,2],sel=sel,props$waa)
 out2 <- optimize(matchC,interval=c(0,1),M=0.05,cyr=3924,Nyr=out$Nt[,2],
                 sel=sel,props$waa)
 out2
-f <- out2$minimum
-(397388.66 * (1 - exp(-(0.05 + f))) * f/(0.05 + f))
 # f=0.2679;M=0.0036;cyr=3924;Nyr=Nt[,yr-1];sel=sel;waa=props$waa
 }

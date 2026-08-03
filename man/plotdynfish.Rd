@@ -13,7 +13,8 @@ plotdynfish(
   width = 8,
   height = 7,
   nfleet = 2,
-  columns = c("year", "twlC", "aulnC", "twlCE", "aulnCE", "twlPCE", "aulnPCE", "deplsB",
+  obsdata = TRUE,
+  columns = c("year", "twl", "auln", "twlCE", "aulnCE", "twlPCE", "aulnPCE", "deplsB",
     "recruit", "twlPF", "aulnPF", "Trawl", "Autoline")
 )
 }
@@ -41,6 +42,10 @@ default = ''}
 \item{nfleet}{default = 2, determines how many gears are expected can only
 be 1 or 2. If nfleet = 1 consider reducing height}
 
+\item{obsdata}{default = TRUE. To plot CPUE residuals the observed CPUE is
+required. When plotting simulated data there are no 'observed' so set
+obsdata to FALSE, which omits the residual plots.}
+
 \item{columns}{column headings identifying the components to be plotted. The
 default is: columns=c('year','twlC','aulnC','twlCE','aulnCE', 'twlPCE',
 'aulnPCE','deplsB','recruit','twlPF','aulnPF','Trawl','Autoline'), which
@@ -61,4 +66,5 @@ F levels
 }
 \examples{
 print("Wait on example data - again")
+print("Can now plot simulated dynamics")
 }
