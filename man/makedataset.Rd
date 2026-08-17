@@ -5,12 +5,8 @@
 \title{makedataset generates a csv file from siumulated data}
 \usage{
 makedataset(
-  const,
   glb,
   out,
-  filename,
-  rundir = "",
-  datatitle = "",
   catchSD = 1e-08,
   cpueSD = 1e-08,
   getA = FALSE,
@@ -26,18 +22,9 @@ makedataset(
 )
 }
 \arguments{
-\item{const}{the output object from getconstants}
-
 \item{glb}{the output object from initiateglobals}
 
 \item{out}{the output object from simdynF}
-
-\item{filename}{the name of the datafile, MUST be a '.csv' file}
-
-\item{rundir}{the directory path to the subdirectory in which all analysis
-data and results are stored, default = ''}
-
-\item{datatitle}{line 1 of data file decribing its contents, default = ''}
 
 \item{catchSD}{standard deviation of normal variation imposed on reported
 catches. default = 1e-08, effectively no variation}
@@ -70,7 +57,7 @@ getA==TRUE, then next four params are active}
 prior to bootstrapping, deault =50}
 }
 \value{
-nothing but it does write a data file to rundir/filename
+a list of histC, agecomp, and sizecomp, some of which may be NULL
 }
 \description{
 makedataset generates a csv file from simulated data produced
@@ -85,10 +72,7 @@ by getconstants, initiateglobals, and simdynF.
  catchSD=1e-08
  cpueSD=1e-08
  sigR=1e-08
- filename="F21S.csv"
- datatitle <- "A two-fleet one stock/region fishery data set"
- makedataset(const2,glb,out,filename,rundir='',datatitle="test",
-             catchSD=1e-08,cpueSD=1e-08,sigR=1e-08)
+ outdata <- makedataset(glb,out,catchSD=1e-08,cpueSD=1e-08,sigR=1e-08)
  # now open 'F21S.csv
 }
 }

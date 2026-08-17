@@ -15,7 +15,7 @@
 #' @param Nyr the numbers at size at the start of the given year or end of the 
 #'     year before
 #' @param sel a matrix of the selectivity of the fishing gears
-#' @param aaw the weight-at-age
+#' @param wata the weight-at-age, might be waa vector / 1000.0
 #' @param M the instantaneous natural mortality rate
 #' @param reps how many internal loops to use finding each F, default = 6
 #'
@@ -43,12 +43,11 @@
 #'  outfit(bestFD,digits=7,title="Instantaneous Rates 2",
 #'         parnames=c("LnR0","Ln(sigCE)","Ln(q)")) 
 #'  # cyr=obsC[1];Nyr=Nt[,yr];sel=sel;aaw=aaw;M=M;reps=reps  
-findFs <- function(cyr,Nyr,sel,aaw,M,reps=8) {
+findFs <- function(cyr,Nyr,sel,wata,M,reps=8) {
   sel <- as.matrix(sel)
   nages <- length(sel[,1]) # uses selectivity by age
   nfleet <- ncol(sel)      # separate selectivity by fleet
   predCyr <- numeric(nfleet)
-  wata <- aaw/1000
   Byr <- sum((Nyr*sel*wata)) # exploitable biomass x fleet at start of year yr
   temp1 <- cyr / (Byr + 0.1*cyr)  # next 4 lines = Pope's approximation
   join1 <- 1/(1 + exp(30*(temp1 - 0.95))) # join keeps it differentiable

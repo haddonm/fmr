@@ -15,7 +15,7 @@ A 51 x 51 data.frame with rows as LnR0 = seq(5.9,8.4,0.05) and
 columns of Lnq = seq(-8.7,-6.2,0.05). The values are the -veLL for each
 combination when combined with a constant LnsigCE = -1.3. This can also
 be used with persp to generate a 3D plot of the likelihood surface.
-Note, in teh example,
+Note, in the example,
 }
 \examples{
 data(outlike)

@@ -20,12 +20,12 @@ dynF2(
 \item{pars}{the initial parameter values lnR0, lnq1, lnq2}
 
 \item{infish}{the fishery statistics as in year, catches, CPUE, year, twl,
-auln, twlCE, aulnCE, with NA instead of zeros, from readASPMdata}
+auln, twlCE, aulnCE, with NA instead of zeros, from readalldata}
 
-\item{inglb}{the glb data.frame from readASPMdata or built in dataset const2.}
+\item{inglb}{the glb data.frame from readalldata or built in dataset const2.}
 
 \item{inprops}{matrix of properties, age, then length-, weight-, maturity,
-and selectivity-at-age for each fleet, from readASPMdata}
+and selectivity-at-age for each fleet, from readalldata}
 
 \item{waa}{name used for weight-at-age in inprops, default='waa'}
 
@@ -68,7 +68,7 @@ assumption in purely age-structured models.
  dirExists(rundir,verbose=FALSE)  # this will create rundir if required
  always be very careful when using R to manipulate files and directories
  template2F1S(rundir,filename="test2F1S.csv")  # generates test2F1S.csv 
- const2 <- readASPMdata(pathtopath(rundir,"test2F1S.csv"))
+ const2 <- readalldata(pathtopath(rundir,"test2F1S.csv"))
  fish <- const2$fish
  glb <- const2$glb
  props <- makeprops(const2,selabove=1)
@@ -83,6 +83,6 @@ assumption in purely age-structured models.
 }
 \seealso{
 {
-\link{template2F1S}, \link{readASPMdata}
+\link{template2F1S}, \link{readalldata}
 }
 }

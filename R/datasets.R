@@ -104,7 +104,7 @@ NULL
 #'  str(F2robustness)
 #'  countLL <- table((round(F2robustness[,"-veLL"],6)))
 #'  countLL
-#'  range(F2robustness[,"-veLL"]) # should be -11.35589 -11.35562
+#'  range(F2robustness[,"-veLL"]) # should be -10.18093 -10.18029
 "F2robustness"
 
 # fish --------------------
@@ -195,6 +195,26 @@ NULL
 #' fournarch82
 "fournarch82"
 
+# IAconst ---------------------------
+
+#' @title IAconst the first IA model example const object
+#'
+#' @description IAconst is a list of 5 objects for a single tralw fleet fishery
+#'     that includes CPUE and age-composition data. The objects are 1. biology,
+#'     contains growth, weight-at-age, and maturity parameters. 2. glb the 
+#'     globals object, 3. fish, the fishery data year, catch, CPUE, 4. outrmse,
+#'     an analysis of the expected weighting to apply to the CPUE data, and
+#'     5. agecomp, a matrix of age x years, of the counts by age in samples of
+#'     the catches.
+#'     
+#' @format A list of five objects, biology, glb, fish, outrmse, and agecomp  
+#'     
+#' @examples
+#'  data(IAconst)
+#'  str1(IAcaonst)
+#'  print(IAconst$agecomp$twl[,1:8])
+"IAconst"
+
 # outlike-------------------------------------------------
 
 #' @title outlike a 51 x 51 matrix of likelihoods for LnR0 and Lnq
@@ -203,7 +223,7 @@ NULL
 #'     columns of Lnq = seq(-8.7,-6.2,0.05). The values are the -veLL for each
 #'     combination when combined with a constant LnsigCE = -1.3. This can also
 #'     be used with persp to generate a 3D plot of the likelihood surface. 
-#'     Note, in teh example, 
+#'     Note, in the example, 
 #'
 #' @format A 51 x 51 data.frame
 #' 

@@ -16,7 +16,8 @@ export(calccaa)
 export(calcnaa)
 export(calcrmse)
 export(calcsel)
-export(datatemplate)
+export(datatemplateASPM)
+export(datatemplateIA)
 export(doDepletion)
 export(domedsel)
 export(dynF)
@@ -66,14 +67,15 @@ export(plotsizecomp)
 export(plottmbprof)
 export(preliminaryfit)
 export(prodASPM)
-export(readASPMdata)
 export(readSBMctrl)
 export(readSBMdata)
 export(readSBMpin)
+export(readalldata)
 export(readdata)
 export(robustASPM)
 export(robustdynF)
 export(samplefishery)
+export(setsigmaR)
 export(simbh)
 export(simdynF)
 export(template2F1S)
@@ -83,75 +85,89 @@ export(vB)
 export(vbfabens)
 export(writedatafile)
 importFrom(TMB,tmbprofile)
-importFrom(codeutils,countgtzero)
-importFrom(codeutils,getConst)
-importFrom(codeutils,getStr)
-importFrom(codeutils,getmax)
-importFrom(codeutils,getmin)
-importFrom(codeutils,getsingleNum)
-importFrom(codeutils,iscol)
-importFrom(codeutils,magnitude)
-importFrom(codeutils,makeUnit)
-importFrom(codeutils,makelist)
-importFrom(codeutils,pathtopath)
-importFrom(codeutils,removeEmpty)
-importFrom(codeutils,rowfreqboot)
-importFrom(codeutils,which.closest)
-importFrom(grDevices,dev.cur)
-importFrom(grDevices,dev.new)
-importFrom(grDevices,dev.off)
-importFrom(grDevices,graphics.off)
-importFrom(grDevices,palette)
-importFrom(grDevices,png)
-importFrom(graphics,abline)
-importFrom(graphics,arrows)
-importFrom(graphics,axis)
-importFrom(graphics,contour)
-importFrom(graphics,grid)
-importFrom(graphics,hist)
-importFrom(graphics,layout)
-importFrom(graphics,legend)
-importFrom(graphics,lines)
-importFrom(graphics,mtext)
-importFrom(graphics,par)
-importFrom(graphics,plot)
-importFrom(graphics,points)
-importFrom(graphics,polygon)
-importFrom(graphics,segments)
-importFrom(graphics,text)
-importFrom(graphics,title)
-importFrom(hplot,parset)
-importFrom(hplot,pickbound)
-importFrom(hplot,plot1)
-importFrom(hplot,plotprep)
-importFrom(hplot,replacezeros)
-importFrom(makehtml,addplot)
-importFrom(makehtml,addtable)
-importFrom(makehtml,dirExists)
-importFrom(stats,anova)
-importFrom(stats,ccf)
-importFrom(stats,confint)
-importFrom(stats,cor)
-importFrom(stats,cov2cor)
-importFrom(stats,dchisq)
-importFrom(stats,dlnorm)
-importFrom(stats,dmultinom)
-importFrom(stats,dnorm)
-importFrom(stats,lm)
-importFrom(stats,loess)
-importFrom(stats,median)
-importFrom(stats,nlm)
-importFrom(stats,nlminb)
-importFrom(stats,optim)
-importFrom(stats,optimize)
-importFrom(stats,pnorm)
-importFrom(stats,qchisq)
-importFrom(stats,qnorm)
-importFrom(stats,qt)
-importFrom(stats,quantile)
-importFrom(stats,rnorm)
-importFrom(stats,runif)
-importFrom(stats,sd)
-importFrom(utils,head)
-importFrom(utils,str)
-importFrom(utils,tail)
+importFrom(codeutils,
+  countgtzero,
+  getConst,
+  getStr,
+  getmax,
+  getmin,
+  getsingleNum,
+  iscol,
+  magnitude,
+  makeUnit,
+  makelist,
+  pathtopath,
+  removeEmpty,
+  rowfreqboot,
+  which.closest
+)
+importFrom(grDevices,
+  dev.cur,
+  dev.new,
+  dev.off,
+  graphics.off,
+  palette,
+  png
+)
+importFrom(graphics,
+  abline,
+  arrows,
+  axis,
+  contour,
+  grid,
+  hist,
+  layout,
+  legend,
+  lines,
+  mtext,
+  par,
+  plot,
+  points,
+  polygon,
+  segments,
+  text,
+  title
+)
+importFrom(hplot,
+  parset,
+  pickbound,
+  plot1,
+  plotprep,
+  replacezeros
+)
+importFrom(makehtml,
+  addplot,
+  addtable,
+  dirExists
+)
+importFrom(stats,
+  anova,
+  ccf,
+  confint,
+  cor,
+  cov2cor,
+  dchisq,
+  dlnorm,
+  dmultinom,
+  dnorm,
+  lm,
+  loess,
+  median,
+  nlm,
+  nlminb,
+  optim,
+  optimize,
+  pnorm,
+  qchisq,
+  qnorm,
+  qt,
+  quantile,
+  rnorm,
+  runif,
+  sd
+)
+importFrom(utils,
+  head,
+  str,
+  tail
+)

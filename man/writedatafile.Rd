@@ -4,7 +4,18 @@
 \alias{writedatafile}
 \title{writedatafile writes out a simulated data file to rundir/filename}
 \usage{
-writedatafile(const, glb, histC, rundir, filename, datatitle)
+writedatafile(
+  const,
+  glb,
+  histC,
+  rundir,
+  filen,
+  datatitle,
+  rndseed = NULL,
+  agecomp = NULL,
+  sizecomp = NULL,
+  verbose = FALSE
+)
 }
 \arguments{
 \item{const}{the object made by getconstants aimed at simulating dynamics}
@@ -16,9 +27,19 @@ writedatafile(const, glb, histC, rundir, filename, datatitle)
 \item{rundir}{the directory path to the subdirectory in which all analysis
 data and results are stored.}
 
-\item{filename}{the name of the data file, MUST be a '.csv' file}
+\item{filen}{the name of the data file, MUST be a '.csv' file}
 
-\item{datatitle}{line 1 of data file decribing its contents, default = ''}
+\item{datatitle}{line 1 of data file describing its contents, default = ''}
+
+\item{rndseed}{default = NULL, implies the randseed inside the const object
+will be used as the randseed. If positive then rndseed will be the
+randseed in the data set.}
+
+\item{agecomp}{default = NULL, but may be a list from makedatafile}
+
+\item{sizecomp}{default = NULL, but may be a list from makedatafile}
+
+\item{verbose}{default = FALSE, implies no messages when running.}
 }
 \value{
 nothing but it does write a data file to rundir/filename
@@ -31,4 +52,6 @@ composition data later.
 }
 \examples{
 print("see help for makedatafile, which uses writedatafile")
+# const=simconst3;glb=glb;histC=histC;rundir=rundir;filen=filen;
+# datatitle=datatitle;agecomp=agecomp;sizecomp=NULL;rndseed=NULL
 }

@@ -10,17 +10,19 @@ makeprops(const, selabove = 1)
 \item{const}{a structured data file in the format defined by template2F1S}
 
 \item{selabove}{a vector of ages or sizes that are never selected. Identify
-their indices in the selecitivity vector here. eg. if age 0 is never
-selected then set zerocomps = 1, if ages 1-2 then zerocomps = c(1,2).}
+their indices in the selectivity vector here. eg. if age 0 is never
+selected then set zerocomps = 1, if ages 1-2 then zerocomps = c(1,2).
+This is only used if there are no age-composition data.}
 }
 \value{
-a matrix of biological and selectivity propoerties
+a matrix of biological and selectivity properties
 }
 \description{
 makeprops is a wrapper function that uses a constants file
 to generate a matrix of the constant biological properties for a fishery
-including length-at-age, weight-at-age, maturity-at-age, and the
-selectivity of each fleet
+including length-at-age, weight-at-age, maturity-at-age, and, if there
+are no age-composition data it also calcualtes the selectivity of each
+fleet.
 }
 \examples{
 \dontrun{

@@ -30,6 +30,6 @@ only 0.00082 likelihood units. This is a robust result.
  str(F2robustness)
  countLL <- table((round(F2robustness[,"-veLL"],6)))
  countLL
- range(F2robustness[,"-veLL"]) # should be -11.35589 -11.35562
+ range(F2robustness[,"-veLL"]) # should be -10.18093 -10.18029
 }
 \keyword{datasets}

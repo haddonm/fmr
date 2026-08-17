@@ -4,7 +4,7 @@
 \alias{findFs}
 \title{findFs uses an iterative strategy for finding each year's F values}
 \usage{
-findFs(cyr, Nyr, sel, aaw, M, reps = 8)
+findFs(cyr, Nyr, sel, wata, M, reps = 8)
 }
 \arguments{
 \item{cyr}{a vector of known catches in a given year for nfleets}
@@ -14,7 +14,7 @@ year before}
 
 \item{sel}{a matrix of the selectivity of the fishing gears}
 
-\item{aaw}{the weight-at-age}
+\item{wata}{the weight-at-age, might be waa vector / 1000.0}
 
 \item{M}{the instantaneous natural mortality rate}
 
