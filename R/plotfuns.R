@@ -1,6 +1,120 @@
 
 
+#' @title comparevars plots a given variables changes between two scenarios 
+#' 
+#' @description comparevars can be used when comparing the dynamics of two
+#'     alternative scenarios when fitting an integrated assessment model. It 
+#'     requires the fishery dynamics of each scenario and plots whichever 
+#'     variables are being considered (see example). 
+#'
+#' @param yrs the years of the fishery dynamics
+#' @param var1 a variable from the the dynamics of the first scenario
+#' @param var2 the same variable from teh second scenario
+#' @param varname The name of the variable being compared
+#' @param scenarios a character vector of the names of the two scenarios
+#' @param console should the plot be printed to the console or a file? 
+#'     default = TRUE
+#' @param rundir the full path of the rundir where analyses are occurring.
+#'     defauklt = ''
+#' @param prepplot default = FALSe, implying the plot will be part of a 
+#'     composite whose structure is defined elsewhere. If TRUE, then a single
+#'     comparison will be produced.
+#' @param legpos default = 'topright' the position of the legend, which is
+#'     simply the contents of the scenarios argument.
+#'
+#' @returns if console = FALSe it returns a filename and a file is generated,
+#'     if console = TRUE, nothing is returned but it does generate a plot
+#' @export
+#'
+#' @examples
+#' \dontrun{  # illustrate typical use
+#'   fish49 <- opt49$fishery
+#'   fish45 <- opt45$fishery
+#'   yrs <- fish49[,"year"]
+#'   plotprep(width=10,height=8)
+#'   parset(plots=c(2,2),cex=1)
+#'   comparevars(yrs=yrs,var1=fish49[,"deplete"],var2=fish45[,"deplete"],
+#'               varname="Spawning Biomass Depletion",
+#'               scenarios=c("fish49","fish45"),console=TRUE,prepplot=FALSE)
+#'   comparevars(yrs=yrs,var1=fish49[,"twlPCE"],var2=fish45[,"twlPCE"],
+#'               varname="Predicted CPUE",
+#'               scenarios=c("fish49","fish45"),console=TRUE,prepplot=FALSE)
+#'   comparevars(yrs=yrs,var1=fish49[,"spawnB"],var2=fish45[,"spawnB"],
+#'               varname="Predicted Spawning Biomass",
+#'               scenarios=c("fish49","fish45"),console=TRUE,prepplot=FALSE)
+#'   comparevars(yrs=yrs,var1=fish49[,"recruit"],var2=fish45[,"recruit"],
+#'               varname="Predicted Recruitment",scenarios=c("fish49","fish45"),
+#'               console=TRUE,prepplot=FALSE)
+#' }
+comparevars <- function(yrs,var1,var2,varname,scenarios,console=TRUE,rundir="",
+                        prepplot=FALSE,legpos="topright") {
+  if (console) {
+    filen <- ""
+  } else {
+    filen <- pathtopath(rundir,paste0("compare_IA",varname,".png"))
+  }
+  if (prepplot) {
+    plotprep(width=8,height=4.5,filename=filen)
+    parset(cex=1.0)
+  }
+  maxy <- getmax(c(var1,var2))
+  plot(yrs,var1,type="l",lwd=2,col=1,ylab=varname,xlab="",ylim=c(0,maxy),
+       panel.first=grid())
+  lines(yrs,var2,lwd=2,col=2)
+  legend(legpos,legend=scenarios,lwd=3,col=c(1,2),bty="n",cex=1.2)
+  if (!console) {
+    dev.off()
+    return (filen)
+  }
+} # end of comparevars
 
+#' @title initialdynamics plots dynamics from initial parameter guesses
+#' 
+#' @description initialdynamics generates a plot of the predicted stock 
+#'     cpue given a set off initial parameters. This can be used to find,
+#'     using trial and error, a set of scaling parameters (R0 and q, and 
+#'     sometimes selectivity), that keep the predicted stock cpue off the
+#'     zero line and that intersect with the observed CPUE. Only plots
+#'     one fleet at a time.
+#' 
+#' @param x the input data, at least a matrix of 'year' and 'cpue'
+#' @param year character name of the year variable, default = 'year'
+#' @param cpue character name of the CPUE or index variable, default = 'cpue'
+#' @param predCE character name of the predicted CPUE,  default = 'predCE'
+#' @param width default = 9, the width of the plot
+#' @param height default = 6, the height of the plot
+#' @param result the BO, total likelihood and cpueLL as a column matrix. 
+#'     default = NULL, which means nothing added to plot
+#' @param legcex default = 1.25 the font size for the legend if used
+#' @param legloc thge location of the legend if used. default = 'topright'
+#' @param ... other potential inputs, plotting parameters, etc.
+#' 
+#' @returns nothing but it does produce a plot 
+#' @export 
+#' 
+#' @examples 
+#' # think of something 
+initialdynamics <- function(x,year='year',cpue='cpue',predCE='predCE',width=9,
+                            height=6,result=NULL,legcex=1.25,legloc="topright",...) { 
+  
+  oldpar <- par(no.readonly=TRUE)
+  on.exit(par(oldpar))
+  fishery <- replacezeros(x)
+  yrs <- fishery[,year]
+  plotprep(width=width,height=height,cex=1.0,verbose=FALSE) 
+  parset(plots=c(1,1),margin=c(0.3,0.4,0.05,0.05),byrow=FALSE)
+  maxy <- getmax(fishery[,c(cpue,predCE)])
+  plot(yrs,fishery[,cpue],type="p",pch=16,cex=1.0,col=1,
+       ylab="CPUE",ylim=c(0,maxy),yaxs="i",xlab="",
+       panel.first=grid())
+  lines(yrs,fishery[,predCE],lwd=2,col=2)
+  if (!is.null(result)) {
+    result <- round(result,2)
+    label <- c(paste0("B0     = ",result[1,]),paste0("totalLL = ",result[2,]),
+               paste0("cpueLL = ",result[3,]))
+    legend(legloc,label,col=0,lwd=0,bty="n",cex=legcex)
+  }
+} # end of initialdynamics
 
 #' @title plotASPM plots catch, CPUE, Spawning Biomass and Harvest Rate
 #' 
@@ -187,6 +301,8 @@ plotceASPM <- function(infish,CI=NA,defineplot=TRUE) {
 #'     'recruit' and 'predrec'. If no predrec values leave as default
 #' @param depl character name of the spawning biomass depletion column default 
 #'     = 'deplsB'
+#' @param spawnB character name of the spawning biomass column default 
+#'     = 'spawnB'
 #' @param gears character names of the fishing gear names, not columns.
 #'     default = 'Trawl' and 'Autoline'
 #' @param catch character names of the catches columns. default = 'twl',"auln 
@@ -205,18 +321,16 @@ plotceASPM <- function(infish,CI=NA,defineplot=TRUE) {
 plotdynfish <- function(outfish,console=TRUE,addtitle="",prepplot=TRUE,
                         rundir="",width=8,height=7,nfleet=2,obsdata=TRUE,
                         year="year",recruit=c("recruit","predrec"),
-                        depl="deplsB",gears=c("Trawl","Autoline"),
+                        depl="deplsB",spawnB="spawnB",
+                        gears=c("Trawl","Autoline"),
                         catch=c("twl","auln"),instF=c("twlPF","aulnPF"),
                         cecols=c("twlPCE","twlCE","aulnPCE","aulnCE")) {
-  # outfish=outFD$fishery;console=TRUE;addtitle="";prepplot=TRUE;
-  # rundir="";width=8;height=7;nfleet=1;obsdata=TRUE
-  # columns=c("year","twl","twlCE","twlPCE","deplsB","recruit","twlPF","Trawl")
-  
+
   # outfish=outIA$fishery;console=TRUE;addtitle="";prepplot=TRUE;rundir=""
   #              width=8;height=7;nfleet=1;obsdata=TRUE
   #              year="year";recruit=c("recruit","predrec")
   #              depl="deplete";gears=c("Trawl");catch=c("twl");instF=c("fullF") 
-  #              cecols=c("twlPCE","twlCE"); 
+  #              cecols=c("twlPCE","twlCE"); spawnB="spawnB"
   
   oldpar <- par(no.readonly=TRUE)
   on.exit(par(oldpar))
@@ -230,9 +344,9 @@ plotdynfish <- function(outfish,console=TRUE,addtitle="",prepplot=TRUE,
              verbose=FALSE)
   }
   if ((nfleet == 1) || (!obsdata)) {
-    parset(plots=c(3,2),margin=c(0.3,0.4,0.05,0.05),byrow=FALSE)
-  } else {
     parset(plots=c(4,2),margin=c(0.3,0.4,0.05,0.05),byrow=FALSE)
+  } else {
+    parset(plots=c(5,2),margin=c(0.3,0.4,0.05,0.05),byrow=FALSE)
   }
   if (obsdata) {
     maxy <- getmax(fishery[,cecols[1:2]])
@@ -266,16 +380,36 @@ plotdynfish <- function(outfish,console=TRUE,addtitle="",prepplot=TRUE,
       lines(yrs,usece[,2],lwd=1,col=2,lty=3)
     }
   }
+  # spawning depletion----------------
   maxy <- getmax(fishery[,depl])
   plot(yrs,fishery[,depl],type="l",lwd=2,col=1,ylab="Spawning Depletion",
        ylim=c(0,maxy),yaxs="i",xlab="",panel.first=grid())
   abline(h=c(0.4,0.2),lwd=c(1,1),col=c(3,2))
-  maxy <- getmax(fishery[,recruit[1]])
-  plot(yrs,fishery[,recruit[1]],type="l",lwd=2,col=1,ylab="Recruitment",
-       ylim=c(0,maxy),yaxs="i",xlab="",panel.first=grid())
-  if (length(fishery[,recruit[2]]) > 0) {
-    lines(yrs,fishery[,recruit[2]],lwd=2,col=2)
+  # catches-----------------
+  if (nfleet == 2) {
+    totC <- rowSums(fishery[,c(catch)],na.rm=TRUE)
+    totC[which(totC == 0)] <- NA
+    maxy <- getmax(totC)
+  } else {
+    maxy <- getmax(fishery[,catch[1]])
   }
+  plot(yrs,fishery[,catch[1]],type="l",lwd=2,col=1,ylab="Catches (t)",
+       ylim=c(0,maxy),yaxs="i",xlab="",panel.first=grid())
+  if (nfleet == 2) {
+    lines(yrs,fishery[,catch[2]],lwd=2,col=2)
+    lines(yrs,totC,lwd=2,col=4)
+    legend("topleft",c(gears,"Total"),col=c(1,2,4),lwd=3,bty="n",
+           cex=1.1)
+  }
+  # instantaneous F-------------------
+  maxy <- getmax(fishery[,c(instF)])
+  plot(yrs,fishery[,instF[1]],type="l",lwd=2,col=1,ylab="Instantaneous F",
+       ylim=c(0,maxy),yaxs="i",xlab="",panel.first=grid())
+  if (nfleet == 2) {
+    lines(yrs,fishery[,instF[2]],lwd=2,col=2)
+    legend("topleft",c(gears),col=c(1:nfleet),lwd=3,bty="n",cex=1.1)
+  }
+  # cpue residuals--------------------
   if (obsdata) {
     twlresid <- fishery[,cecols[2]]/fishery[,cecols[1]]    
     maxy <- getmax(twlresid); miny <- getmin(twlresid)
@@ -295,31 +429,27 @@ plotdynfish <- function(outfish,console=TRUE,addtitle="",prepplot=TRUE,
     lines(yrs,aulnresid,lwd=1,col=2,lty=2)
     abline(h=1,lwd=1,col=1)
   }
-  if (nfleet == 2) {
-    totC <- rowSums(fishery[,c(catch)],na.rm=TRUE)
-    totC[which(totC == 0)] <- NA
-    maxy <- getmax(totC)
-  } else {
-    maxy <- getmax(fishery[,catch[1]])
-  }
-  plot(yrs,fishery[,catch[1]],type="l",lwd=2,col=1,ylab="Catches (t)",
+  # spawning biomass-----------------
+  maxy <- getmax(fishery[,spawnB])
+  plot(yrs,fishery[,spawnB],type="l",lwd=2,col=1,ylab="Spawning Biomass",
        ylim=c(0,maxy),yaxs="i",xlab="",panel.first=grid())
-  if (nfleet == 2) {
-    lines(yrs,fishery[,catch[2]],lwd=2,col=2)
-    lines(yrs,totC,lwd=2,col=4)
-    legend("topleft",c(gears,"Total"),col=c(1,2,4),lwd=3,bty="n",
-           cex=1.1)
-  }
-  maxy <- getmax(fishery[,c(instF)])
-  plot(yrs,fishery[,instF[1]],type="l",lwd=2,col=1,ylab="Instantaneous F",
+  # recruitment---------------------
+  maxy <- getmax(fishery[,recruit[1]])
+  plot(yrs,fishery[,recruit[1]],type="l",lwd=2,col=1,ylab="Recruitment",
        ylim=c(0,maxy),yaxs="i",xlab="",panel.first=grid())
-  if (nfleet == 2) {
-    lines(yrs,fishery[,instF[2]],lwd=2,col=2)
-    legend("topleft",c(gears),col=c(1:nfleet),lwd=3,bty="n",cex=1.1)
+  if (length(fishery[,recruit[2]]) > 0) {
+    lines(yrs,fishery[,recruit[2]],lwd=2,col=2)
+  }
+  if (length(fishery[,recruit[2]]) > 0) {
+    recdevs <- fishery[,recruit[1]]/fishery[,recruit[2]]
+    maxy <- getmax(recdevs); miny <- getmin(recdevs)
+    plot(yrs,recdevs,type="p",pch=16,cex=1,ylim=c(miny,maxy),xlab="",
+         ylab="Recruitment Deviates",panel.first=grid())
+    abline(h=1.0,lwd=1,col=1)
+    pick1 <- which(recdevs == 1.0)
+    if (length(pick1 > 0)) points(yrs[pick1],recdevs[pick1],pch=16,cex=1,col=2)
   }
 } # end of plotdynfish
-
-
 
 #' @title plotprops generates a 2x2 plot of the fishery properties
 #' 

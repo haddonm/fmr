@@ -293,7 +293,7 @@ datatemplateIA <- function(rundir,filename="F2S1-age.csv",nfleet=1) {
   cat("steep,      0.7,,, \n",file=filename, append=TRUE)
   cat("Age50M,	   3,,, \n",file=filename, append=TRUE)
   cat("deltaM,	   0.75,,, \n",file=filename, append=TRUE)
-  cat("sigR,      0.45,,, \n",file=filename, append=TRUE)
+  cat("sigR,      0.6,,, \n",file=filename, append=TRUE)
   cat("\n\n",file=filename, append=TRUE)
   cat("#HISTORICALCATCH,46,,, \n",file=filename, append=TRUE)
   if (nfleet == 2) {

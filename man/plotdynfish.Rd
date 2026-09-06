@@ -17,6 +17,7 @@ plotdynfish(
   year = "year",
   recruit = c("recruit", "predrec"),
   depl = "deplsB",
+  spawnB = "spawnB",
   gears = c("Trawl", "Autoline"),
   catch = c("twl", "auln"),
   instF = c("twlPF", "aulnPF"),
@@ -59,6 +60,9 @@ contains the predicted recruitment without the deviate value. default =
 
 \item{depl}{character name of the spawning biomass depletion column default
 = 'deplsB'}
+
+\item{spawnB}{character name of the spawning biomass column default
+= 'spawnB'}
 
 \item{gears}{character names of the fishing gear names, not columns.
 default = 'Trawl' and 'Autoline'}

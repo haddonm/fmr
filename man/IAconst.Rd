@@ -20,8 +20,8 @@ an analysis of the expected weighting to apply to the CPUE data, and
 the catches.
 }
 \examples{
- data(IAcont)
- str1(IAcaont)
+ data(IAconst)
+ str(IAconst)
  print(IAconst$agecomp$twl[,1:8])
 }
 \keyword{datasets}

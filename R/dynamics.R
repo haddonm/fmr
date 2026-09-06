@@ -74,6 +74,173 @@ findFs <- function(cyr,Nyr,sel,wata,M,reps=8) {
   return(fFyr) 
 } # end of findFs
 
+#' @title IAdynF the dynamics of an IA model with CPUE and age-composition data
+#'
+#' @description IAdynF summarizes the dynamics of an Integrated Stock 
+#'     Assessment model that includes both CPUE and age-composition data. 
+#'     Fitting this model entails estimating the unfished recruitment level 
+#'     (R0), which is input as a parameter, along with, for each gear, 
+#'     catchability and selectivity. Selectivity-at-age parameters can only be 
+#'     estimated when there are age-composition data available. Finally, if 
+#'     sufficient age-composition data are available across years it becomes 
+#'     possible to estimate recruitment deviates through time. Once again we 
+#'     have included a penalty on catches to ensure that predC = ObsC, and a
+#'     penalty on the recruitment devaites to avoid over-fitting to data.
+#'
+#' @param pars the dynamics relies on many variables being avilable in
+#'     particular ages, nages, maxage, M, fish, nyrs, and maa, waa, which are
+#'     contained in props. As selectivity is being estimated it is recalculated
+#'     each iteration of the fitting process using the new parameter set. In an 
+#'     integrated assessment the intpu parameters, 'pars', contains multiple
+#'     parameters, each of which is log-transformed so that all parameters are
+#'     close to the same magnitude: 1) is the log-transformed average unfished
+#'     recruitment, inR0. 2) is the catchability 'q' for each fishing gear 3)
+#'     the selectivity parameters for each gear type, and finally, 4) the 
+#'     recruitment deviates selected for estimation. 
+#' @param fish the fishery data, an object out of const
+#' @param glb the globals object, out of const
+#' @param props the properties of waa, maa, and laa, out of const
+#' @param agecomp the age-composition of catches, out of const
+#' @param waa the character name of the weight-at-age in props
+#' @param maa the character name of the maturity-at-age  in props
+#' @param fleet the character name of the active fleet, default = 'twl', used
+#'     to identify the agecomposition data in teh all agecomp list. 
+#' @param year the character name of the year column in fish, default='year'
+#' @param catch the character name of the catch column in fish, default='twl'
+#' @param cpue the character name of the cpue column in fish, default='twlCE'
+#' @param full should all outputs from dynamics be given. When fitting the 
+#'     model, set this to FALSE. Once fitted, change this to TRUE to get all
+#'     the required outputs.
+#' @param reps how many loops within the findF function to find each F
+#' 
+#' @seealso{
+#'  \link{dynamicsF}, \link{dynamicsF}, \link{findF}, \link{findFs}
+#' } 
+#' 
+#' @return a data.frame containing the fishery dynamics according to the input
+#'     parameter inR0. Includes Year, Catch, PredC, SpawnB, ExploitB, FullH,
+#'     CPUE, PredCE, Deplete, Recruit, FullF. If full=TRUE then a list with all
+#'     dynamic outputs.
+#' @export
+#'
+#' @examples
+#' \dontrun{
+#' data(westroughy)
+#' fish <- westroughy$fish
+#' glb <- westroughy$glb
+#' props <- westroughy$props
+#' pars <- c(7.1,-1,-7.7) # logR0, sigCE, estimate avq
+#' fishery <- dynF(pars,fish,glb,props) 
+#' pars <- c(7.1,-1,-7.7)
+#' bestL <- optim(pars,dynF,method="Nelder-Mead",fish=fish,glb=glb,
+#'                inprops=props,control=list(maxit=1000,parscale = c(10,1,10)))
+#' str(bestL)
+#' print(bestL)
+#' out <- IAdynF(bestL$par,fish,glb,props,full=TRUE)
+#' print(round(out$fishery,4)) 
+#' }
+#' # pars=pars;fish=fish;glb=glb;props=props;agecomp=allagecomp;
+#' # waa="waa";maa="maa";fleet="twl";year="year";
+#' # catch="twl";cpue="twlCE";full=TRUE;reps=5
+IAdynF <- function(pars,fish,glb,props,agecomp,waa="waa",maa="maa",fleet="twl",
+                   year="year",catch="twl",cpue="twlCE",full=FALSE,reps=6) { 
+  wata <- props[,waa]/1000  # now as tonnes
+  aam <- props[,maa]
+  epars <- exp(pars)
+  R0 <- epars[1]
+  avq <- epars[2] 
+  selA <- epars[3]
+  selD <- epars[4]
+  recds <- epars[5:length(epars)]
+  steep <- glb$steep
+  sigCE <- glb$sigCE
+  yrs <- fish[,year]
+  nyrs1 <- length(yrs)
+  nyrs <- nyrs1 - 1
+  recyrs <- glb$recyrs
+  recdevs <- rep(1,nyrs)  # include non-estimated recdevs = 1
+  pickrecyr <- match(recyrs,yrs)
+  recdevs[pickrecyr] <- recds
+  ages <- glb$ages
+  nages <- glb$nages
+  maxage <- glb$maxage
+  ageC <- agecomp[[fleet]]
+  ageC <- ageC[,match(recyrs,as.numeric(colnames(ageC)))]
+  totobs <- colSums(ageC,na.rm=TRUE)
+  pageobs <- prop.table(ageC,2)
+  
+  sel <- 1/(1+exp(-log(19.0)*(ages-selA)/(selD)))
+  Nt <- matrix(0,nrow=nages,ncol=nyrs1,dimnames=list(0:maxage,0:nyrs))
+  catchN <- Nt
+  spawnB = exploitB = recruit = predR = fullF = predC = predCE = numeric(nyrs1)
+  recruit[1] <- R0
+  predR[1] <- R0
+  catch <- fish[,catch]
+  cpue <- fish[,cpue]
+  pickC <- which(catch > 0)
+  pickCE <- which(cpue > 0)
+  M <- glb$M
+  surv <- exp(-M)
+  Nt[1,1] <- R0   # get unfished (yr=1) Numbers-at-age index 0 - maxage
+  for (age in 1:(maxage-1)) Nt[age+1,1] <- Nt[age,1] * surv
+  Nt[maxage+1,1] <- (Nt[maxage,1] * surv)/(1-surv)
+  B0 = sum(aam * wata * Nt[,1],na.rm=TRUE)
+  for (yr in 2:nyrs1) {  # yr=2
+    spb = sum(aam * wata * Nt[,(yr-1)],na.rm=TRUE)
+    exb = sum(sel * wata * Nt[,(yr-1)],na.rm=TRUE)
+    spawnB[(yr-1)] = spb
+    exploitB[(yr-1)] = exb
+    predR[yr] <- ((4*steep*R0*spb)/((1-steep)*B0+(5*steep-1)*spb))
+    Nt[1,yr] <- predR[yr] * recdevs[yr]
+    recruit[yr] <- Nt[1,yr]
+    fsF <- findFs(cyr=catch[yr],Nyr=Nt[,yr-1],sel=sel,wata,M=M,
+                  reps=reps)
+    sF <- sel * fsF
+    psF <- sF[2:nages]
+    msF <- sF[nages]
+    catchN[,yr] <- (sF/(M + sF)) * (Nt[,yr-1] * (1 - exp(-(M + sF))))  
+    predC[yr] <- sum(catchN[,yr] * wata,na.rm=TRUE)    
+    fullF[yr] <- fsF
+    Nt[2:nages,yr] <- (Nt[1:(nages-1),(yr-1)] * exp(-(M + psF)))
+    Nt[nages,yr] <- Nt[nages,yr] + (Nt[nages,yr-1] * exp(-(M + msF)))
+  }
+  spb = sum(aam * wata * Nt[,yr],na.rm=TRUE) # to complete the final year
+  exb = sum(sel * wata * Nt[,yr],na.rm=TRUE)
+  spawnB[yr] = spb
+  exploitB[yr] = exb
+  penaltyC <- sum((catch[pickC] - predC[pickC])^2)/(nyrs) 
+  penaltyR <- (0.5 * sum((log(recdevs)/glb$sigR)^2,na.rm=TRUE))
+  predCE[2:nyrs1] <- exploitB[2:nyrs1] * avq # no catch no cpue
+  cpueLL <- -sum(dnorm(log(cpue[pickCE]),log(predCE[pickCE]),
+                       sigCE,log=TRUE)) 
+  reccatN <- catchN[,pickrecyr]
+  totN <- colSums(reccatN)
+  pcatchN <- prop.table(reccatN,2)
+  nrecdev <- glb$nrecdev
+  compwt <- glb$compwt
+  catwt <- glb$catwt
+  ageLL <- 0
+  for (yr in 1:nrecdev) {
+    ageLL <- ageLL - ((sum(ageC[,yr] * log(pcatchN[,yr]+1e-07),na.rm=TRUE)))
+  }  # totObs[yr]
+  negLL <- cpueLL + (ageLL * compwt) + (penaltyC * catwt) + penaltyR
+  if (full) {
+    fishery <- cbind(year=fish$year,twl=catch,twlPC=predC,spawnB=spawnB,
+                     exploitB=exploitB,twlCE=cpue,twlPCE=predCE,
+                     deplete=spawnB/B0,recruit=recruit,predrec=predR,
+                     fullF=fullF,fullH=1-exp(-fullF))
+    rownames(fishery) <- 0:nyrs
+    fishery[1,c("twl","twlPCE")] <- c(NA,NA)
+    out <- list(fishery=as.data.frame(fishery),Nt=Nt,catchN=catchN,
+                recdev=recdevs,B0=B0,R0=R0,avq=avq,LL=negLL,cpueLL=cpueLL,
+                ageLL=ageLL,penaltyC=penaltyC,penaltyR=penaltyR,compwt=compwt,
+                catwt=catwt)
+    return(out)
+  } else {
+    return(negLL)
+  }
+} # end of IAdynF
+
 #' @title plottmbprof a wrapper function for the tmbprofile plot
 #' 
 #' @description plottmbprof provides a simplified interface to the RTMB 
