@@ -7,6 +7,7 @@
 makedataset(
   glb,
   out,
+  randseed = NULL,
   catchSD = 1e-08,
   cpueSD = 1e-08,
   getA = FALSE,
@@ -25,6 +26,9 @@ makedataset(
 \item{glb}{the output object from initiateglobals}
 
 \item{out}{the output object from simdynF}
+
+\item{randseed}{default=NULL, otherwise this value is used to set.seed to
+obtain repeatable outputs}
 
 \item{catchSD}{standard deviation of normal variation imposed on reported
 catches. default = 1e-08, effectively no variation}

@@ -7,12 +7,12 @@
 samplefishery(out, glb, errors = c(catchSD = 1e-08, cpueSD = 1e-08))
 }
 \arguments{
-\item{out}{the output of simdynF, which generates teh dynamics of the
-simullated fishery}
+\item{out}{the output of simdynF, which generates the dynamics of the
+simulated fishery}
 
 \item{glb}{the globals object in teh simulation, from initiateglobals}
 
-\item{errors}{the variarion imposed on the catches and the cpue, named
+\item{errors}{the variation imposed on the catches and the cpue, named
 catchSD and cpueSD, both with default values = 1e-08, which do not
 change the simulated values.}
 }

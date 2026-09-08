@@ -4,10 +4,17 @@
 \alias{plottmbprof}
 \title{plottmbprof a wrapper function for the tmbprofile plot}
 \usage{
-plottmbprof(inmod, parname, CI = 0.95, adjust = 0.05)
+plottmbprof(
+  inmod,
+  parname,
+  CI = 0.95,
+  adjust = 0.05,
+  digits = 3,
+  trans = FALSE
+)
 }
 \arguments{
-\item{inmod}{the RTMB model from MakeADFun}
+\item{inmod}{the RTMB model from MakeADFun or a valid tmbprofile data.frame}
 
 \item{parname}{the character name of the parameter from the model, the
 column name of the variable of parameter being profiled}
@@ -16,6 +23,11 @@ column name of the variable of parameter being profiled}
 
 \item{adjust}{by how much should the labels be adjusted down and up,
 default = 0.05 = 5\% of the y-scale}
+
+\item{digits}{default = 3, the degree to which the text labels are rounded.}
+
+\item{trans}{should the log-transformed parameter values be back-transformed
+to the nominal scale? default = FALSE}
 }
 \value{
 the CI invisibly
@@ -23,10 +35,15 @@ the CI invisibly
 \description{
 plottmbprof provides a simplified interface to the RTMB
 tmbprofile plot. It plots the profile values and adds the optimum and
-CI valued confidence intervals.
+CI valued confidence intervals. It has the option of inputting either
+the full RTMB model or an independently generated tmbprofile profile.
+This must inherit the classes tmbprofile and data.frame with the first
+column being the vector of the variale/parameter of interest, and the
+second column being the -veLL value, named 'value'
 }
 \examples{
 print("wait on examples")
 # syntax:  plottmbprof(model,"logR0",CI=0.95,adjust=0.05)
-# inmod=model; parname="logR0"; CI=0.95
+# inmod=model; parname="sel50"; CI=0.95; trans=TRUE;adjust=0.15,digits=3
+# inmod=profM; parname="M"; CI+0.95; adjust=0.05; trans=FALSE; digits=3
 }

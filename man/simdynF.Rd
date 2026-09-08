@@ -34,7 +34,9 @@ LCflt is the numbers-at-size in the catch for each fleet, Gtran}catchN,
 at the end of each year, and LC is the total numbers-at-size in the
 catch, which is Gtran * NumC. These numbers-at-size ignore the fact that
 larger fish are differentially taken by size due to selectivity (a weak
-assumption in purely age-structured models.
+assumption in purely age-structured models. If nfleet == 1, then NumC is
+equal to catchN, otherwise, NumC is the total catch by age in each year,
+while catchN is the catch by age in each year for each gear.
 }
 \examples{
 data(simconst2)

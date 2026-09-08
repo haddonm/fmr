@@ -29,5 +29,5 @@ require(fmr)
 data(const)
 str(const)
 # infile=pathtopath(datraw,"F2-A1-S1.csv"); matsel=TRUE
-# infile=pathtopath(datraw,"F1-A1-S1.csv")
+# infile=pathtopath(rundir,"F1-A1-S1-age.csv")
 }

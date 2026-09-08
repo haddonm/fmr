@@ -141,7 +141,7 @@ findFs <- function(cyr,Nyr,sel,wata,M,reps=8) {
 #' }
 #' # pars=pars;fish=fish;glb=glb;props=props;agecomp=allagecomp;
 #' # waa="waa";maa="maa";fleet="twl";year="year";
-#' # catch="twl";cpue="twlCE";full=TRUE;reps=5
+#' # catch="twl";cpue="twlCE";full=TRUE;reps=6
 IAdynF <- function(pars,fish,glb,props,agecomp,waa="waa",maa="maa",fleet="twl",
                    year="year",catch="twl",cpue="twlCE",full=FALSE,reps=6) { 
   wata <- props[,waa]/1000  # now as tonnes
@@ -158,7 +158,7 @@ IAdynF <- function(pars,fish,glb,props,agecomp,waa="waa",maa="maa",fleet="twl",
   nyrs1 <- length(yrs)
   nyrs <- nyrs1 - 1
   recyrs <- glb$recyrs
-  recdevs <- rep(1,nyrs)  # include non-estimated recdevs = 1
+  recdevs <- rep(1,nyrs1)  # include non-estimated recdevs = 1
   pickrecyr <- match(recyrs,yrs)
   recdevs[pickrecyr] <- recds
   ages <- glb$ages
@@ -168,7 +168,6 @@ IAdynF <- function(pars,fish,glb,props,agecomp,waa="waa",maa="maa",fleet="twl",
   ageC <- ageC[,match(recyrs,as.numeric(colnames(ageC)))]
   totobs <- colSums(ageC,na.rm=TRUE)
   pageobs <- prop.table(ageC,2)
-  
   sel <- 1/(1+exp(-log(19.0)*(ages-selA)/(selD)))
   Nt <- matrix(0,nrow=nages,ncol=nyrs1,dimnames=list(0:maxage,0:nyrs))
   catchN <- Nt
@@ -245,14 +244,21 @@ IAdynF <- function(pars,fish,glb,props,agecomp,waa="waa",maa="maa",fleet="twl",
 #' 
 #' @description plottmbprof provides a simplified interface to the RTMB 
 #'     tmbprofile plot. It plots the profile values and adds the optimum and
-#'     CI valued confidence intervals.
+#'     CI valued confidence intervals. It has the option of inputting either
+#'     the full RTMB model or an independently generated tmbprofile profile.
+#'     This must inherit the classes tmbprofile and data.frame with the first
+#'     column being the vector of the variale/parameter of interest, and the 
+#'     second column being the -veLL value, named 'value'
 #'
-#' @param inmod the RTMB model from MakeADFun
+#' @param inmod the RTMB model from MakeADFun or a valid tmbprofile data.frame
 #' @param parname the character name of the parameter from the model, the
 #'     column name of the variable of parameter being profiled
 #' @param CI default = 0.95 the probability level of the Confidence intervals
 #' @param adjust by how much should the labels be adjusted down and up, 
 #'     default = 0.05 = 5% of the y-scale
+#' @param digits default = 3, the degree to which the text labels are rounded.
+#' @param trans should the log-transformed parameter values be back-transformed
+#'     to the nominal scale? default = FALSE
 #'
 #' @returns the CI invisibly
 #' @export
@@ -260,19 +266,27 @@ IAdynF <- function(pars,fish,glb,props,agecomp,waa="waa",maa="maa",fleet="twl",
 #' @examples
 #' print("wait on examples")
 #' # syntax:  plottmbprof(model,"logR0",CI=0.95,adjust=0.05)
-#' # inmod=model; parname="logR0"; CI=0.95
-plottmbprof <- function(inmod,parname,CI=0.95,adjust=0.05) { 
-  prof <- tmbprofile(inmod,parname,trace=F)
+#' # inmod=model; parname="sel50"; CI=0.95; trans=TRUE;adjust=0.15,digits=3
+#' # inmod=profM; parname="M"; CI+0.95; adjust=0.05; trans=FALSE; digits=3
+plottmbprof <- function(inmod,parname,CI=0.95,adjust=0.05,digits=3,trans=FALSE) { 
+  if (!inherits(inmod,"tmbprofile")) {
+    prof <- TMB::tmbprofile(inmod,parname,trace=F)
+  } else {
+    prof <- inmod
+  }
+  if (trans) {
+    prof[,parname] <- exp(prof[,parname])
+  }
   maxy <- getmax(prof$value,mult=1)
   miny <- which.min(prof$value)
   plot(prof,lwd=2,panel.first=grid(),ylim=c(min(prof$value),maxy),yaxs="i")
   optval <- prof[miny,parname]
   abline(v=optval,lwd=3,col=2)
-  text(x=optval,y=(1-adjust)*maxy,round(optval,3),cex=1.0,pos=4)
+  text(x=optval,y=(maxy-adjust),round(optval,digits),cex=1.0,pos=4)
   CI <- confint(prof,level=CI)
   ymin <- prof$value[miny]
-  text(x=CI[1],y=(1+adjust)*ymin,round(CI[1],3),cex=1,pos=4)
-  text(x=CI[2],y=(1+adjust)*ymin,round(CI[2],3),cex=1,pos=2)
+  text(x=CI[1],y=(ymin+adjust),round(CI[1],digits),cex=1,pos=4)
+  text(x=CI[2],y=(ymin+adjust),round(CI[2],digits),cex=1,pos=2)
   return(invisible(CI))
 } # end of plottmbprof
 

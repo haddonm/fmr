@@ -8,7 +8,7 @@ getfltcatchsamp(
   fltcatchN,
   nyrs,
   n = 500,
-  randsd = 40,
+  randsd = 50,
   maxsamp = 2000,
   sampvar = 50
 )

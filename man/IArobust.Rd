@@ -12,12 +12,12 @@ IArobust
 }
 \description{
 IArobust a data.frame containing the results of running
-a robustness test on the one fleet one region/stock fishery example of
-the first Integrated Assessment that used catches, cpue, and
-age-composition data, estimating 49 parameters R0, q, sel50, deltaS, and
-45 recruitment deviates. This used the IAdynF function to describe the
-stock dynamics using instantaneous fishing mortality rates. It
-constitutes a 200 x 15 data.frame with columns iR0, iq, iselA50,
+a robustness test on the one fleet one region/stock fishery example.
+The first Integrated Assessment that used catches, cpue,
+and age-composition data, estimating 45 recdev parameters R0, q, sel50,
+deltaS, and 41 recruitment deviates. This used the IAdynF function to
+describe the stock dynamics using instantaneous fishing mortality rates.
+It constitutes a 200 x 15 data.frame with columns iR0, iq, iselA50,
 ideltaS, -veLL, eR0, eq, eselA50, edeltaS, R0, q, selA50, deltaS, dist,
 and Iters. Where dist is the Euclidean distance between the initial
 parameters and the original optimum. Each nominal parameter can be
@@ -29,6 +29,6 @@ the smallest to the largest -veLL.
  str(IArobust)
  countLL <- table((round(IArobust[,"-veLL"],6))); length(countLL)
  countLL
- range(IArobust[,"-veLL"]) # should be -10.18093 -10.18029
+ range(IArobust[,"-veLL"]) # should be 18.28771 18.75626
 }
 \keyword{datasets}

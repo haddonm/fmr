@@ -13,7 +13,8 @@ comparevars(
   console = TRUE,
   rundir = "",
   prepplot = FALSE,
-  legpos = "topright"
+  legpos = "topright",
+  cex = 1
 )
 }
 \arguments{
@@ -39,6 +40,8 @@ comparison will be produced.}
 
 \item{legpos}{default = 'topright' the position of the legend, which is
 simply the contents of the scenarios argument.}
+
+\item{cex}{default = 1, font size for single plots, ie prepplot=TRUE}
 }
 \value{
 if console = FALSe it returns a filename and a file is generated,

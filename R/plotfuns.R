@@ -21,6 +21,7 @@
 #'     comparison will be produced.
 #' @param legpos default = 'topright' the position of the legend, which is
 #'     simply the contents of the scenarios argument.
+#' @param cex default = 1, font size for single plots, ie prepplot=TRUE
 #'
 #' @returns if console = FALSe it returns a filename and a file is generated,
 #'     if console = TRUE, nothing is returned but it does generate a plot
@@ -47,7 +48,7 @@
 #'               console=TRUE,prepplot=FALSE)
 #' }
 comparevars <- function(yrs,var1,var2,varname,scenarios,console=TRUE,rundir="",
-                        prepplot=FALSE,legpos="topright") {
+                        prepplot=FALSE,legpos="topright",cex=1.0) {
   if (console) {
     filen <- ""
   } else {
@@ -55,7 +56,7 @@ comparevars <- function(yrs,var1,var2,varname,scenarios,console=TRUE,rundir="",
   }
   if (prepplot) {
     plotprep(width=8,height=4.5,filename=filen)
-    parset(cex=1.0)
+    parset(cex=cex)
   }
   maxy <- getmax(c(var1,var2))
   plot(yrs,var1,type="l",lwd=2,col=1,ylab=varname,xlab="",ylim=c(0,maxy),
@@ -445,6 +446,7 @@ plotdynfish <- function(outfish,console=TRUE,addtitle="",prepplot=TRUE,
     maxy <- getmax(recdevs); miny <- getmin(recdevs)
     plot(yrs,recdevs,type="p",pch=16,cex=1,ylim=c(miny,maxy),xlab="",
          ylab="Recruitment Deviates",panel.first=grid())
+    lines(yrs,recdevs,lwd=1,col="grey")
     abline(h=1.0,lwd=1,col=1)
     pick1 <- which(recdevs == 1.0)
     if (length(pick1 > 0)) points(yrs[pick1],recdevs[pick1],pch=16,cex=1,col=2)

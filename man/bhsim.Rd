@@ -4,7 +4,7 @@
 \alias{bhsim}
 \title{bhsim - calculates number of bh from input spawning biomass}
 \usage{
-bhsim(inSB, R0, B0, steep, sigmaR)
+bhsim(inSB, R0, B0, steep)
 }
 \arguments{
 \item{inSB}{input spawning biomass in tonnes.}
@@ -14,24 +14,23 @@ bhsim(inSB, R0, B0, steep, sigmaR)
 \item{B0}{unfished spawning biomass}
 
 \item{steep}{the steepness of the Beverton-Holt SR relationship}
-
-\item{sigmaR}{recruitment variability}
 }
 \value{
 a scaler representing the number of recruits
 }
 \description{
-bhsim - calculates number of recruits from input spawning
-biomass assumes steep, R0, B0, and sigmaR are available. It
+bhsim - calculates the determiistic number of recruits from
+input spawning biomass assumes steep, R0, B0 are available. It
 also assumes the use of the Beverton - Holt stock recruitment curve.
-Only used in simdynF
+Only used in simdynF. To include recdevs use bhsim(inSb,R0,B0,steep) *
+makerecdev(sigmaR)
 }
 \examples{
 \dontrun{
- library(fmr)
+ require(fmr)
  data(const)
  globals <- initiateglobals(const)
  pop <- makestock(glb=globals)
- bh(2500,pop$R0,pop$B0,sigmaR=1e-07,globals$steep) # = 1763871
+ bh(2500,pop$R0,pop$B0,globals$steep) * makerecdev(sigmaR=1e-07) #=1763871
 } 
 }

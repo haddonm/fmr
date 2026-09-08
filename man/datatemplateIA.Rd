@@ -4,7 +4,7 @@
 \alias{datatemplateIA}
 \title{datatemplateIA data template for a simple integrated stock assessment}
 \usage{
-datatemplateIA(rundir, filename = "F2S1-age.csv", nfleet = 1)
+datatemplateIA(rundir, filename = "F1S1-age.csv", nfleet = 1)
 }
 \arguments{
 \item{rundir}{directory in which to find the data file and run the analysis}

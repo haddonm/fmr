@@ -95,7 +95,7 @@ print(round(out$fishery,4))
 }
 # pars=pars;fish=fish;glb=glb;props=props;agecomp=allagecomp;
 # waa="waa";maa="maa";fleet="twl";year="year";
-# catch="twl";cpue="twlCE";full=TRUE;reps=5
+# catch="twl";cpue="twlCE";full=TRUE;reps=6
 }
 \seealso{
 {
