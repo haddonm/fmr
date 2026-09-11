@@ -14,7 +14,7 @@ getvect(varname, intxt, n)
 \item{n}{the number of values to extract from the line}
 }
 \value{
-a vector of n values
+a vector of n values, if the varname not present it returns NAgetvect
 }
 \description{
 getvect parses a line of text and extracts 'n' pieces of

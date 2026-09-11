@@ -4,7 +4,7 @@
 \alias{templateSIM}
 \title{templateSIM generates template for simulating stock dynamics}
 \usage{
-templateSIM(rundir, filename = "F1-A1-S1-age.csv", nfleet = 1)
+templateSIM(rundir, filename = "F1-A1-S1-age.csv", nfleet = 1, seedrand = 0)
 }
 \arguments{
 \item{rundir}{directory in which to find the data file and run the analysis}
@@ -14,6 +14,9 @@ templateSIM(rundir, filename = "F1-A1-S1-age.csv", nfleet = 1)
 
 \item{nfleet}{the number of fleets for which data will be generated,
 default = 1.}
+
+\item{seedrand}{default = 0 which means a fixed value is used as a random
+number seed, otherwise whatever is put into seedrand is used.}
 }
 \value{
 the function write a data file to rundir and returns the filename

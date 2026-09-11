@@ -11,7 +11,7 @@
 #' @importFrom codeutils removeEmpty makeUnit getConst makelist getStr
 #' @importFrom codeutils getsingleNum iscol rowfreqboot countgtzero
 #' @importFrom codeutils rowfreqboot
-#' @importFrom hplot plotprep parset plot1 pickbound replacezeros
+#' @importFrom hplot plotprep parset plot1 pickbound replacezeros plotnull
 #' @importFrom makehtml addplot addtable dirExists
 #' @importFrom TMB tmbprofile
 NULL

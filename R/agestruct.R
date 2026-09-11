@@ -901,7 +901,7 @@ getfltcatchsamp <- function(fltcatchN,nyrs,n=500,randsd=50,
 #' @param intxt the text data file read in using readLines
 #' @param n the number of values to extract from the line
 #'
-#' @returns a vector of n values
+#' @returns a vector of n values, if the varname not present it returns NAgetvect    
 #' @export
 #'
 #' @examples
@@ -910,7 +910,7 @@ getfltcatchsamp <- function(fltcatchN,nyrs,n=500,randsd=50,
 #' tmp <- rbind(txt1,txt2)
 #' print(getvect("autoline",tmp,3))
 #' print(getvect("trawl",tmp,3))
-getvect <- function(varname,intxt,n) { # varname=fleets[i];intxt=datain;n=length(label)
+getvect <- function(varname,intxt,n) { # varname="sigR";intxt=datain;n=ncols
   begin <- grep(varname,intxt)
   nvar <- length(begin)
   if (nvar > 0) {
@@ -925,7 +925,7 @@ getvect <- function(varname,intxt,n) { # varname=fleets[i];intxt=datain;n=length
     }   
     return(as.vector(getConst(intxt[begin],nb=n,index=2),mode="numeric"))
   } else {
-    return(NULL)
+    return(NA)
   }
 } # end of getvect
 
@@ -1658,6 +1658,8 @@ template2F1S <- function(rundir,filename="F2S1.csv") {
 #'     'F1-A1-S1-age.csv'.
 #' @param nfleet the number of fleets for which data will be generated,
 #'     default = 1.
+#' @param seedrand default = 0 which means a fixed value is used as a random 
+#'     number seed, otherwise whatever is put into seedrand is used.
 #'
 #' @return the function write a data file to rundir and returns the filename
 #' @export
@@ -1669,17 +1671,20 @@ template2F1S <- function(rundir,filename="F2S1.csv") {
 #'   templateSIM(rundir,filename="F1-A1-S1-age.csv",nfleet=1)
 #'   dir(rundir)
 #' }
-templateSIM <- function(rundir,filename="F1-A1-S1-age.csv",nfleet=1) {
+templateSIM <- function(rundir,filename="F1-A1-S1-age.csv",nfleet=1,
+                        seedrand=0) {
   filename <- pathtopath(rundir,filename)
   label <- paste0("Data for a ",nfleet,
                   " Fleet 1 Area 1 Stock model with age data \n\n")
   cat(label,file=filename,append=FALSE)
   cat("#STRUCTURE, \n",file=filename,append=TRUE)
   if (nfleet == 1) {
-    cat("randseed, 8684569, for repeatability \n",file=filename,append=TRUE)
+    rndseed <- ifelse(seedrand == 0,908027,seedrand)
+    cat("randseed,", rndseed,", for repeatability \n",file=filename,append=TRUE)
   }
   if (nfleet == 2) {
-    cat("randseed, 6924062, for repeatability \n",file=filename,append=TRUE)
+    rndseed <- ifelse(seedrand == 0,6924062,seedrand)
+    cat("randseed,", rndseed,", for repeatability \n",file=filename,append=TRUE)
   }
   cat("nregion, 1,,, number of regions, imples 1 stock  \n",
       file=filename,append=TRUE)
@@ -1815,21 +1820,21 @@ templateSIM <- function(rundir,filename="F1-A1-S1-age.csv",nfleet=1) {
     cat("187,  1996,   \n" ,file=filename,append=TRUE) 
     cat("235,  1997,   \n" ,file=filename,append=TRUE) 
     cat("330,  1998,   \n" ,file=filename,append=TRUE) 
-    cat("391,  1999,   \n" ,file=filename,append=TRUE) 
+    cat("411,  1999,   \n" ,file=filename,append=TRUE) 
     cat("494,  2000,   \n" ,file=filename,append=TRUE) 
-    cat("559,  2001,   \n" ,file=filename,append=TRUE) 
-    cat("587,  2002,   \n" ,file=filename,append=TRUE) 
-    cat("575,  2003,   \n" ,file=filename,append=TRUE) 
-    cat("542,  2004,   \n" ,file=filename,append=TRUE) 
-    cat("484,  2005,   \n" ,file=filename,append=TRUE) 
-    cat("398,  2006,   \n" ,file=filename,append=TRUE) 
+    cat("579,  2001,   \n" ,file=filename,append=TRUE) 
+    cat("597,  2002,   \n" ,file=filename,append=TRUE) 
+    cat("545,  2003,   \n" ,file=filename,append=TRUE) 
+    cat("512,  2004,   \n" ,file=filename,append=TRUE) 
+    cat("498,  2005,   \n" ,file=filename,append=TRUE) 
+    cat("458,  2006,   \n" ,file=filename,append=TRUE) 
     cat("364,  2007,   \n" ,file=filename,append=TRUE) 
     cat("264,  2008,   \n" ,file=filename,append=TRUE) 
     cat("250,  2009,   \n" ,file=filename,append=TRUE) 
-    cat("250,  2010,   \n" ,file=filename,append=TRUE) 
-    cat("240,  2011,   \n" ,file=filename,append=TRUE) 
-    cat("240,  2012,   \n" ,file=filename,append=TRUE) 
-    cat("150,  2013,   \n" ,file=filename,append=TRUE) 
+    cat("255,  2010,   \n" ,file=filename,append=TRUE) 
+    cat("250,  2011,   \n" ,file=filename,append=TRUE) 
+    cat("245,  2012,   \n" ,file=filename,append=TRUE) 
+    cat("175,  2013,   \n" ,file=filename,append=TRUE) 
     cat("150,  2014,   \n" ,file=filename,append=TRUE) 
     cat("120,  2015,   \n" ,file=filename,append=TRUE) 
     cat("110,  2016, \n" ,file=filename,append=TRUE) 

@@ -66,6 +66,8 @@ export(plotASPM)
 export(plotSBMdynamics)
 export(plotbiology)
 export(plotceASPM)
+export(plotcompfit)
+export(plotdiffcomp)
 export(plotdynfish)
 export(plotprops)
 export(plotsizecomp)
@@ -139,6 +141,7 @@ importFrom(hplot,
   parset,
   pickbound,
   plot1,
+  plotnull,
   plotprep,
   replacezeros
 )
