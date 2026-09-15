@@ -77,7 +77,7 @@ values for each gear followed by the observed values for that gear (if
 present). default = 'twlPCE','twlCE','aulnPCE','aulnCE'}
 }
 \value{
-nothing but it does generate a plot
+invisibly the filename, but it does generate a plot
 }
 \description{
 plotdynfish generates a plot of a fisheries dynamics. This

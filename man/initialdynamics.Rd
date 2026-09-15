@@ -14,6 +14,8 @@ initialdynamics(
   result = NULL,
   legcex = 1.25,
   legloc = "topright",
+  console = TRUE,
+  rundir = "",
   ...
 )
 }
@@ -37,10 +39,15 @@ default = NULL, which means nothing added to plot}
 
 \item{legloc}{thge location of the legend if used. default = 'topright'}
 
+\item{console}{default = TRUE should the plot go the console or a file?}
+
+\item{rundir}{default = '', but if saved to a file this is the path to the
+subdirectory where all acenario files are stored.}
+
 \item{...}{other potential inputs, plotting parameters, etc.}
 }
 \value{
-nothing but it does produce a plot
+invisibly the filename, which may be '', but it does produce a plot
 }
 \description{
 initialdynamics generates a plot of the predicted stock
@@ -48,7 +55,7 @@ cpue given a set off initial parameters. This can be used to find,
 using trial and error, a set of scaling parameters (R0 and q, and
 sometimes selectivity), that keep the predicted stock cpue off the
 zero line and that intersect with the observed CPUE. Only plots
-one fleet at a time.
+one fleet at a time. Now allows for a file to tbe saved if required.
 }
 \examples{
 # think of something 

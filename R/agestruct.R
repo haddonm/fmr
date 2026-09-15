@@ -1679,7 +1679,7 @@ templateSIM <- function(rundir,filename="F1-A1-S1-age.csv",nfleet=1,
   cat(label,file=filename,append=FALSE)
   cat("#STRUCTURE, \n",file=filename,append=TRUE)
   if (nfleet == 1) {
-    rndseed <- ifelse(seedrand == 0,908027,seedrand)
+    rndseed <- ifelse(seedrand == 0,908268,seedrand)
     cat("randseed,", rndseed,", for repeatability \n",file=filename,append=TRUE)
   }
   if (nfleet == 2) {

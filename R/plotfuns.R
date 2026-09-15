@@ -76,7 +76,7 @@ comparevars <- function(yrs,var1,var2,varname,scenarios,console=TRUE,rundir="",
 #'     using trial and error, a set of scaling parameters (R0 and q, and 
 #'     sometimes selectivity), that keep the predicted stock cpue off the
 #'     zero line and that intersect with the observed CPUE. Only plots
-#'     one fleet at a time.
+#'     one fleet at a time. Now allows for a file to tbe saved if required.
 #' 
 #' @param x the input data, at least a matrix of 'year' and 'cpue'
 #' @param year character name of the year variable, default = 'year'
@@ -88,21 +88,28 @@ comparevars <- function(yrs,var1,var2,varname,scenarios,console=TRUE,rundir="",
 #'     default = NULL, which means nothing added to plot
 #' @param legcex default = 1.25 the font size for the legend if used
 #' @param legloc thge location of the legend if used. default = 'topright'
+#' @param console default = TRUE should the plot go the console or a file?
+#' @param rundir default = '', but if saved to a file this is the path to the
+#'     subdirectory where all acenario files are stored.
 #' @param ... other potential inputs, plotting parameters, etc.
 #' 
-#' @returns nothing but it does produce a plot 
+#' @returns invisibly the filename, which may be '', but it does produce a plot 
 #' @export 
 #' 
 #' @examples 
 #' # think of something 
 initialdynamics <- function(x,year='year',cpue='cpue',predCE='predCE',width=9,
-                            height=6,result=NULL,legcex=1.25,legloc="topright",...) { 
-  
+                            height=6,result=NULL,legcex=1.25,legloc="topright",
+                            console=TRUE,rundir="",...) { 
   oldpar <- par(no.readonly=TRUE)
   on.exit(par(oldpar))
   fishery <- replacezeros(x)
   yrs <- fishery[,year]
-  plotprep(width=width,height=height,cex=1.0,verbose=FALSE) 
+  filen <- ""
+  if (!console) { 
+    filen <- pathtopath(rundir,'Initial_CPUE_fit.png' ) 
+  }
+  plotprep(width=width,height=height,cex=1.0,filename=filen,verbose=FALSE) 
   parset(plots=c(1,1),margin=c(0.3,0.4,0.05,0.05),byrow=FALSE)
   maxy <- getmax(fishery[,c(cpue,predCE)])
   plot(yrs,fishery[,cpue],type="p",pch=16,cex=1.0,col=1,
@@ -115,6 +122,8 @@ initialdynamics <- function(x,year='year',cpue='cpue',predCE='predCE',width=9,
                paste0("cpueLL = ",result[3,]))
     legend(legloc,label,col=0,lwd=0,bty="n",cex=legcex)
   }
+  if (!console) dev.off()
+  return(invisible(filen))
 } # end of initialdynamics
 
 #' @title plotASPM plots catch, CPUE, Spawning Biomass and Harvest Rate
@@ -383,61 +392,6 @@ plotcompfit <- function(obscomp,predcomp,analysis="Composition_Fit",
       mtext(trunc(sampsize[i]),side=3,outer=FALSE,line=-1,cex=topcex,adj=1)
     }
   } 
-  # else {
-  #     for (i in 2:20) {
-  #       if (sampsize[i] > 0) {
-  #         plot(compcl,obscomp[,i],type="l",lwd=3,col=1,ylim=c(0,maxy),xaxt="n",
-  #              ylab="")
-  #         lines(compcl,predcomp[,i],lwd=3,col=2)
-  #       } else {  plotnull()  }    
-  #       mtext(label[i],side=3,outer=FALSE,cex=topcex,line=-1)
-  #       mtext(trunc(sampsize[i]),side=3,outer=FALSE,line=-1,cex=topcex,adj=1)
-  #     }
-  #     if (sampsize[21] > 0) {
-  #       plot(compcl,obscomp[,21],type="l",lwd=3,col=1,ylim=c(0,maxy),xaxt="n",
-  #            ylab="")
-  #       lines(compcl,predcomp[,21],lwd=3,col=2)
-  #     } else {  
-  #       plotnull(xvals=as.numeric(rownames(obscomp))) 
-  #     }
-  #     mtext(label[21],side=3,outer=FALSE,cex=topcex,line=-1)
-  #     mtext(trunc(sampsize[21]),side=3,outer=FALSE,line=-1,cex=topcex,adj=1)
-  #     if (Nsamp > 21) {
-  #       for (i in 22:min(40,Nsamp)) {
-  #         if (sampsize[i] > 0) {
-  #           plot(compcl,obscomp[,i],type="l",lwd=3,col=1,ylim=c(0,maxy),
-  #                xaxt="n",ylab="")
-  #           lines(compcl,predcomp[,i],lwd=3,col=2)
-  #         } else {  plotnull()  }    
-  #         mtext(label[i],side=3,outer=FALSE,cex=topcex,line=-1)
-  #         mtext(trunc(sampsize[i]),side=3,outer=FALSE,line=-1,cex=topcex,adj=1)
-  #       }
-  #     }
-  #     if (Nsamp > 40) {
-  #       if (sampsize[41] > 0) {
-  #         plot(compcl,obscomp[,41],type="l",lwd=3,col=1,ylim=c(0,maxy),
-  #              xaxt="n",ylab="")
-  #         lines(compcl,predcomp[,41],lwd=3,col=2)
-  #       } else {  
-  #         plotnull(xvals=as.numeric(rownames(obscomp))) 
-  #       }
-  #       mtext(label[21],side=3,outer=FALSE,cex=topcex,line=-1)
-  #       mtext(trunc(sampsize[21]),side=3,outer=FALSE,line=-1,cex=topcex,adj=1)
-  #       if (Nsamp > 41) {
-  #         for (i in 42:Nsamp) {
-  #           if (sampsize[i] > 0) {
-  #             plot(compcl,obscomp[,i],type="l",lwd=3,col=1,ylim=c(0,maxy),
-  #                  xaxt="n",ylab="")
-  #             lines(compcl,predcomp[,i],lwd=3,col=2)
-  #           } else {  plotnull()  }    
-  #           mtext(label[i],side=3,outer=FALSE,cex=topcex,line=-1)
-  #           mtext(trunc(sampsize[i]),side=3,outer=FALSE,line=-1,cex=topcex,
-  #                 adj=1)
-  #         }
-  #       }
-  #     }
-  #   }  
-  # }
   txtlabel <- paste0(ylabel,"  ",analysis)
   mtext(text=txtlabel,side=2,outer=TRUE,cex=1.1,line=0.2)
   xtxtlabel <- paste0("Categories ",min(compcl)," - ",max(compcl))
@@ -454,7 +408,7 @@ plotcompfit <- function(obscomp,predcomp,analysis="Composition_Fit",
 #'     composition in the catches versus the observed proportional composition
 #'     data to illustrate the fit of the model to the observed data. The xlabel 
 #'     of all plots is left blank, but the range of each x-axis is printed at
-#'     the bottom of all. 
+#'     the bottom of all. Currently a maximum of 60 years of data can be plotted
 #'
 #' @param diffcomp the difference between the observed composition data and the
 #'     predicted. Dervied from the plotcompfit function
@@ -490,28 +444,23 @@ plotdiffcomp <- function(diffcomp,analysis="deviations",ylabel="opt49_ages",
                          console=TRUE,outdir="",cex=1.0,topcex=0.9,
                          relmin=FALSE) {
   Nsamp <- ncol(diffcomp) 
+  if (Nsamp > 60) {
+    warning(cat(ylabel," Composition data limited to maximum 60 years \n"))
+    diffcomp <- diffcomp[,1:60]
+    Nsamp <- 60
+  }  
   sampos <- apply(diffcomp,2,function(x){sum(abs(x))})
-  if (Nsamp <= 25) {
-    nr <- 5
-    nc <- ceiling(Nsamp/5)
-    hgt <- 6
-  }
-  if (Nsamp <= 45) {
-    nr <- ceiling(Nsamp/5)
-    nc <- 5
-    hgt <- 12
-  }
+  nc <- 10
+  nr <- ceiling(Nsamp/10)
+  hgt <- nr * 2.0
   compcl <- as.numeric(rownames(diffcomp))  # expects size or age classes 
   ncompcl <- length(compcl)
-  if (Nsamp > 45) {
-    warning(cat(ylabel," Composition data limited to maximum 45 years \n"))
-    diffcomp <- diffcomp[,1:45]
-  }
   label <- as.numeric(colnames(diffcomp))   # expects years    
   addyrs <- paste0(label[1],"_",label[length(label)])
   filen <- ""
   if (!console) {
-    filen <- paste0(outdir,"/agecomp_fit_for_",analysis,"_",addyrs,".png")
+    nospace <- gsub(" ","_",analysis,fixed=TRUE)
+    filen <- paste0(outdir,"/agecomp_fit_for_",nospace,"_",addyrs,".png")
   }
   caption <- paste0("Agecomp Model fit ",ylabel,"-composition data for ",
                     analysis)
@@ -534,7 +483,7 @@ plotdiffcomp <- function(diffcomp,analysis="deviations",ylabel="opt49_ages",
   } else {  
     plotnull(xvals=as.numeric(rownames(diffcomp))) 
   }
-  mtext(label[1],side=3,outer=FALSE,cex=topcex,line=-1)  
+  mtext(label[1],side=1,outer=FALSE,cex=topcex,line=-1)  
   if (Nsamp > 1) {
     for (i in 2:Nsamp) {
       if (sampos[i] > 0) {
@@ -545,7 +494,7 @@ plotdiffcomp <- function(diffcomp,analysis="deviations",ylabel="opt49_ages",
                                    lwd=2,col=2)
         mtext(reldiff[i],side=3,outer=FALSE,line=-1,cex=topcex,adj=1)
       } else {  plotnull() }    
-      mtext(label[i],side=3,outer=FALSE,cex=topcex,line=-1)
+      mtext(label[i],side=1,outer=FALSE,cex=topcex,line=-1)
     }
   }
   txtlabel <- paste0(ylabel,"  ",analysis)
@@ -600,7 +549,7 @@ plotdiffcomp <- function(diffcomp,analysis="deviations",ylabel="opt49_ages",
 #'     values for each gear followed by the observed values for that gear (if
 #'     present). default = 'twlPCE','twlCE','aulnPCE','aulnCE'
 #'
-#' @returns nothing but it does generate a plot
+#' @returns invisibly the filename, but it does generate a plot
 #' @export
 #'
 #' @examples
@@ -613,13 +562,11 @@ plotdynfish <- function(outfish,console=TRUE,addtitle="",prepplot=TRUE,
                         gears=c("Trawl","Autoline"),
                         catch=c("twl","auln"),instF=c("twlPF","aulnPF"),
                         cecols=c("twlPCE","twlCE","aulnPCE","aulnCE")) {
-
   # outfish=outIA$fishery;console=TRUE;addtitle="";prepplot=TRUE;rundir=""
   #              width=8;height=7;nfleet=1;obsdata=TRUE
   #              year="year";recruit=c("recruit","predrec")
   #              depl="deplete";gears=c("Trawl");catch=c("twl");instF=c("fullF") 
   #              cecols=c("twlPCE","twlCE"); spawnB="spawnB"
-  
   oldpar <- par(no.readonly=TRUE)
   on.exit(par(oldpar))
   fishery <- replacezeros(outfish)
@@ -738,6 +685,7 @@ plotdynfish <- function(outfish,console=TRUE,addtitle="",prepplot=TRUE,
     pick1 <- which(recdevs == 1.0)
     if (length(pick1 > 0)) points(yrs[pick1],recdevs[pick1],pch=16,cex=1,col=2)
   }
+  return(invisible(filen))
 } # end of plotdynfish
 
 #' @title plotprops generates a 2x2 plot of the fishery properties

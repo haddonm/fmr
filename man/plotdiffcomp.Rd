@@ -49,7 +49,7 @@ plotcompfit generates a plot of the predicted proportional
 composition in the catches versus the observed proportional composition
 data to illustrate the fit of the model to the observed data. The xlabel
 of all plots is left blank, but the range of each x-axis is printed at
-the bottom of all.
+the bottom of all. Currently a maximum of 60 years of data can be plotted
 }
 \examples{
 \dontrun{
