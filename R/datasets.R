@@ -215,32 +215,65 @@ NULL
 #'  print(IAconst$agecomp$twl[,1:8])
 "IAconst"
 
-# IArobust -----------------------------
+# IA29robust -----------------------------
 
-#' @title IArobust are robustness outputs for 1 Fleet 1 region fishery
+#' @title IA29robust are robustness outputs for 1 Fleet 1 region fishery
 #'
-#' @description IArobust a data.frame containing the results of running
-#'     a robustness test on the one fleet one region/stock fishery example.
+#' @description IA29robust a data.frame containing the results of running
+#'     a robustness test on the one fleet one region/stock fishery example
+#'     where 29 parameters are fitted to the data.
 #'     The first Integrated Assessment that used catches, cpue, 
-#'     and age-composition data, estimating 45 recdev parameters R0, q, sel50, 
-#'     deltaS, and 41 recruitment deviates. This used the IAdynF function to 
-#'     describe the stock dynamics using instantaneous fishing mortality rates. 
-#'     It constitutes a 200 x 15 data.frame with columns iR0, iq, iselA50, 
-#'     ideltaS, -veLL, eR0, eq, eselA50, edeltaS, R0, q, selA50, deltaS, dist,
-#'     and Iters. Where dist is the Euclidean distance between the initial 
-#'     parameters and the original optimum. Each nominal parameter can be 
-#'     changed by up to 8 percent. The results are sorted from 
-#'     the smallest to the largest -veLL.
+#'     and age-composition data, estimating 46 parameters, including R0, q,
+#'     sel50, deltaS, and 41 recruitment deviates. This used the IAdynF 
+#'     function to describe the stock dynamics using instantaneous fishing
+#'     mortality rates.  It constitutes a 200 x 15 data.frame with columns
+#'     iR0, iq, iselA50, ideltaS, -veLL, eR0, eq, eselA50, edeltaS, R0, q,
+#'     selA50, deltaS, and Iters. Each nominal
+#'     parameter can be changed by up to 8 percent. The results are sorted 
+#'     from the smallest to the largest -veLL.
+#'     
+#' @format A data.frame of 14 columns and 200 rows  
+#'     
+#' @examples
+#'  data(IA29robust)
+#'  str(IA29robust)
+#'  for (i in 2:6) {
+#'    countLL <- table((round(IA29robust[,"-veLL"],i))) 
+#'    cat(i,length(countLL),"\n")
+#'  }
+#'  range(IA29robust[,"-veLL"]) # should be 348.7548 348.9271
+"IA29robust"
+
+
+# IA46robust -----------------------------
+
+#' @title IA46robust are robustness outputs for 1 Fleet 1 region fishery
+#'
+#' @description IA46robust a data.frame containing the results of running
+#'     a robustness test on the one fleet one region/stock fishery example
+#'     where 46 parameters are fitted to the data.
+#'     The first Integrated Assessment that used catches, cpue, 
+#'     and age-composition data, estimating 46 parameters, including R0, q,
+#'     sel50, deltaS, and 41 recruitment deviates. This used the IAdynF 
+#'     function to describe the stock dynamics using instantaneous fishing
+#'     mortality rates.  It constitutes a 200 x 15 data.frame with columns
+#'     iR0, iq, iselA50, ideltaS, -veLL, eR0, eq, eselA50, edeltaS, R0, q,
+#'     selA50, deltaS, dist, and Iters. Where dist is the Euclidean distance 
+#'     between the initial parameters and the original optimum. Each nominal
+#'     parameter can be changed by up to 8 percent. The results are sorted 
+#'     from the smallest to the largest -veLL.
 #'     
 #' @format A data.frame of 15 columns and 200 rows  
 #'     
 #' @examples
-#'  data(IArobust)
-#'  str(IArobust)
-#'  countLL <- table((round(IArobust[,"-veLL"],6))); length(countLL)
-#'  countLL
-#'  range(IArobust[,"-veLL"]) # should be 18.28771 18.75626
-"IArobust"
+#'  data(IA46robust)
+#'  str(IA46robust)
+#'  for (i in 2:6) {
+#'    countLL <- table((round(IA46robust[,"-veLL"],i))) 
+#'    cat(i,length(countLL),"\n")
+#'  }
+#'  range(IA46robust[,"-veLL"]) # should be 544.5695 544.6291
+"IA46robust"
 
 
 # outlike-------------------------------------------------
@@ -462,6 +495,33 @@ NULL
 #'  countLL <- table((round(robustnessF[,"-veLL"],6)))
 #'  countLL
 "robustnessF"
+
+# resrtmb -----------------------------
+
+#' @title resrtmb contains robustness outputs for a 28P IA using rtmb
+#'
+#' @description resrtmb is a 200 x 14 matrix containing the results of running
+#'     a robustness test on the one fleet one region/stock fishery example
+#'     where 28 parameters are fitted to the data using the RTMB based function
+#'     IAdyntmbF. The parameters are  R0, q, selA50, deltaS, and 24 recruitment
+#'     deviates. The IAdyntmbF function describes the stock dynamics using
+#'     instantaneous fishing mortality rates. It constitutes a 200 x 14 matrix
+#'     with columns iR0, iq, iselA50, ideltaS, -veLL, eR0, eq, eselA50, 
+#'     edeltaS, R0, q, selA50, deltaS, and Iters. All -veLL values are the same
+#'     but there is variation in all the other variables, though very small in
+#'     the estiamted parameters.
+#'     
+#' @format A matrix of 14 columns and 200 rows  
+#'     
+#' @examples
+#'  data(resrtmb)
+#'  str(resrtmb)
+#'  range(resrtmb[,"-veLL"]) # should be 348.7424 348.7424 ie no difference
+#'  rge <- apply(resrtmb,2,range)
+#'  rge1 <- t(rbind(rge,rge[2,] - rge[1,]))
+#'  colnames(rge1) <- c("min","max","diff")
+#'  print(round(rge1,5))
+"resrtmb"
 
 # simconst2------------------------
 

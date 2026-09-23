@@ -88,6 +88,7 @@ comparevars <- function(yrs,var1,var2,varname,scenarios,console=TRUE,rundir="",
 #'     default = NULL, which means nothing added to plot
 #' @param legcex default = 1.25 the font size for the legend if used
 #' @param legloc thge location of the legend if used. default = 'topright'
+#' @param title extra text added to the filename to aid identification
 #' @param console default = TRUE should the plot go the console or a file?
 #' @param rundir default = '', but if saved to a file this is the path to the
 #'     subdirectory where all acenario files are stored.
@@ -100,20 +101,20 @@ comparevars <- function(yrs,var1,var2,varname,scenarios,console=TRUE,rundir="",
 #' # think of something 
 initialdynamics <- function(x,year='year',cpue='cpue',predCE='predCE',width=9,
                             height=6,result=NULL,legcex=1.25,legloc="topright",
-                            console=TRUE,rundir="",...) { 
+                            title="",console=TRUE,rundir="",...) { 
   oldpar <- par(no.readonly=TRUE)
   on.exit(par(oldpar))
   fishery <- replacezeros(x)
   yrs <- fishery[,year]
   filen <- ""
   if (!console) { 
-    filen <- pathtopath(rundir,'Initial_CPUE_fit.png' ) 
+    filen <- pathtopath(rundir,paste0(title,'Initial_CPUE_fit.png')) 
   }
   plotprep(width=width,height=height,cex=1.0,filename=filen,verbose=FALSE) 
   parset(plots=c(1,1),margin=c(0.3,0.4,0.05,0.05),byrow=FALSE)
   maxy <- getmax(fishery[,c(cpue,predCE)])
   plot(yrs,fishery[,cpue],type="p",pch=16,cex=1.0,col=1,
-       ylab="CPUE",ylim=c(0,maxy),yaxs="i",xlab="",
+       ylab=paste0(title,"CPUE"),ylim=c(0,maxy),yaxs="i",xlab="",
        panel.first=grid())
   lines(yrs,fishery[,predCE],lwd=2,col=2)
   if (!is.null(result)) {
@@ -572,6 +573,7 @@ plotdynfish <- function(outfish,console=TRUE,addtitle="",prepplot=TRUE,
   fishery <- replacezeros(outfish)
   yrs <- fishery[,year]
   if (console & prepplot) {
+    filen <- ""
     plotprep(width=width,height=height,cex=1.0,filename="",verbose=FALSE)
   } else {
     filen <- pathtopath(rundir,paste0(addtitle,"fishery_dynamics.png"))

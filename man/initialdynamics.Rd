@@ -14,6 +14,7 @@ initialdynamics(
   result = NULL,
   legcex = 1.25,
   legloc = "topright",
+  title = "",
   console = TRUE,
   rundir = "",
   ...
@@ -38,6 +39,8 @@ default = NULL, which means nothing added to plot}
 \item{legcex}{default = 1.25 the font size for the legend if used}
 
 \item{legloc}{thge location of the legend if used. default = 'topright'}
+
+\item{title}{extra text added to the filename to aid identification}
 
 \item{console}{default = TRUE should the plot go the console or a file?}
 
