@@ -120,7 +120,7 @@ initialdynamics <- function(x,year='year',cpue='cpue',predCE='predCE',width=9,
   if (!is.null(result)) {
     result <- round(result,2)
     label <- c(paste0("B0     = ",result[1,]),paste0("totalLL = ",result[2,]),
-               paste0("cpueLL = ",result[3,]))
+               paste0("cpueLL = ",result[3,]),paste0("useLL   = ",result[5,]))
     legend(legloc,label,col=0,lwd=0,bty="n",cex=legcex)
   }
   if (!console) dev.off()
@@ -388,7 +388,7 @@ plotcompfit <- function(obscomp,predcomp,analysis="Composition_Fit",
              ylab="")
         lines(compcl,predcomp[,i],lwd=3,col=2)  
       } else {  plotnull() }    
-      mtext(label[i],side=1,outer=FALSE,line=-0.75,cex=topcex)
+      #mtext(label[i],side=1,outer=FALSE,line=-0.75,cex=topcex)
       mtext(label[i],side=3,outer=FALSE,cex=topcex,line=-1)
       mtext(trunc(sampsize[i]),side=3,outer=FALSE,line=-1,cex=topcex,adj=1)
     }
@@ -689,6 +689,67 @@ plotdynfish <- function(outfish,console=TRUE,addtitle="",prepplot=TRUE,
   }
   return(invisible(filen))
 } # end of plotdynfish
+
+#' @title plotjitter generates plots of single fishery variables from a jitter 
+#' 
+#' @description plotjitter enables each variable from the fishery data output 
+#'     from a jitter analysis to be plotted to illustrate any degree of 
+#'     variation. 
+#'
+#' @param mods the list of model outputs from each N trial
+#' @param pickvar the character name of the column to be plotted
+#' @param label the y-axis label of the plot, if empty = pickvar
+#' @param defplot should a single plot be generated of will it be part of a 
+#'     multipanel plot. If TRUE a single plot is produced.
+#' @param addvect a vector of values to be plotted on top of the N replicates.
+#'     default = NULL
+#' @param doplot should a plot be produced, default = TRUE. If FALSE only the 
+#'     extracted pickvar matrix is produced.
+#'
+#' @returns nothing but it does produce a plot
+#' @export
+#'
+#' @examples
+#' \dontrun{
+#'   mods <- models29init
+#'   N <- length(mods)
+#'   plotprep(width=10,height=8)
+#'   parset(plots=c(2,2),cex=1.0)
+#'   plotjitter(mods,pickvar="spawnB",label="Spawning Biomass t",defplot=FALSE)
+#'   plotjitter(mods,pickvar="deplete",label="Spawning Biomass Depletion",
+#'              defplot=FALSE)
+#'   plotjitter(mods,pickvar="twlPCE",label="Trawl CPUE",defplot=FALSE,
+#'              addvect=fish$twlCE)
+#'   plotjitter(mods,pickvar="recruit",label="Recruitment",defplot=FALSE)
+#' }
+plotjitter <- function(mods,pickvar,label,defplot=FALSE,addvect=NULL,
+                       doplot=TRUE) {
+  namescol <- colnames(mods[[1]]$fishery)
+  N <- length(mods)
+  if (pickvar %in% namescol) {
+    plotvar <- matrix(0,nrow=46,ncol=N,dimnames=list(1975:2020,1:N))
+    for (i in 1:N) {
+      plotvar[,i] <- mods[[i]]$fishery[,pickvar]
+    }
+    if (doplot) {
+      yrs <- as.numeric(rownames(plotvar))
+      maxy <- getmax(plotvar)
+      if (defplot) {
+        plotprep(width=9,height=5)
+        parset(cex=1.0)
+      }
+      if (nchar(label) == 0) label <- pickvar
+      plot(yrs,plotvar[,1],type="l",lwd=1,col=0,ylim=c(0,maxy),xlab="",yaxs="i",
+           ylab=label,panel.first=grid())
+      for (i in 1:N) lines(yrs,plotvar[,i],lwd=1,col="darkgrey")
+      if ((!is.null(addvect))) lines(yrs,addvect,lwd=2,col=2)
+    } # end of doplot if
+  } else {
+    warning("Selected pickvar in plotjitter invalid")
+    plotvar <- NULL
+  }
+  return(invisible(plotvar))
+} # end of plotjitter
 
 #' @title plotprops generates a 2x2 plot of the fishery properties
 #' 

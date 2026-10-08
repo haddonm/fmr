@@ -496,32 +496,34 @@ NULL
 #'  countLL
 "robustnessF"
 
-# resrtmb -----------------------------
+# resrtmb29 -----------------------------
 
-#' @title resrtmb contains robustness outputs for a 28P IA using rtmb
+#' @title resrtmb29 contains robustness outputs for a 29P IA using rtmb
 #'
-#' @description resrtmb is a 200 x 14 matrix containing the results of running
+#' @description resrtmb29 is a 200 x 14 matrix containing the results of running
 #'     a robustness test on the one fleet one region/stock fishery example
-#'     where 28 parameters are fitted to the data using the RTMB based function
-#'     IAdyntmbF. The parameters are  R0, q, selA50, deltaS, and 24 recruitment
+#'     where 29 parameters are fitted to the data using the RTMB based function
+#'     IAdyntmbF. The parameters are  R0, q, selA50, deltaS, and 25 recruitment
 #'     deviates. The IAdyntmbF function describes the stock dynamics using
 #'     instantaneous fishing mortality rates. It constitutes a 200 x 14 matrix
 #'     with columns iR0, iq, iselA50, ideltaS, -veLL, eR0, eq, eselA50, 
-#'     edeltaS, R0, q, selA50, deltaS, and Iters. All -veLL values are the same
-#'     but there is variation in all the other variables, though very small in
-#'     the estiamted parameters.
+#'     edeltaS, R0, q, selA50, deltaS, and Iters. All -veLL values are very
+#'     close in value with the maximum difference being 0.0002432351, there is
+#'     more variation in the other variables, though very small in
+#'     the estimated parameters.
 #'     
 #' @format A matrix of 14 columns and 200 rows  
 #'     
 #' @examples
-#'  data(resrtmb)
-#'  str(resrtmb)
-#'  range(resrtmb[,"-veLL"]) # should be 348.7424 348.7424 ie no difference
-#'  rge <- apply(resrtmb,2,range)
-#'  rge1 <- t(rbind(rge,rge[2,] - rge[1,]))
-#'  colnames(rge1) <- c("min","max","diff")
-#'  print(round(rge1,5))
-"resrtmb"
+#'  data(resrtmb29)
+#'  str(resrtmb29)
+#'  minLL <- resrtmb29[1,"-veLL"]   # should be 173.5056
+#'  maxLL <- resrtmb29[200,"-veLL"] # should be 173.5059
+#'  { cat("min  = ",minLL,"\n")
+#'    cat("max  = ",maxLL,"\n")
+#'    cat("diff  = ",maxLL-minLL,"\n")
+#'  }
+"resrtmb29"
 
 # simconst2------------------------
 

@@ -952,7 +952,7 @@ getvect <- function(varname,intxt,n) { # varname="sigR";intxt=datain;n=ncols
 #' str(globals,max.level=1)
 #' }
 initiateglobals <- function(consts,agesorsizes,selabove=0) { 
-  #  consts=simconst2; agesorsizes="ages";selabove=1
+  #  consts=simconst1; agesorsizes="sizes";selabove=10
   biology <- consts$biology
   fishbiol <- consts$fishbiol
   fishery <- consts$fishery
@@ -996,7 +996,7 @@ initiateglobals <- function(consts,agesorsizes,selabove=0) {
   grow <- array(data=0,dim=c(nages,numcol,nsex,nregion),
                 dimnames=list(ages,columns,sexes,regions))
   for (i in 1:nsex) {
-    for (j in 1:nregion) {
+    for (j in 1:nregion) { # i=1; j=1
       g <- ifelse(j == 1,i,i+j)
       grow[,"meanL",i,j] <- gpar[1,g] * (1 - exp(-gpar[2,g]*(ages - gpar[3,g])))
       grow[,"sdL",i,j] <- gpar[4,g]*grow[,"meanL",i,j]
@@ -1016,7 +1016,7 @@ initiateglobals <- function(consts,agesorsizes,selabove=0) {
       }
     }
   }
-  for (j in 1:nfleet) { # j = 2 # fleet includes fleet and sex and area
+  for (j in 1:nfleet) { # j = 1 # fleet includes fleet and sex and area
     propfish <- fishery[[j]]
     if (agesorsizes == "ages") {
        Sel[,j] <- calcsel(ageorlen=ages,fishprop=propfish,
@@ -1091,9 +1091,9 @@ initiateglobals <- function(consts,agesorsizes,selabove=0) {
 makedataset <- function(glb,out,randseed=NULL,catchSD=1e-08,cpueSD=1e-08,
                         getA=FALSE,sampnA=500,sampsdA=50,maxnA=1000,redvarA=50,
                         getL=FALSE,sampnL=800,sampsdL=50,maxnL=2000,redvarL=50) {
-  
-  # glb=glb;out=out;stock=stock;getA=TRUE; randseed=8838094
-  # catchSD=1e-08;cpueSD=0.2;sampnA=500;sampsdA=50;maxnA=1000;redvarA=50
+  # glb=glb;out=simout;getA=TRUE; randseed=1938896
+  # catchSD=1e-08;cpueSD=0.2;sampnA=300;sampsdA=50;maxnA=500;redvarA=50
+  # getL=TRUE; sampnL=500;sampsdL=50;maxnL=1000;redvarL=50
   if (!is.null(randseed)) set.seed(randseed)
   histC <- samplefishery(out,glb,errors=c(catchSD=catchSD,cpueSD=cpueSD))
   agecomp <- NULL
@@ -1108,10 +1108,32 @@ makedataset <- function(glb,out,randseed=NULL,catchSD=1e-08,cpueSD=1e-08,
       agecomp[[flt]] <- catchsamp[,which(colSums(catchsamp,na.rm=TRUE) > 0)]
     }
   } # end of get age-composition data
-
   sizecomp <- NULL
   if (getL) { # get length-composition data
-    
+    initsize <- makelist(glb$fleets)
+    nfleet <- glb$nfleet
+    for (flt in 1:nfleet) {
+      fltLC <- trunc(out$LCflt[,,flt])
+      catchsamp <- getfltcatchsamp(fltLC,glb$nyrs,n=sampnL,
+                                   randsd=sampsdL,maxsamp=maxnL,
+                                   sampvar=redvarL)
+      initsize[[flt]] <- catchsamp[,which(colSums(catchsamp,na.rm=TRUE) > 0)]
+    }
+    sizecomp <- initsize # now smooth the sampling across 3 size classes
+    numcol <- ncol(sizecomp[[1]])
+    sizerge <- range(glb$sizes)
+    start <- sizerge[1]+1
+    finish <- sizerge[2]-1    
+    for (flt in 1:nfleet) {
+      byflt <- initsize[[flt]]
+      for (pickcol in 1:numcol) {
+        vect <- newvect <- byflt[,pickcol]
+        for (i in start:finish) {
+          newvect[i] <- round(mean(vect[(i-1):(i+1)]))
+        }
+        sizecomp[[flt]][,pickcol] <- newvect
+      }
+    }
   } # end of get size composition
   databits <- list(histC=histC,agecomp=agecomp,sizecomp=sizecomp)
   return(invisible(databits))
