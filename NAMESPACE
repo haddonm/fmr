@@ -65,6 +65,7 @@ export(penalty0)
 export(penalty1)
 export(plotASPM)
 export(plotSBMdynamics)
+export(plotagesize)
 export(plotbiology)
 export(plotceASPM)
 export(plotcompfit)
@@ -93,11 +94,13 @@ export(templateSIM)
 export(unfished)
 export(unfishedstk)
 export(vB)
+export(vBSTM)
 export(vbfabens)
 export(writedatafile)
 importFrom(TMB,tmbprofile)
 importFrom(codeutils,
   countgtzero,
+  freqMean,
   getConst,
   getStr,
   getmax,
@@ -140,6 +143,7 @@ importFrom(graphics,
   title
 )
 importFrom(hplot,
+  RGB,
   parset,
   pickbound,
   plot1,

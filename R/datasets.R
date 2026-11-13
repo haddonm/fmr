@@ -228,8 +228,8 @@ NULL
 #'     function to describe the stock dynamics using instantaneous fishing
 #'     mortality rates.  It constitutes a 200 x 15 data.frame with columns
 #'     iR0, iq, iselA50, ideltaS, -veLL, eR0, eq, eselA50, edeltaS, R0, q,
-#'     selA50, deltaS, and Iters. Each nominal
-#'     parameter can be changed by up to 8 percent. The results are sorted 
+#'     selA50, deltaS, and Iters. Each nominal parameter 
+#'     can be changed by up to 8 percent. The results are sorted 
 #'     from the smallest to the largest -veLL.
 #'     
 #' @format A data.frame of 14 columns and 200 rows  
@@ -272,7 +272,7 @@ NULL
 #'    countLL <- table((round(IA46robust[,"-veLL"],i))) 
 #'    cat(i,length(countLL),"\n")
 #'  }
-#'  range(IA46robust[,"-veLL"]) # should be 544.5695 544.6291
+#'  range(IA46robust[,"-veLL"]) # should be 418.3398 418.4355
 "IA46robust"
 
 
@@ -508,7 +508,7 @@ NULL
 #'     instantaneous fishing mortality rates. It constitutes a 200 x 14 matrix
 #'     with columns iR0, iq, iselA50, ideltaS, -veLL, eR0, eq, eselA50, 
 #'     edeltaS, R0, q, selA50, deltaS, and Iters. All -veLL values are very
-#'     close in value with the maximum difference being 0.0002432351, there is
+#'     close in value with the maximum difference being 2.27077e-07, there is
 #'     more variation in the other variables, though very small in
 #'     the estimated parameters.
 #'     

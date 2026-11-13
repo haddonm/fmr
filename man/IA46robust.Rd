@@ -32,6 +32,6 @@ from the smallest to the largest -veLL.
    countLL <- table((round(IA46robust[,"-veLL"],i))) 
    cat(i,length(countLL),"\n")
  }
- range(IA46robust[,"-veLL"]) # should be 544.5695 544.6291
+ range(IA46robust[,"-veLL"]) # should be 418.3398 418.4355
 }
 \keyword{datasets}

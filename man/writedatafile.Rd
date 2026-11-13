@@ -52,6 +52,6 @@ composition data later.
 }
 \examples{
 print("see help for makedatafile, which uses writedatafile")
-# const=simconst3;glb=glb;histC=histC;rundir=rundir;filen=filen;
-# datatitle=datatitle;agecomp=agecomp;sizecomp=NULL;rndseed=NULL
+# const=simconst;glb=simglb;histC=databits$histC;rundir=rundir;filen=IAfilen;
+# datatitle=datatitle;agecomp=databits$agecomp;sizecomp=databits$sizecomp;rndseed=NULL
 }

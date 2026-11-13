@@ -19,7 +19,7 @@ deviates. The IAdyntmbF function describes the stock dynamics using
 instantaneous fishing mortality rates. It constitutes a 200 x 14 matrix
 with columns iR0, iq, iselA50, ideltaS, -veLL, eR0, eq, eselA50,
 edeltaS, R0, q, selA50, deltaS, and Iters. All -veLL values are very
-close in value with the maximum difference being 0.0002432351, there is
+close in value with the maximum difference being 2.27077e-07, there is
 more variation in the other variables, though very small in
 the estimated parameters.
 }

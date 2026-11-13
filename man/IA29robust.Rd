@@ -20,8 +20,8 @@ sel50, deltaS, and 41 recruitment deviates. This used the IAdynF
 function to describe the stock dynamics using instantaneous fishing
 mortality rates.  It constitutes a 200 x 15 data.frame with columns
 iR0, iq, iselA50, ideltaS, -veLL, eR0, eq, eselA50, edeltaS, R0, q,
-selA50, deltaS, and Iters. Each nominal
-parameter can be changed by up to 8 percent. The results are sorted
+selA50, deltaS, and Iters. Each nominal parameter
+can be changed by up to 8 percent. The results are sorted
 from the smallest to the largest -veLL.
 }
 \examples{

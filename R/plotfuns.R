@@ -127,6 +127,105 @@ initialdynamics <- function(x,year='year',cpue='cpue',predCE='predCE',width=9,
   return(invisible(filen))
 } # end of initialdynamics
 
+
+#' @title plotagesize size at age plot with length distributions at each age
+#' 
+#' @description plotagesize when working with the size distribution of fish at
+#'     different ages, it is often useful to be able to plot those distributions
+#'     agsint age to provide a visual impression of how those distributions
+#'     might change through time and exposure to fishing mortality. plotsizeage
+#'     provides the facility to make such plots. The actual sizes will be 
+#'     plotted against their respective ages with the size distribution for
+#'     each age being plotted proportionally. The mean length of each age-class 
+#'     is calculated using freqMean from codeutils. This is required when 
+#'     inputting a matrix of numbers-at-length for each age, but if inputting
+#'     a matrix of poroprtion, such as a transition matrix, the mean length
+#'     is still accurate, but the stdev fails and a warning is given. Hence we
+#'     use suppressWarnings, as, in this case it does not matter.
+#' 
+#' @param as a size distribution by age matrix, usually with more sizes than 
+#'     ages. The values should be positive numbers rather than proportions. The
+#'     columns hold the ages and the rows the sizes.
+#' @param filen if the plot is to be saved to a 'png' file then name it here.
+#' @param rundir full path to the directory in which the file is to be saved
+#' @param category if using makehtml to provide a webpage of outputs then give
+#'     the tab name or category here. If left empty, the default, then the file
+#'     will only be saved and not added to makehtml output.
+#' @param scale the vertical height of each distribution, default=0.9, which
+#'     implies that the peak of the predicted distribution for each age will 
+#'     reach 90% of the difference between two ages. If set to > 1.0, there 
+#'     will be overlap but rgb colours are used and overlaps will be clear.
+#' @param maxL default = NULL, which implies the maximum of the as matrix will
+#'     be used.
+#' @param fill default = FALSE, which implies that the distributions will be
+#'     left empty, if TRUE they will be filled with an rgb colour
+#' @param devnew should any previous plots be closed and a new one be started.
+#'     default = TRUE
+#' @param prepplot default = TRUE, should plotprep function be used?
+#'
+#' @returns nothing but it does add a plot either to the console or a file
+#' @export
+#'
+#' @examples
+#' print("wait on datasets")
+#' # syntax  plotagesize(as=agesize[,,1],scale=1.25)
+#' #  plotagesize(as=agesize[,,1], filen="example.png",rundir="C:/home/plots/")
+plotagesize <- function(as,filen="",rundir="",category="",scale=0.9,maxL=NULL,
+                        fill= FALSE,devnew=TRUE,prepplot=TRUE) {
+  #  filen="";rundir="";category="extra" ; as=G; scale=0.9; fill=FALSE;devnew=FALSE; maxL=NULL; prepplot=TRUE
+  ages <- as.numeric(colnames(as))
+  nages <- length(ages)
+  sizes <- as.numeric(rownames(as))
+  bounds <- range(sizes)
+  if (nchar(filen) > 0) {
+    filen <- pathtopath(rundir,filen)
+    caption <- paste0("Age vs Length with the expected distribution of lengths ",
+                      "for each age class. Mean length depicted by red lines. ",
+                      "All proportions > 0.001 plotted.")
+  }
+  meanL <- matrix(0,nrow=nages,ncol=2,dimnames=list(ages,c("Mean","StDev")))
+  lims <- matrix(0,nrow=nages,ncol=2,dimnames=list(ages,c("low","high")))
+  pas <- makelist(ages)
+  lens <- makelist(ages)
+  for (ageindex in 1:nages) { # ageindex=1
+    pickL <- which(as[,ageindex] > 0.0001)
+    uselens <- as.numeric(names(pickL))
+    meanL[ageindex,] <- suppressWarnings(freqMean(uselens,as[pickL,ageindex]))
+    lims[ageindex,] <- range(uselens)
+    tmp <- as[pickL,ageindex]/(sum(as[pickL,ageindex])) 
+    pas[[ageindex]] <- tmp/max(tmp)  # convert to a proportion
+    lens[[ageindex]] <- uselens
+  }
+  maxy <- maxL
+  if (is.null(maxL)) maxy <- getmax(lims)
+  if (prepplot){
+    plotprep(width=12,height=6,newdev=devnew,filename=filen,verbose=FALSE)
+  }
+  parset(cex=1.0)
+  plot(ages,seq(bounds[1],bounds[2],length=nages),type="l",col=0,xlab="Age",
+       ylab="Length",ylim=c(0,maxy),yaxs="i",panel.first=grid())
+  for (index in 1:nages) { # index = 3
+    age <- ages[index]
+    #  lines(c(age,age),lims[index,],lwd=1,col=2)  # draw the base line
+    xvals <- age + (scale * pas[[index]])
+    pickP <- which((xvals - age) > 0.001)
+    lines(c(age,xvals[pickP]),c(lens[[index]][pickP[1]],lens[[index]][pickP]),
+          lwd=2,col=4) 
+    lines(c(age,(age+scale)),c(meanL[index],meanL[index]),lwd=2,col=2)
+    if (fill) {
+      np <- length(pickP)
+      yvals <- c(lens[[index]][pickP[1]],lens[[index]][pickP],lens[[index]][pickP[np]])
+      polygon(x=c(age,xvals[pickP],age), #xvals[pickP[1]]),
+              y=yvals,col=RGB("red",alpha=100))
+    }
+  }
+  if ((nchar(filen) > 0) && (nchar(category) > 0)){
+    addplot(filen,rundir=rundir,category=category,caption=caption)
+  }
+  return(invisible(meanL))
+} # end of plotagesize
+
+
 #' @title plotASPM plots catch, CPUE, Spawning Biomass and Harvest Rate
 #' 
 #' @description plotASPM after running fitASPM the optimum parameters can be 
@@ -368,7 +467,7 @@ plotcompfit <- function(obscomp,predcomp,analysis="Composition_Fit",
   }
   plotprep(width=10,height=hgt,newdev=!console,filename=filen,cex=cex,
            verbose=FALSE)
-  parset(outmargin=c(1,2,1,1),margin=c(0.2,0.2,0,0))
+  parset(outmargin=c(1,2,1,1),margin=c(0.2,0.1,0,0))
   matfor <- matrix(c(1:(nr*nc)),nr,nc,byrow=TRUE)
   layout(matfor,heights=rep(1,(nr*nc)),TRUE)
   maxy <- getmax(c(obscomp,predcomp))
@@ -384,8 +483,13 @@ plotcompfit <- function(obscomp,predcomp,analysis="Composition_Fit",
   if (Nsamp > 1) {
     for (i in 2:Nsamp) {
       if (sampsize[i] > 0) {
-        plot(compcl,obscomp[,i],type="l",lwd=3,col=1,ylim=c(0,maxy),xaxt="n",
-             ylab="")
+        if ((i-1) %% nc == 0) {
+          plot(compcl,obscomp[,i],type="l",lwd=3,col=1,ylim=c(0,maxy),xaxt="n",
+               ylab="")
+        } else {
+          plot(compcl,obscomp[,i],type="l",lwd=3,col=1,ylim=c(0,maxy),xaxt="n",
+               ylab="",yaxt="n") # don't plot y axis values
+        }
         lines(compcl,predcomp[,i],lwd=3,col=2)  
       } else {  plotnull() }    
       #mtext(label[i],side=1,outer=FALSE,line=-0.75,cex=topcex)
@@ -394,7 +498,7 @@ plotcompfit <- function(obscomp,predcomp,analysis="Composition_Fit",
     }
   } 
   txtlabel <- paste0(ylabel,"  ",analysis)
-  mtext(text=txtlabel,side=2,outer=TRUE,cex=1.1,line=0.2)
+  mtext(text=txtlabel,side=2,outer=TRUE,cex=1.0,line=0.5)
   xtxtlabel <- paste0("Categories ",min(compcl)," - ",max(compcl))
   xtxtlabel <- paste0(xtxtlabel,"  Black lines = Observed Proportions")
   mtext(text=xtxtlabel,side=1,outer=TRUE,cex=1.1,line=-0.25)

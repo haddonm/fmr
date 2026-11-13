@@ -589,26 +589,37 @@ domedsel <- function(p,L) {
 #'   const2 <- readalldata(infile=paste0(rundir,"//Flt2Stock1.csv"))
 #'   str(const2)
 #' }
-readalldata <- function(infile="constants.csv") { #  infile=filen
-  #  infile=pathtopath(rundir,filen)
-  # infile=pathtopath(rundir,"test-age.csv")
+readalldata <- function(infile="constants.csv") { #  infile=IAfilen
+  #  infile=pathtopath(rundir,IAfilen)
   datain <- readLines(con = infile)
   ageflag <- (length(grep("AGECOMPOSITION",datain)) > 0)
+  sizeflag <- (length(grep("SIZECOMPOSITION",datain)) > 0)
   # structure------
   randseed <- getsingleNum("randseed",datain)
   set.seed(randseed)
   #lens <- getvect("LFstruct",datain,n=3)
-  age <- getvect("agestruct",datain,n=3)
- # lengths <- seq(lens[1],lens[2],lens[3])
-  ages <- seq(age[1],age[2],age[3]) 
-  maxage <- max(ages,na.rm=TRUE)
+  if (ageflag) {
+    age <- getvect("agestruct",datain,n=3)
+    ages <- seq(age[1],age[2],age[3]) 
+    maxage <- age[2]
+  } else {
+    ages <- NULL; maxage <- NULL
+  }
+  if (sizeflag) {
+    size <- getvect("sizestruct",datain,n=3)
+    sizes <- seq(size[1],size[2],size[3])
+    maxsize <- size[2]
+  } else {
+    sizes <- NULL
+    maxsize <- NULL
+  }
   nfleet <- getsingleNum("nfleet",datain)
   linenum <- grep("fleets",datain) # get fleetnames
   tmp <- removeEmpty(unlist(strsplit(datain[linenum],",",fixed=TRUE)))
   fleets <- tmp[2:length(tmp)]
   linenum <- grep("selecttype",datain) # get selectivity type by fleet
   tmp <- removeEmpty(unlist(strsplit(datain[linenum],",",fixed=TRUE)))
-  if (!ageflag) {
+  #if (!ageflag) {  # why !ageflag?
     seltype <- tmp[2:(nfleet+1)]   
     # fishery------
     selfleet <- paste0(fleets,"S")
@@ -625,7 +636,7 @@ readalldata <- function(infile="constants.csv") { #  infile=filen
                                  "selmax") 
       }
     }
-  }
+ # }
   # if (nsex == 1) {
   #   sexes <- c("c")
   # } else {
@@ -685,8 +696,7 @@ readalldata <- function(infile="constants.csv") { #  infile=filen
       yrage <- as.numeric(tmp)
       nyrs <- length(yrage)
       nages <- length(ages)
-
-      agesamp <- matrix(0,nrow=nages,ncol=nyrs,dimnames=list(0:(nages-1),yrage))
+      agesamp <- matrix(0,nrow=nages,ncol=nyrs,dimnames=list(ages,yrage))
       for (age in 1:nages) { # age=1
         linen <- linen + 1
         tmp <- removeEmpty(unlist(strsplit(datain[linen],split=",",fixed=TRUE)))
@@ -696,21 +706,32 @@ readalldata <- function(infile="constants.csv") { #  infile=filen
       linen <- linen + 1 # to point to the next fleets vector of years
     } # end of flt loop    
   } # end of reading agecomps, if present
-  if (ageflag) {
-    glb <- list(ages=ages,nages=length(ages),maxage=maxage,nyrs=nyrs,
-                startyr=startyr,endyr=endyr,fleets=fleets,nfleet=nfleet,
-                M=M,steep=steep,initdepl=initdepl,sigCE=sigCE,
-                sigR=biology["sigR",])  
-    ans <- list(biology=biology,glb=glb,fish=fish,outrmse=outrmse,
-                agecomp=agecomp)
-  } else {
-    glb <- list(ages=ages,nages=length(ages),maxage=maxage,nyrs=nyrs,
-                startyr=startyr,endyr=endyr,fleets=fleets,nfleet=nfleet,
-                selecttype=seltype,M=M,steep=steep,initdepl=initdepl,
-                sigCE=sigCE,sigR=biology["sigR",]) 
-    ans <- list(biology=biology,glb=glb,fish=fish,outrmse=outrmse,
-                fishery=fishery,agecomp=agecomp)
-  }
+  sizecomp <- NULL
+  if (sizeflag) {
+    linen <- grep("SIZECOMPOSITION", datain) + 1
+    sizecomp <- makelist(fleets)    
+    for (flt in 1:nfleet) { # flt=1  
+      tmp <- removeEmpty(unlist(strsplit(datain[linen],split=",",fixed=TRUE)))
+      yrsize <- as.numeric(tmp)
+      nyrs <- length(yrsize)
+      nsizes <- length(sizes)
+      sizesamp <- matrix(0,nrow=nsizes,ncol=nyrs,dimnames=list(sizes,yrsize))
+      for (size in 1:nsizes) { # size=1
+        linen <- linen + 1
+        tmp <- removeEmpty(unlist(strsplit(datain[linen],split=",",fixed=TRUE)))
+        sizesamp[size,] <- as.numeric(tmp)
+      }
+      sizecomp[[flt]] <- sizesamp
+      linen <- linen + 1 # to point to the next fleets vector of years
+    } # end of flt loop    
+  } # end of reading sizecomps, if present
+  glb <- list(ages=ages,nages=length(ages),maxage=maxage,sizes=sizes,
+              nsizes=length(sizes),maxsize=maxsize,nyrs=nyrs,
+              startyr=startyr,endyr=endyr,fleets=fleets,nfleet=nfleet,
+              M=M,steep=steep,initdepl=initdepl,sigCE=sigCE,
+              sigR=biology["sigR",])  
+  ans <- list(biology=biology,glb=glb,fish=fish,fishery=fishery,
+              outrmse=outrmse,agecomp=agecomp,sizecomp=sizecomp)
   return(ans)
 } # end of readalldata
 
@@ -952,7 +973,7 @@ getvect <- function(varname,intxt,n) { # varname="sigR";intxt=datain;n=ncols
 #' str(globals,max.level=1)
 #' }
 initiateglobals <- function(consts,agesorsizes,selabove=0) { 
-  #  consts=simconst1; agesorsizes="sizes";selabove=10
+  #  consts=simconst; agesorsizes="ages";selabove=1
   biology <- consts$biology
   fishbiol <- consts$fishbiol
   fishery <- consts$fishery
@@ -1934,11 +1955,15 @@ unfished <- function(glb) {   # glb <- globals
 #'
 #' @examples
 #' print("see help for makedatafile, which uses writedatafile")
-#' # const=simconst3;glb=glb;histC=histC;rundir=rundir;filen=filen;
-#' # datatitle=datatitle;agecomp=agecomp;sizecomp=NULL;rndseed=NULL
+#' # const=simconst;glb=simglb;histC=databits$histC;rundir=rundir;filen=IAfilen;
+#' # datatitle=datatitle;agecomp=databits$agecomp;sizecomp=databits$sizecomp;rndseed=NULL
 writedatafile <- function(const,glb,histC,rundir,filen,datatitle,
                           rndseed=NULL,agecomp=NULL,sizecomp=NULL,
                           verbose=FALSE) {
+  # const=simconst;glb=simglb;histC=databits$histC;rundir=rundir;filen=IAfilen;
+  # datatitle=datatitle;agecomp=databits$agecomp;sizecomp=databits$sizecomp;rndseed=NULL
+  # verbose=FALSE
+  
   filename <- pathtopath(rundir,filen)
   cat(datatitle,"  \n\n",file=filename,append=FALSE)
   if (is.null(rndseed)) {
@@ -1949,9 +1974,16 @@ writedatafile <- function(const,glb,histC,rundir,filen,datatitle,
   cat("#STRUCTURE,,, \n",file=filename,append=TRUE)
   cat("randseed,",newseed,", for repeatability \n",file=filename,append=TRUE)
   struct <- const$structure
-  ages <- struct$ages
-  strage <- paste0(c(ages[1],tail(ages,1),ages[2]-ages[1]),collapse=",")
-  cat("agestruct,",strage,", sequence for ages \n",file=filename,append=TRUE)
+  if (!is.null(agecomp)) {
+    ages <- struct$ages
+    strage <- paste0(c(ages[1],tail(ages,1),ages[2]-ages[1]),collapse=",")
+    cat("agestruct,",strage,", sequence for ages \n",file=filename,append=TRUE)
+  }
+  if (!is.null(sizecomp)) {
+    sizes <- struct$sizes
+    strsize <- paste0(c(sizes[1],tail(sizes,1),sizes[2]-sizes[1]),collapse=",")
+    cat("sizestruct,",strsize,", sequence for sizes \n",file=filename,append=TRUE)
+  }
   cat("nfleet,",glb$nfleet,",,, fleetnumbers \n",file=filename,append=TRUE)
   flts <- paste0(glb$fleets,collapse=",")
   cat("fleets,",flts,",  \n",file=filename,append=TRUE)
@@ -2002,8 +2034,8 @@ writedatafile <- function(const,glb,histC,rundir,filen,datatitle,
       yrnames <- paste0(as.numeric(colnames(agesamp)),collapse=",")
       numrow <- nrow(agesamp)
       cat(yrnames,", \n",file=filename, append=TRUE)
-      for (ages in 1:numrow) {
-        counts <- paste0(agesamp[ages,],collapse=",")
+      for (age in 1:numrow) {
+        counts <- paste0(agesamp[age,],collapse=",")
         cat(counts,", \n",file=filename, append=TRUE)
       }
     }
@@ -2011,7 +2043,19 @@ writedatafile <- function(const,glb,histC,rundir,filen,datatitle,
     if (verbose) cat("no age-composition data available \n")
   }
   if (!is.null(sizecomp)) {
-    
+    cat("\n\n",file=filename, append=TRUE)
+    cat("#SIZECOMPOSITION rows=sizes cols=years,, \n",file=filename, append=TRUE)
+    nfleet <- glb$nfleet
+    for (flt in 1:nfleet) { # flt = 1
+      sizesamp <- sizecomp[[flt]]
+      yrnames <- paste0(as.numeric(colnames(sizesamp)),collapse=",")
+      numrow <- nrow(sizesamp)
+      cat(yrnames,", \n",file=filename, append=TRUE)
+      for (size in 1:numrow) {
+        counts <- paste0(sizesamp[size,],collapse=",")
+        cat(counts,", \n",file=filename, append=TRUE)
+      }
+    }
   }else {
     if (verbose) cat("no size-composition data available \n")
   }

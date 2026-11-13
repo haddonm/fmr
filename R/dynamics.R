@@ -157,7 +157,7 @@ IAdynF <- function(pars,fish,glb,props,agecomp,waa="waa",maa="maa",fleet="twl",
   yrs <- fish[,year]
   nyrs1 <- length(yrs)
   nyrs <- nyrs1 - 1
-  recyrs <- glb$recyrs
+  recyrs <- glb$recyrs  # identify which years include recdevs
   recdevs <- rep(1,nyrs1)  # include non-estimated recdevs = 1
   pickrecyr <- match(recyrs,yrs)
   recdevs[pickrecyr] <- recds
@@ -165,8 +165,11 @@ IAdynF <- function(pars,fish,glb,props,agecomp,waa="waa",maa="maa",fleet="twl",
   nages <- glb$nages
   maxage <- glb$maxage
   ageC <- agecomp[[fleet]]
-  ageC <- ageC[,match(recyrs,as.numeric(colnames(ageC)))]
-  totobs <- colSums(ageC,na.rm=TRUE)
+  ageyrs <- as.numeric(colnames(ageC))
+  pickageyr <- match(ageyrs,yrs)
+  nageyr <- length(ageyrs)
+ # ageC <- ageC[,match(recyrs,as.numeric(colnames(ageC)))]
+  totobs <- colSums(ageC,na.rm=TRUE) # prepare for multi-nomial likelihoods
   pageobs <- prop.table(ageC,2)
   sel <- 1/(1+exp(-log(19.0)*(ages-selA)/(selD)))
   Nt <- matrix(0,nrow=nages,ncol=nyrs1,dimnames=list(0:maxage,0:nyrs))
@@ -212,14 +215,13 @@ IAdynF <- function(pars,fish,glb,props,agecomp,waa="waa",maa="maa",fleet="twl",
   predCE[2:nyrs1] <- exploitB[2:nyrs1] * avq # no catch no cpue
   cpueLL <- -sum(dnorm(log(cpue[pickCE]),log(predCE[pickCE]),
                        sigCE,log=TRUE)) 
-  reccatN <- catchN[,pickrecyr]
-  totN <- colSums(reccatN)
-  pcatchN <- prop.table(reccatN,2)
-  nrecdev <- glb$nrecdev
+  catN <- catchN[,pickageyr]
+#  totN <- colSums(catN)
+  pcatchN <- prop.table(catN,2)
   compwt <- glb$compwt
   catwt <- glb$catwt
   ageLL <- 0
-  for (yr in 1:nrecdev) {
+  for (yr in 1:nageyr) {
     ageLL <- ageLL - ((sum(ageC[,yr] * log(pcatchN[,yr]+1e-07),na.rm=TRUE)))
   }  # totObs[yr]
   negLL <- cpueLL + (ageLL * compwt) + (penaltyC * catwt) + penaltyR
@@ -290,3 +292,50 @@ plottmbprof <- function(inmod,parname,CI=0.95,adjust=0.05,digits=3,trans=FALSE) 
   return(invisible(CI))
 } # end of plottmbprof
 
+#' @title vBSTM generates a size transition matrix of sizes by ages
+#' 
+#' @description vBSTM is used to generate a size transition matrix to be used
+#'     in an age-structured model where the size distribution for each year is
+#'     determined by multiplying the age-structured by a size x age matrix. To
+#'     obtain the numbers at size at age then one uses an age x age matrix in 
+#'     which the diagonal is populated by the numbers at age. If this is 
+#'     multiplied by the STM then a sizes x ages matrix is produced that 
+#'     provides the expected size distribution by age. This would be required 
+#'     if using selectivity by size rather than by age.
+#'
+#' @param gpar the named von Bertalanffy growth parameters. they should be 
+#'     named linf, k, t0, growcv, where the growcv is used to define the std
+#'     dev fo the growth.
+#' @param sizes the full range of sizes to be used. If the proportion of the
+#'     distribution in the final size-age class is greater than 0.0001 then a 
+#'     warning is given that the the size classes used may not be wide enough.
+#' @param ages the full range of ages used 
+#'
+#' @returns a sizes x ages growth transition matrix
+#' @export
+#'
+#' @examples
+#'  gpar <- c(Linf=56.0, K=0.2, t0=-0.1, growcv=0.075)
+#'  sizes <- 0:72
+#'  ages <- 0:30
+#'  G <- vBSTM(gpar=gpar,sizes=sizes,ages=ages)
+#'  as=(G*10000.0)
+#'  print(cbind(round(G[1:34,1:3],5),40:73,round(G[40:73,29:31],5),
+#'              round(as[40:73,29:31],5)))
+vBSTM <- function(gpar,sizes,ages) {  # gpar=gpar; ages=glb$ages; sizes=0:70
+  names(gpar) <- tolower(names(gpar))
+  nages <- length(ages)
+  nsizes <- length(sizes)
+  laa <- gpar[1] * (1 - exp(-gpar[2]*(ages - gpar[3])))
+  sdA <- gpar["growcv"] * laa
+  G <- matrix(0,nrow=nsizes,ncol=nages,dimnames=list(sizes,ages))
+  for (age in 1:nages) { # age=nages
+    tmp <- pnorm(sizes,mean=laa[age],sd=sdA[age])
+    G[1,age] <- tmp[1]
+    G[2:nsizes,age] <- tmp[2:nsizes] - tmp[1:(nsizes-1)]
+    G[,age] <- G[,age]/sum(G[,age],na.rm=TRUE)  # cols will sum = 1
+  }
+  if (G[nsizes,nages] > 0.0001) 
+    warning(cat("Maximum size may not be big enough, final cell > 1e-04 \n"))
+  return(invisible(G))
+} # end of vBSTM
