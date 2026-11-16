@@ -11,8 +11,9 @@ makeprops(const, selabove = 1)
 
 \item{selabove}{a vector of ages or sizes that are never selected. Identify
 their indices in the selectivity vector here. eg. if age 0 is never
-selected then set zerocomps = 1, if ages 1-2 then zerocomps = c(1,2).
-This is only used if there are no age-composition data.}
+selected then set selabove = 1, if ages 0-1 then selabove = c(1,2). These
+sre the indices of the ages to be avoided. This is only used if there
+are age-composition data.}
 }
 \value{
 a matrix of biological and selectivity properties

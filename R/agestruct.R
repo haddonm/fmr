@@ -1173,8 +1173,9 @@ makedataset <- function(glb,out,randseed=NULL,catchSD=1e-08,cpueSD=1e-08,
 #' @param const a structured data file in the format defined by template2F1S
 #' @param selabove a vector of ages or sizes that are never selected. Identify 
 #'     their indices in the selectivity vector here. eg. if age 0 is never 
-#'     selected then set zerocomps = 1, if ages 1-2 then zerocomps = c(1,2). 
-#'     This is only used if there are no age-composition data.
+#'     selected then set selabove = 1, if ages 0-1 then selabove = c(1,2). These
+#'     sre the indices of the ages to be avoided. This is only used if there 
+#'     are age-composition data.
 #'     
 #' @seealso{
 #'   \link{template2F1S}, \link{calcsel},
